@@ -27,6 +27,9 @@ export class Player {
   @Column({ name: "games_played", type: "int", default: 0 })
   gamesPlayed!: number;
 
+  @Column({ name: "avatar_url", type: "text", nullable: true })
+  avatarUrl!: string | null;
+
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt!: Date;
 }

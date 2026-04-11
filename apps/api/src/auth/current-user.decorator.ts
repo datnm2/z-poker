@@ -4,6 +4,7 @@ export interface AuthedUser {
   userId: string; // Clerk user ID
   email: string;
   domain: string; // split_part(email, '@', 2)
+  avatarUrl?: string;
 }
 
 export const CurrentUser = createParamDecorator(

@@ -5,6 +5,7 @@ export interface Player {
   domain: string;
   elo: number;
   gamesPlayed: number;
+  avatarUrl: string | null;
   createdAt: string;
 }
 

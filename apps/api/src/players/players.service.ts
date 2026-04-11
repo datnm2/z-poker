@@ -13,6 +13,7 @@ export interface PlayerDto {
   domain: string;
   elo: number;
   gamesPlayed: number;
+  avatarUrl: string | null;
   createdAt: string;
 }
 
@@ -42,6 +43,7 @@ function toDto(p: Player): PlayerDto {
     domain: p.domain,
     elo: p.elo,
     gamesPlayed: p.gamesPlayed,
+    avatarUrl: p.avatarUrl,
     createdAt: p.createdAt.toISOString(),
   };
 }
@@ -59,13 +61,21 @@ export class PlayersService {
 
   async findOrCreateMe(user: AuthedUser, displayName: string): Promise<PlayerDto> {
     const existing = await this.players.findOne({ where: { id: user.userId } });
-    if (existing) return toDto(existing);
+    if (existing) {
+      // Keep avatar in sync on every login
+      if (user.avatarUrl && existing.avatarUrl !== user.avatarUrl) {
+        await this.players.update({ id: user.userId }, { avatarUrl: user.avatarUrl });
+        existing.avatarUrl = user.avatarUrl;
+      }
+      return toDto(existing);
+    }
 
     const created = this.players.create({
       id: user.userId,
       email: user.email,
       name: displayName || user.email,
       domain: user.domain,
+      avatarUrl: user.avatarUrl ?? null,
     });
     await this.players.save(created);
     return toDto(created);

@@ -64,7 +64,7 @@ export class ClerkGuard implements CanActivate {
     }
 
     const domain = email.split("@")[1] ?? "";
-    const authedUser: AuthedUser = { userId, email, domain };
+    const authedUser: AuthedUser = { userId, email, domain, avatarUrl: user.imageUrl || undefined };
     request.user = authedUser;
     return true;
   }
