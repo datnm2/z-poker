@@ -96,7 +96,9 @@ export function PlayerProfile({
             </div>
           );
         })()}
-        <p className="mt-1 text-sm text-muted">{player.email}</p>
+        <p className="mt-1 text-sm text-muted">
+          {player.email.replace(/^(.{2})[^@]+(@.+)$/, "$1***$2")}
+        </p>
       </div>
 
       {/* Stats */}
