@@ -78,8 +78,12 @@ export function PlayerProfile({
     <div>
       {/* Player info */}
       <div className="text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent text-2xl font-bold text-slate-900">
-          {player.name.charAt(0).toUpperCase()}
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent text-2xl font-bold text-slate-900 overflow-hidden">
+          {player.avatarUrl ? (
+            <img src={player.avatarUrl} alt="" className="h-full w-full object-cover" />
+          ) : (
+            player.name.charAt(0).toUpperCase()
+          )}
         </div>
         <h1 className="mt-3 text-xl font-bold">{player.name}</h1>
         {(() => {

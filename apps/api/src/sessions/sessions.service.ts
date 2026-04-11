@@ -37,7 +37,7 @@ export interface SessionPlayerDto {
   eloBefore: number | null;
   eloAfter: number | null;
   updatedAt: string;
-  player: { id: string; name: string; elo: number };
+  player: { id: string; name: string; elo: number; avatarUrl: string | null };
 }
 
 export interface SessionDetailDto {
@@ -202,6 +202,7 @@ export class SessionsService {
         'p.id AS "pId"',
         'p.name AS "pName"',
         'p.elo AS "pElo"',
+        'p.avatar_url AS "pAvatarUrl"',
       ])
       .where("sp.session_id = :sessionId", { sessionId })
       .orderBy("sp.chips_end", "DESC", "NULLS LAST")
@@ -217,6 +218,7 @@ export class SessionsService {
         pId: string;
         pName: string;
         pElo: number;
+        pAvatarUrl: string | null;
       }>();
 
     return {
@@ -229,7 +231,7 @@ export class SessionsService {
         eloBefore: r.eloBefore,
         eloAfter: r.eloAfter,
         updatedAt: r.updatedAt.toISOString(),
-        player: { id: r.pId, name: r.pName, elo: Number(r.pElo) },
+        player: { id: r.pId, name: r.pName, elo: Number(r.pElo), avatarUrl: r.pAvatarUrl },
       })),
     };
   }
@@ -289,7 +291,7 @@ export class SessionsService {
       eloBefore: saved.eloBefore,
       eloAfter: saved.eloAfter,
       updatedAt: saved.updatedAt.toISOString(),
-      player: { id: target.id, name: target.name, elo: target.elo },
+      player: { id: target.id, name: target.name, elo: target.elo, avatarUrl: target.avatarUrl },
     };
     this.events.publish({
       type: "session.player_joined",

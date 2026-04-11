@@ -291,9 +291,13 @@ function LeaderboardContent() {
                 i === 0
                   ? "bg-accent text-slate-900"
                   : "bg-slate-700 text-slate-300"
-              }`}
+              } overflow-hidden`}
             >
-              {i + 1}
+              {p.avatarUrl ? (
+                <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                i + 1
+              )}
             </span>
             <div className="flex-1 min-w-0">
               <div className="truncate font-medium">{p.name}</div>
