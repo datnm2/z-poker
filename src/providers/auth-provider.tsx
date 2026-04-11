@@ -65,30 +65,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    // Safety timeout — if auth never resolves, stop loading after 5s
-    const timeout = setTimeout(() => setIsLoading(false), 5000);
+    let cancelled = false;
+
+    const handleSession = async (s: Session | null) => {
+      if (cancelled) return;
+      setSession(s);
+      try {
+        if (s?.user) {
+          await loadPlayer(
+            s.user.id,
+            s.user.email!,
+            s.user.user_metadata?.full_name || s.user.email!
+          );
+        } else {
+          setPlayer(null);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data }) => handleSession(data.session));
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, s) => {
-      setSession(s);
-      if (s?.user) {
-        await loadPlayer(
-          s.user.id,
-          s.user.email!,
-          s.user.user_metadata?.full_name || s.user.email!
-        );
-      } else {
-        setPlayer(null);
-      }
-      if (event === "INITIAL_SESSION") {
-        clearTimeout(timeout);
-        setIsLoading(false);
-      }
+    } = supabase.auth.onAuthStateChange((_event, s) => {
+      handleSession(s);
     });
 
     return () => {
-      clearTimeout(timeout);
+      cancelled = true;
       subscription.unsubscribe();
     };
   }, [supabase, loadPlayer]);
