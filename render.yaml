@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: z-poker-api
+    runtime: node
+    rootDir: .
+    plan: free
+    buildCommand: yarn install --frozen-lockfile && yarn workspace api build
+    startCommand: yarn workspace api start:prod
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: WEB_ORIGIN
+        sync: false
+      - key: PORT
+        value: "10000"
