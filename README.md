@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Z-Poker
 
-## Getting Started
+Office poker ELO tracker. Monorepo with a Next.js web app and a NestJS API.
 
-First, run the development server:
+## Structure
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+apps/
+  api/     NestJS + TypeORM + PostgreSQL
+  web/     Next.js + Tailwind CSS + Clerk auth
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Prerequisites
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Node.js 20+
+- Yarn v1
+- Docker (for local Postgres)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup
 
-## Learn More
+```bash
+yarn install
+```
 
-To learn more about Next.js, take a look at the following resources:
+### API (`apps/api`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Copy and fill in env vars:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+cp apps/api/env.example apps/api/.env
+```
 
-## Deploy on Vercel
+Required vars:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Key | Description |
+|-----|-------------|
+| `DATABASE_URL` | Postgres connection string |
+| `CLERK_SECRET_KEY` | From Clerk dashboard |
+| `CLERK_PUBLISHABLE_KEY` | From Clerk dashboard |
+| `WEB_ORIGIN` | Allowed CORS origin (e.g. `http://localhost:3030`) |
+| `PORT` | API port (default `3031`) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Run migrations then start:
+
+```bash
+yarn workspace api migration:run
+yarn dev:api
+```
+
+### Web (`apps/web`)
+
+Copy and fill in env vars:
+
+```bash
+cp apps/web/env.local.example apps/web/.env.local
+```
+
+Required vars:
+
+| Key | Description |
+|-----|-------------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | From Clerk dashboard |
+| `CLERK_SECRET_KEY` | From Clerk dashboard |
+| `NEXT_PUBLIC_API_URL` | API base URL (e.g. `http://localhost:3031`) |
+
+Start:
+
+```bash
+yarn dev:web
+```
+
+## Dev scripts (root)
+
+| Script | Description |
+|--------|-------------|
+| `yarn dev:api` | Start API in watch mode |
+| `yarn dev:web` | Start web in dev mode |
+| `yarn build:api` | Build API |
+| `yarn build:web` | Build web |
+
+## Deployment
+
+- **Web** → Vercel. Root directory: `apps/web`. Build command: `cd ../.. && yarn workspace web build`.
+- **API** → Render. Uses `render.yaml` at repo root.

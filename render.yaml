@@ -5,7 +5,7 @@ services:
     rootDir: .
     plan: free
     buildCommand: yarn install --frozen-lockfile && yarn workspace api build
-    startCommand: yarn workspace api start:prod
+    startCommand: node apps/api/dist/main.js
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION
