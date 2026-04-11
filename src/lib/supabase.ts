@@ -1,15 +1,21 @@
-import 'react-native-url-polyfill/auto';
-import { createClient } from '@supabase/supabase-js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
+let client: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-  },
-});
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createClient(): SupabaseClient<any> {
+  if (client) return client;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://placeholder.supabase.co";
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "placeholder";
+
+  client = createSupabaseClient(url, key, {
+    auth: {
+      flowType: "pkce",
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  });
+
+  return client;
+}

@@ -28,3 +28,7 @@ export interface SessionPlayer {
   elo_after: number | null;
   updated_at: string;
 }
+
+export interface SessionPlayerWithPlayer extends SessionPlayer {
+  player: Player;
+}
