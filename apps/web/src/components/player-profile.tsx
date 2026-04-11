@@ -18,6 +18,7 @@ interface SessionRecord {
     playedDate: string;
     buyIn: number;
     isLocked: boolean;
+    lockedAt: string | null;
   };
 }
 
@@ -174,6 +175,11 @@ export function PlayerProfile({
                   <div>
                     <div className="text-sm font-medium">
                       {s.session.playedDate}
+                      {s.session.lockedAt && (
+                        <span className="ml-1.5 text-xs font-normal text-muted">
+                          {new Date(s.session.lockedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-muted">
                       {t("session.buyIn")}: {s.session.buyIn}

@@ -138,13 +138,13 @@ export const vi = {
     "Sau mỗi phiên, Z-Poker so sánh Elo hiện tại của bạn với Elo trung bình của tất cả mọi người trong bàn. Thành tích của bạn được đo bằng độ lệch giữa số chip cuối cùng và số chip buy-in. Kết thúc trên buy-in là kết quả tích cực, dưới buy-in là tiêu cực — chip lệch càng nhiều thì điểm thay đổi càng lớn.",
   "guide.elo.kfactor.title": "Hệ số K",
   "guide.elo.kfactor.body":
-    "Z-Poker dùng K=64. Elo có thể thay đổi tối đa ±64 điểm mỗi phiên, bất kể có bao nhiêu người chơi. Thắng một nhóm mạnh sẽ được nhiều điểm hơn thắng nhóm yếu.",
+    "Z-Poker dùng K=100. Elo có thể thay đổi tối đa ±100 điểm mỗi phiên, bất kể có bao nhiêu người chơi. Thắng một nhóm mạnh sẽ được nhiều điểm hơn thắng nhóm yếu.",
   "guide.elo.formula.title": "Công thức",
   "guide.elo.formula.body":
     "Điểm kỳ vọng: 1 / (1 + 10^((elo_trung_bình − elo_bạn) / 400)), với elo_trung_bình là Elo trung bình của cả bàn. Điểm thực tế: 0.5 + 0.5 × (chip_cuối − buy_in) / (buy_in × (N − 1)), với N là số người chơi. Thay đổi Elo = K × (thực_tế − kỳ_vọng).",
   "guide.elo.example.title": "Ví dụ",
   "guide.elo.example.body":
-    "Phiên 4 người, buy-in 1000. Elo bạn 1200, trung bình bàn 1350, bạn kết thúc với 1800 chip. Kỳ vọng ≈ 0.30. Thực tế = 0.5 + 0.5 × (800 / 3000) ≈ 0.633. Thay đổi = round(64 × (0.633 − 0.30)) ≈ +21 điểm.",
+    "Phiên 4 người, buy-in 1000. Elo bạn 1200, trung bình bàn 1350, bạn kết thúc với 1800 chip. Kỳ vọng ≈ 0.30. Thực tế = 0.5 + 0.5 × (800 / 3000) ≈ 0.633. Thay đổi = round(100 × (0.633 − 0.30)) ≈ +33 điểm.",
 
   "guide.strategy.title": "Chiến thuật tăng Elo",
   "guide.strategy.intro":
@@ -199,13 +199,18 @@ export const vi = {
   "guide.poker101.hand10.body":
     "Không có tổ hợp nào. Lá bài cao nhất tính. Vẫn có thể thắng nếu đối thủ cũng miss — chú ý đọc bluff.",
 
+  "guide.elo.tiers.title": "Bảng Hạng",
+
   // Elo Tiers (long-term)
-  "rank.godlike": "Thần Bài",
-  "rank.shark": "Cá Mập",
-  "rank.veteran": "Lão Làng",
-  "rank.grinder": "Tay Cứng",
-  "rank.rookie": "Tân Binh",
-  "rank.fish": "Cá Non",
+  "rank.godlike": "Thần Bài - Vua Trò Chơi",
+  "rank.legend": "Sát Thủ Huyền Thoại",
+  "rank.shark": "Cá Mập, Đừng Đụng Vào",
+  "rank.veteran": "Tay To",
+  "rank.diamond": "Tay Cứng Cựa",
+  "rank.grinder": "Tay Biết Chơi Đấy",
+  "rank.rookie": "Tay Mới",
+  "rank.gambler": "Đầu Nóng",
+  "rank.fish": "Cá Non Và Xanh",
 
   // Session Titles (short-term)
   "game.dominator": "Bá Chủ",

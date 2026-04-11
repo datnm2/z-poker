@@ -5,11 +5,16 @@ import { useI18n } from "@/providers/i18n-provider";
 import { useAuth } from "@/providers/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ELO_TIERS } from "@/lib/ranks";
 import type { TranslationKey } from "@/i18n/translations";
+
+type SectionItem =
+  | { titleKey: TranslationKey; bodyKey: TranslationKey; tiers?: undefined }
+  | { tiers: true; titleKey: TranslationKey; bodyKey?: undefined };
 
 type Section = {
   titleKey: TranslationKey;
-  items: { titleKey: TranslationKey; bodyKey: TranslationKey }[];
+  items: SectionItem[];
   introKey?: TranslationKey;
 };
 
@@ -71,6 +76,7 @@ const sections: Section[] = [
     introKey: "guide.elo.intro",
     items: [
       { titleKey: "guide.elo.starting.title", bodyKey: "guide.elo.starting.body" },
+      { tiers: true, titleKey: "guide.elo.tiers.title" },
       { titleKey: "guide.elo.howWorks.title", bodyKey: "guide.elo.howWorks.body" },
       { titleKey: "guide.elo.kfactor.title", bodyKey: "guide.elo.kfactor.body" },
       { titleKey: "guide.elo.formula.title", bodyKey: "guide.elo.formula.body" },
@@ -162,19 +168,36 @@ function GuideContent() {
               </p>
             )}
             <div className="mt-4 space-y-3">
-              {section.items.map((item) => (
-                <div
-                  key={item.titleKey}
-                  className="rounded-xl border border-card-border bg-card p-4"
-                >
-                  <h3 className="font-semibold text-foreground">
-                    {t(item.titleKey)}
-                  </h3>
-                  <p className="mt-1 text-sm leading-relaxed text-muted">
-                    {t(item.bodyKey)}
-                  </p>
-                </div>
-              ))}
+              {section.items.map((item) =>
+                item.tiers ? (
+                  <div key="tiers" className="rounded-xl border border-card-border bg-card p-4">
+                    <h3 className="font-semibold text-foreground mb-3">{t(item.titleKey)}</h3>
+                    <div className="space-y-2">
+                      {ELO_TIERS.map((tier) => (
+                        <div key={tier.key} className="flex items-center gap-3">
+                          <span className={`flex h-6 w-6 items-center justify-center text-base`}>{tier.icon}</span>
+                          <span className={`text-sm font-semibold ${tier.colorClass} min-w-[120px]`}>{t(tier.key)}</span>
+                          <span className="text-xs text-muted">
+                            {tier.minElo === -Infinity ? `< ${ELO_TIERS[ELO_TIERS.length - 2]?.minElo ?? 1060}` : `${tier.minElo}+`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    key={item.titleKey}
+                    className="rounded-xl border border-card-border bg-card p-4"
+                  >
+                    <h3 className="font-semibold text-foreground">
+                      {t(item.titleKey)}
+                    </h3>
+                    <p className="mt-1 text-sm leading-relaxed text-muted">
+                      {t(item.bodyKey)}
+                    </p>
+                  </div>
+                )
+              )}
             </div>
           </section>
         ))}

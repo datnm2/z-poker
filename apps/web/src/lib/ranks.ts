@@ -9,12 +9,15 @@ export interface EloTier {
 }
 
 export const ELO_TIERS: EloTier[] = [
-  { key: "rank.godlike", icon: "👑", colorClass: "text-purple-400", bgClass: "bg-purple-400/15", minElo: 1600 },
-  { key: "rank.shark", icon: "🦈", colorClass: "text-cyan-400", bgClass: "bg-cyan-400/15", minElo: 1450 },
-  { key: "rank.veteran", icon: "⚡", colorClass: "text-green-400", bgClass: "bg-green-400/15", minElo: 1350 },
-  { key: "rank.grinder", icon: "🎯", colorClass: "text-yellow-400", bgClass: "bg-yellow-400/15", minElo: 1250 },
-  { key: "rank.rookie", icon: "🐣", colorClass: "text-orange-400", bgClass: "bg-orange-400/15", minElo: 1150 },
-  { key: "rank.fish", icon: "🐟", colorClass: "text-red-400", bgClass: "bg-red-400/15", minElo: -Infinity },
+  { key: "rank.godlike", icon: "🌟", colorClass: "text-purple-400",  bgClass: "bg-purple-400/15",  minElo: 1600 },
+  { key: "rank.legend",  icon: "💀", colorClass: "text-blue-400",   bgClass: "bg-blue-400/15",   minElo: 1490 },
+  { key: "rank.shark",   icon: "🦈", colorClass: "text-cyan-400",   bgClass: "bg-cyan-400/15",   minElo: 1420 },
+  { key: "rank.veteran", icon: "💰", colorClass: "text-green-400",  bgClass: "bg-green-400/15",  minElo: 1340 },
+  { key: "rank.diamond", icon: "🎯", colorClass: "text-sky-400",    bgClass: "bg-sky-400/15",    minElo: 1270 },
+  { key: "rank.grinder", icon: "⚙️", colorClass: "text-yellow-400", bgClass: "bg-yellow-400/15", minElo: 1200 },
+  { key: "rank.rookie",  icon: "🃏", colorClass: "text-orange-400", bgClass: "bg-orange-400/15", minElo: 1130 },
+  { key: "rank.gambler", icon: "🌡️", colorClass: "text-pink-400",   bgClass: "bg-pink-400/15",   minElo: 1060 },
+  { key: "rank.fish",    icon: "🐟", colorClass: "text-red-400",    bgClass: "bg-red-400/15",    minElo: -Infinity },
 ];
 
 export function getEloTier(elo: number): EloTier {

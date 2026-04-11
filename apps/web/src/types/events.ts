@@ -23,7 +23,7 @@ export interface SessionPlayerWithPlayer {
   eloBefore: number | null;
   eloAfter: number | null;
   updatedAt: string;
-  player: { id: string; name: string; elo: number };
+  player: { id: string; name: string; elo: number; avatarUrl: string | null };
 }
 
 export type SessionEvent =

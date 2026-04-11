@@ -138,13 +138,13 @@ export const en = {
     "After each session, Z-Poker compares your current Elo against the average Elo of everyone at the table. Your performance is measured by how far your final chip count is from the buy-in. Finishing above buy-in is a positive result, below buy-in is negative — the bigger the chip delta, the bigger the score.",
   "guide.elo.kfactor.title": "K-factor",
   "guide.elo.kfactor.body":
-    "Z-Poker uses K=64. The maximum Elo change per session is ±64 points, regardless of how many players are at the table. Beating a stronger group gives you more points than beating a weaker one.",
+    "Z-Poker uses K=100. The maximum Elo change per session is ±100 points, regardless of how many players are at the table. Beating a stronger group gives you more points than beating a weaker one.",
   "guide.elo.formula.title": "The formula",
   "guide.elo.formula.body":
     "Expected score: 1 / (1 + 10^((avg_elo − your_elo) / 400)), where avg_elo is the average Elo of all players in the session. Actual score: 0.5 + 0.5 × (chips_end − buy_in) / (buy_in × (N − 1)), where N is the number of players. Rating change: K × (actual − expected).",
   "guide.elo.example.title": "Example",
   "guide.elo.example.body":
-    "4-player session, buy-in 1000. Your Elo is 1200, the group average is 1350, and you finish with 1800 chips. Expected ≈ 0.30. Actual = 0.5 + 0.5 × (800 / 3000) ≈ 0.633. Change = round(64 × (0.633 − 0.30)) ≈ +21 points.",
+    "4-player session, buy-in 1000. Your Elo is 1200, the group average is 1350, and you finish with 1800 chips. Expected ≈ 0.30. Actual = 0.5 + 0.5 × (800 / 3000) ≈ 0.633. Change = round(100 × (0.633 − 0.30)) ≈ +33 points.",
 
   "guide.strategy.title": "Strategies to Boost Your Elo",
   "guide.strategy.intro":
@@ -199,13 +199,19 @@ export const en = {
   "guide.poker101.hand10.body":
     "No combination at all. Highest single card plays. Can still win if all opponents also miss — pay attention to who's bluffing.",
 
+  "guide.elo.tiers.title": "Rank Tiers",
+
   // Elo Tiers (long-term)
-  "rank.godlike": "Godlike",
-  "rank.shark": "Shark",
-  "rank.veteran": "Veteran",
-  "rank.grinder": "Grinder",
-  "rank.rookie": "Rookie",
-  "rank.fish": "Fish",
+  "rank.godlike": "Poker God — King of the Table",
+  "rank.legend": "Legendary Hitman",
+  "rank.shark": "Card Shark — Don't Touch",
+  "rank.veteran": "High Roller",
+  "rank.diamond": "Cold-Blooded",
+  "rank.grinder": "Knows What They're Doing",
+  "rank.rookie": "New Blood",
+  "rank.gambler": "Hot Head",
+  "rank.fish": "Young & Wet Behind the Ears",
+
 
   // Session Titles (short-term)
   "game.dominator": "Dominator",

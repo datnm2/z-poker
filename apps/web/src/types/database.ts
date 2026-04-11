@@ -31,5 +31,5 @@ export interface SessionPlayer {
 }
 
 export interface SessionPlayerWithPlayer extends SessionPlayer {
-  player: Player;
+  player: Pick<Player, "id" | "name" | "elo" | "avatarUrl">;
 }

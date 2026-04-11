@@ -19,7 +19,7 @@ interface ActiveSession extends Session {
   playerIds: string[];
 }
 
-type LeaderboardPlayer = Pick<Player, "id" | "name" | "elo" | "gamesPlayed">;
+type LeaderboardPlayer = Pick<Player, "id" | "name" | "elo" | "gamesPlayed" | "avatarUrl">;
 
 function LeaderboardContent() {
   const { player, api } = useAuth();

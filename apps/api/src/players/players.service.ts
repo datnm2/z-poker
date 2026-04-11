@@ -32,6 +32,7 @@ export interface PlayerHistoryEntryDto {
     playedDate: string;
     buyIn: number;
     isLocked: boolean;
+    lockedAt: string | null;
   };
 }
 
@@ -129,6 +130,7 @@ export class PlayersService {
         's.played_date AS "sPlayedDate"',
         's.buy_in AS "sBuyIn"',
         's.is_locked AS "sIsLocked"',
+        's.locked_at AS "sLockedAt"',
       ])
       .where("sp.player_id = :playerId", { playerId })
       .andWhere("s.domain = :domain", { domain })
@@ -144,6 +146,7 @@ export class PlayersService {
         sPlayedDate: string;
         sBuyIn: number;
         sIsLocked: boolean;
+        sLockedAt: Date | null;
       }>();
 
     return rows.map((r) => ({
@@ -160,6 +163,7 @@ export class PlayersService {
             : String(r.sPlayedDate),
         buyIn: Number(r.sBuyIn),
         isLocked: r.sIsLocked,
+        lockedAt: r.sLockedAt ? (r.sLockedAt instanceof Date ? r.sLockedAt : new Date(r.sLockedAt)).toISOString() : null,
       },
     }));
   }
