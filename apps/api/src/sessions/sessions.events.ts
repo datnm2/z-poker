@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Observable, Subject, filter, map } from "rxjs";
+import { Observable, Subject, filter, map, merge, interval } from "rxjs";
 import type { SessionPlayerDto, SessionWithCreatorDto } from "./sessions.service";
 import type { EloResult } from "../elo/elo.service";
 
@@ -44,17 +44,23 @@ export class SessionsEventsService {
     this.subject.next(event);
   }
 
+  private heartbeat(): Observable<SseMessage> {
+    return interval(15_000).pipe(map(() => ({ data: "", type: "heartbeat" })));
+  }
+
   streamFor(sessionId: string): Observable<SseMessage> {
-    return this.subject.asObservable().pipe(
+    const events$ = this.subject.asObservable().pipe(
       filter((e) => e.sessionId === sessionId),
       map((e) => ({ data: JSON.stringify(e), type: e.type })),
     );
+    return merge(events$, this.heartbeat());
   }
 
   streamForDomain(domain: string): Observable<SseMessage> {
-    return this.subject.asObservable().pipe(
+    const events$ = this.subject.asObservable().pipe(
       filter((e) => e.domain === domain),
       map((e) => ({ data: JSON.stringify(e), type: e.type })),
     );
+    return merge(events$, this.heartbeat());
   }
 }
