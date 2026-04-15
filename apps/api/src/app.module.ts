@@ -21,6 +21,12 @@ import { SessionsModule } from "./sessions/sessions.module";
           autoLoadEntities: true,
           synchronize: false,
           migrationsRun: false,
+          logging: ["warn", "error"] as const,
+          maxQueryExecutionTime: 500,
+          extra: {
+            max: 20,
+            idleTimeoutMillis: 30_000,
+          },
         };
       },
     }),

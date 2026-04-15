@@ -59,6 +59,12 @@ export class SessionsController {
     private readonly events: SessionsEventsService,
   ) {}
 
+  @Get("stats")
+  async stats(@CurrentUser() user: AuthedUser) {
+    const totalSessions = await this.sessionsService.countLockedForDomain(user.domain);
+    return { totalSessions };
+  }
+
   @Get()
   async list(
     @CurrentUser() user: AuthedUser,

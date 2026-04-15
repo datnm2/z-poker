@@ -76,6 +76,10 @@ export class SessionsService {
     private readonly events: SessionsEventsService,
   ) {}
 
+  async countLockedForDomain(domain: string): Promise<number> {
+    return this.sessions.count({ where: { domain, isLocked: true } });
+  }
+
   async listActiveForDomain(domain: string): Promise<SessionWithCreatorDto[]> {
     const rows = await this.sessions
       .createQueryBuilder("s")
@@ -95,6 +99,7 @@ export class SessionsService {
       .where("s.domain = :domain", { domain })
       .andWhere("s.is_locked = false")
       .orderBy("s.created_at", "DESC")
+      .limit(50)
       .getRawMany<{
         id: string;
         playedDate: Date | string;
@@ -324,7 +329,13 @@ export class SessionsService {
       throw new ForbiddenException("Can only edit your own chips");
     }
 
-    await this.sessionPlayers.update({ id: sessionPlayerId }, { chipsEnd });
+    const result = await this.sessionPlayers.update(
+      { id: sessionPlayerId, sessionId },
+      { chipsEnd },
+    );
+    if (!result.affected) {
+      throw new NotFoundException("Session player not found");
+    }
     this.events.publish({
       type: "session.chips_updated",
       domain: session.domain,

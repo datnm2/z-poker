@@ -11,11 +11,21 @@ import { createClerkClient, verifyToken } from "@clerk/backend";
 import type { AuthedUser } from "./current-user.decorator";
 import { IS_PUBLIC_KEY } from "./public.decorator";
 
+interface CachedUser {
+  email: string;
+  domain: string;
+  avatarUrl: string | undefined;
+  expiresAt: number;
+}
+
+const USER_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 @Injectable()
 export class ClerkGuard implements CanActivate {
   private readonly logger = new Logger(ClerkGuard.name);
   private readonly clerk: ReturnType<typeof createClerkClient>;
   private readonly secretKey: string;
+  private readonly userCache = new Map<string, CachedUser>();
 
   constructor(
     private readonly config: ConfigService,
@@ -57,14 +67,25 @@ export class ClerkGuard implements CanActivate {
     }
 
     // Fetch user so we have email — Clerk JWTs don't carry email by default.
-    const user = await this.clerk.users.getUser(userId);
-    const email = user.primaryEmailAddress?.emailAddress;
-    if (!email) {
-      throw new UnauthorizedException("User has no primary email");
+    // Cache result for 5 min to avoid an external API call on every request.
+    const now = Date.now();
+    let cached = this.userCache.get(userId);
+    if (!cached || cached.expiresAt <= now) {
+      const user = await this.clerk.users.getUser(userId);
+      const email = user.primaryEmailAddress?.emailAddress;
+      if (!email) {
+        throw new UnauthorizedException("User has no primary email");
+      }
+      cached = {
+        email,
+        domain: email.split("@")[1] ?? "",
+        avatarUrl: user.imageUrl || undefined,
+        expiresAt: now + USER_CACHE_TTL_MS,
+      };
+      this.userCache.set(userId, cached);
     }
 
-    const domain = email.split("@")[1] ?? "";
-    const authedUser: AuthedUser = { userId, email, domain, avatarUrl: user.imageUrl || undefined };
+    const authedUser: AuthedUser = { userId, email: cached.email, domain: cached.domain, avatarUrl: cached.avatarUrl };
     request.user = authedUser;
     return true;
   }

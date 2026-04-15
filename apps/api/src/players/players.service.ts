@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { MoreThan, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { Player } from "./player.entity";
 import { SessionPlayer } from "../sessions/session-player.entity";
 import { Session } from "../sessions/session.entity";
@@ -93,17 +93,22 @@ export class PlayersService {
     const rows = await this.players.find({
       where: { domain },
       order: { elo: "DESC" },
+      take: 200,
     });
     return rows.map(toDto);
   }
 
   async getByIdForDomain(id: string, domain: string): Promise<PlayerWithRankDto> {
-    const player = await this.players.findOne({ where: { id, domain } });
-    if (!player) throw new NotFoundException("Player not found");
-    const above = await this.players.count({
-      where: { domain, elo: MoreThan(player.elo) },
-    });
-    return { ...toDto(player), rank: above + 1 };
+    const { entities, raw } = await this.players
+      .createQueryBuilder("p")
+      .addSelect(
+        `(SELECT COUNT(*)::int + 1 FROM players p2 WHERE p2.domain = p.domain AND p2.elo > p.elo)`,
+        "rank",
+      )
+      .where("p.id = :id AND p.domain = :domain", { id, domain })
+      .getRawAndEntities();
+    if (!entities.length) throw new NotFoundException("Player not found");
+    return { ...toDto(entities[0]), rank: raw[0].rank as number };
   }
 
   async getHistory(
@@ -111,12 +116,7 @@ export class PlayersService {
     domain: string,
     limit: number,
   ): Promise<PlayerHistoryEntryDto[]> {
-    // Ensure the target player is in the caller's domain (tenancy)
-    const target = await this.players.findOne({
-      where: { id: playerId, domain },
-    });
-    if (!target) throw new NotFoundException("Player not found");
-
+    // Domain tenancy is enforced by the s.domain = :domain join condition below
     const rows = await this.sessionPlayers
       .createQueryBuilder("sp")
       .innerJoin(Session, "s", "s.id = sp.session_id")

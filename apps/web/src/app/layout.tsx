@@ -43,10 +43,22 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body suppressHydrationWarning className="flex min-h-full flex-col">
+      <body suppressHydrationWarning className="flex min-h-dvh flex-col bg-background text-foreground antialiased">
         <ClerkProvider>
           <I18nProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <main className="flex flex-1 flex-col">{children}</main>
+              <footer className="pb-20 pt-3 text-center text-xs text-muted-foreground/40">
+                <a
+                  href="https://dat09vn.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-muted-foreground"
+                >
+                  Powered by Dat Light Solution
+                </a>
+              </footer>
+            </AuthProvider>
           </I18nProvider>
         </ClerkProvider>
       </body>

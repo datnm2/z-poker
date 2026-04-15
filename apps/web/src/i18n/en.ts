@@ -20,7 +20,7 @@ export const en = {
   "leaderboard.title": "Leaderboard",
   "leaderboard.slogan": "Outlast. Outchip. Outrank.",
   "leaderboard.players": "Players",
-  "leaderboard.avgGames": "Avg Games",
+  "leaderboard.totalGames": "Total Games",
   "leaderboard.topElo": "Top Elo",
   "leaderboard.newSession": "+ New Session",
   "leaderboard.activeSessions": "Active Sessions",
@@ -30,8 +30,10 @@ export const en = {
   "leaderboard.modePhysicalDesc": "Play with real cards, track Elo here",
   "leaderboard.modeOnline": "Online Cards",
   "leaderboard.modeOnlineDesc": "Coming soon",
-  "leaderboard.games": "games",
-  "leaderboard.game": "game",
+  "leaderboard.games": "games played",
+  "leaderboard.game": "game played",
+  "leaderboard.signInPrompt": "Sign in to see the leaderboard and join sessions.",
+  "leaderboard.signInBtn": "Sign in",
 
   // Session
   "session.title": "Session",
@@ -82,9 +84,9 @@ export const en = {
   "profile.signOut": "Sign Out",
 
   // Guide
-  "guide.title": "Guide",
+  "guide.title": "How to Play",
   "guide.signInPrompt": "Sign in to track your Elo and join sessions.",
-  "guide.signInBtn": "Sign In",
+  "guide.signInBtn": "Sign in",
   "guide.howToPlay.title": "How to Play",
   "guide.howToPlay.intro":
     "Z-Poker helps your office track poker sessions and rank players using the Elo rating system.",
@@ -94,24 +96,24 @@ export const en = {
   "guide.howToPlay.step2.title": "2. Join the session",
   "guide.howToPlay.step2.body":
     'Players join by tapping an active session on the leaderboard and pressing "Join Session". The host (creator) can choose to play as a Dealer — they get full control without using a seat.',
-  "guide.howToPlay.step3.title": "3. Enter chip counts",
+  "guide.howToPlay.step3.title": "3. Count your chips",
   "guide.howToPlay.step3.body":
     "When the game ends, each player enters their own remaining chips and confirms. The host can edit chips for everyone and see a live progress bar showing how many players have confirmed.",
   "guide.howToPlay.step4.title": "4. Lock & calculate",
   "guide.howToPlay.step4.body":
     'Only the host can lock the session. Once the chip progress bar turns green (total matches buy-in × players), the "Lock & Calculate Elo" button activates. Tapping it finalizes the session and immediately updates everyone\'s Elo.',
 
-  "guide.bestPractices.title": "Best Practices",
+  "guide.bestPractices.title": "Tips to Play Right",
   "guide.bestPractices.item1.title": "Count chips carefully",
   "guide.bestPractices.item1.body":
     "The session can only be locked when the total matches exactly. The chip bar turns green when the numbers are correct.",
   "guide.bestPractices.item2.title": "Lock before leaving",
   "guide.bestPractices.item2.body":
     "The session creator should lock the session right after the game ends. Locking instantly calculates and records Elo for all participants.",
-  "guide.bestPractices.item3.title": "Be consistent with players",
+  "guide.bestPractices.item3.title": "Play with the same crew",
   "guide.bestPractices.item3.body":
     "Elo is most meaningful when the same group plays together regularly. Occasional guests can skew ratings.",
-  "guide.bestPractices.item4.title": "Honest chip counts",
+  "guide.bestPractices.item4.title": "Report chips honestly",
   "guide.bestPractices.item4.body":
     "The system only works if everyone reports accurate chip counts. Agree on chip totals before entering them.",
 
@@ -146,9 +148,9 @@ export const en = {
   "guide.elo.example.body":
     "4-player session, buy-in 1000. Your Elo is 1200, the group average is 1350, and you finish with 1800 chips. Expected ≈ 0.30. Actual = 0.5 + 0.5 × (800 / 3000) ≈ 0.633. Change = round(100 × (0.633 − 0.30)) ≈ +33 points.",
 
-  "guide.strategy.title": "Strategies to Boost Your Elo",
+  "guide.strategy.title": "Level Up Your Elo",
   "guide.strategy.intro":
-    "Z-Poker Elo is driven by chip counts — your final chips vs buy-in is your 'score'. These strategies help you end up with more chips consistently.",
+    "Z-Poker Elo is driven by chip counts — your final chips vs buy-in is your score. These strategies help you end up with more chips consistently.",
   "guide.strategy.chip1.title": "Protect your stack early",
   "guide.strategy.chip1.body":
     "Elo rewards finishing above buy-in. Avoid big coin-flip pots in the early game. A small, steady gain beats a wild all-in that leaves you short.",
@@ -165,7 +167,7 @@ export const en = {
   "guide.strategy.chip5.body":
     "Bluffs work best on dry boards, against single opponents, and when you represent a credible hand. Pure bluffs in multi-way pots leak chips over time — and chip leakage directly tanks your Elo.",
 
-  "guide.poker101.title": "Poker 101 — Hand Rankings",
+  "guide.poker101.title": "Poker 101 — Hand rankings",
   "guide.poker101.intro":
     "Texas Hold'em hands ranked strongest to weakest. Probabilities show how often you make each hand from 7 cards (2 hole cards + 5 community).",
   "guide.poker101.hand1.title": "1. Royal Flush — 0.003%",
@@ -199,7 +201,7 @@ export const en = {
   "guide.poker101.hand10.body":
     "No combination at all. Highest single card plays. Can still win if all opponents also miss — pay attention to who's bluffing.",
 
-  "guide.elo.tiers.title": "Rank Tiers",
+  "guide.elo.tiers.title": "Rank tiers",
 
   // Elo Tiers (long-term)
   "rank.godlike": "Poker God — King of the Table",

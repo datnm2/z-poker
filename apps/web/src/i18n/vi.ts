@@ -20,7 +20,7 @@ export const vi = {
   "leaderboard.title": "Bảng xếp hạng",
   "leaderboard.slogan": "Trụ lại. Gom chip. Leo rank.",
   "leaderboard.players": "Người chơi",
-  "leaderboard.avgGames": "TB ván",
+  "leaderboard.totalGames": "Tổng ván",
   "leaderboard.topElo": "Elo cao",
   "leaderboard.newSession": "+ Ván mới",
   "leaderboard.activeSessions": "Phiên đang chơi",
@@ -30,8 +30,10 @@ export const vi = {
   "leaderboard.modePhysicalDesc": "Chơi bài thật, theo dõi Elo tại đây",
   "leaderboard.modeOnline": "Bài online",
   "leaderboard.modeOnlineDesc": "Sắp ra mắt",
-  "leaderboard.games": "ván",
-  "leaderboard.game": "ván",
+  "leaderboard.games": "ván đã chơi",
+  "leaderboard.game": "ván đã chơi",
+  "leaderboard.signInPrompt": "Đăng nhập để xem bảng xếp hạng và tham gia ván chơi.",
+  "leaderboard.signInBtn": "Đăng nhập",
 
   // Session
   "session.title": "Phiên chơi",
@@ -82,7 +84,7 @@ export const vi = {
   "profile.signOut": "Đăng xuất",
 
   // Guide
-  "guide.title": "Hướng dẫn",
+  "guide.title": "Cách chơi",
   "guide.signInPrompt": "Đăng nhập để theo dõi Elo và tham gia phiên chơi.",
   "guide.signInBtn": "Đăng nhập",
   "guide.howToPlay.title": "Cách chơi",
@@ -94,7 +96,7 @@ export const vi = {
   "guide.howToPlay.step2.title": "2. Tham gia phiên",
   "guide.howToPlay.step2.body":
     'Người chơi tham gia bằng cách nhấn vào phiên đang mở trên bảng xếp hạng và bấm "Tham gia phiên". Chủ phiên có thể đứng vai Dealer — quản lý ván chơi mà không chiếm ghế.',
-  "guide.howToPlay.step3.title": "3. Nhập số chip còn lại",
+  "guide.howToPlay.step3.title": "3. Đếm chip của bạn",
   "guide.howToPlay.step3.body":
     "Khi ván kết thúc, mỗi người nhập số chip còn lại và xác nhận. Chủ phiên có thể chỉnh chip của tất cả mọi người và xem thanh tiến trình hiển thị bao nhiêu người đã xác nhận.",
   "guide.howToPlay.step4.title": "4. Khóa & tính Elo",
@@ -108,10 +110,10 @@ export const vi = {
   "guide.bestPractices.item2.title": "Khóa ngay sau ván",
   "guide.bestPractices.item2.body":
     "Chủ phiên nên khóa phiên ngay khi ván kết thúc. Khóa phiên sẽ tính và ghi nhận Elo ngay lập tức cho tất cả người tham gia.",
-  "guide.bestPractices.item3.title": "Nhóm chơi ổn định",
+  "guide.bestPractices.item3.title": "Chơi với cùng một nhóm",
   "guide.bestPractices.item3.body":
     "Elo có ý nghĩa nhất khi cùng một nhóm chơi với nhau thường xuyên. Khách vãng lai có thể làm lệch điểm.",
-  "guide.bestPractices.item4.title": "Báo số chip trung thực",
+  "guide.bestPractices.item4.title": "Báo chip trung thực",
   "guide.bestPractices.item4.body":
     "Hệ thống chỉ hoạt động khi mọi người báo số chip chính xác. Hãy thống nhất trước khi nhập.",
 
@@ -146,7 +148,7 @@ export const vi = {
   "guide.elo.example.body":
     "Phiên 4 người, buy-in 1000. Elo bạn 1200, trung bình bàn 1350, bạn kết thúc với 1800 chip. Kỳ vọng ≈ 0.30. Thực tế = 0.5 + 0.5 × (800 / 3000) ≈ 0.633. Thay đổi = round(100 × (0.633 − 0.30)) ≈ +33 điểm.",
 
-  "guide.strategy.title": "Chiến thuật tăng Elo",
+  "guide.strategy.title": "Tăng Elo của bạn",
   "guide.strategy.intro":
     "Elo trong Z-Poker phụ thuộc vào số chip cuối cùng so với buy-in. Những chiến thuật dưới đây giúp bạn kết thúc với nhiều chip hơn một cách nhất quán.",
   "guide.strategy.chip1.title": "Bảo vệ stack sớm",
@@ -160,12 +162,12 @@ export const vi = {
     "Đánh sau cùng trong một ván cho bạn kiểm soát khoảng giá pot, bluff hiệu quả hơn và khai thác tối đa bài mạnh — tất cả đều giúp căng chip.",
   "guide.strategy.chip4.title": "Tránh all-in biên",
   "guide.strategy.chip4.body":
-    "Edge 55/45 mà phải risk cả stack là giao dịch Elo tồi. Giải phóng pot bằng fold equity và khai thác chip by chip thay vì chờ ăn tất hoặc mất tay.",
+    "Edge 55/45 mà phải risk cả stack là giao dịch Elo tồi. Dùng fold equity và khai thác từng chip thay vì chờ ăn hết hoặc mất trắng.",
   "guide.strategy.chip5.title": "Bluff có kế hoạch",
   "guide.strategy.chip5.body":
-    "Bluff hiệu quả nhất khi bóng khô, đầu bướt, và bạn có thể represent range mạnh. Bluff đa bướt hoặc bluff tày tiền thường rói chips dài hạn — mà chip rói cục thẳng vào Elo.",
+    "Bluff hiệu quả nhất trên bảng khô, khi đối đầu 1-1, và khi bạn đang represent range mạnh. Bluff đa chiều hoặc bluff bừa thường thất thoát chip dài hạn — mà chip thất thoát là Elo bốc hơi.",
 
-  "guide.poker101.title": "Poker 101 — Thứ Tự Bài",
+  "guide.poker101.title": "Poker 101 — Thứ tự bài",
   "guide.poker101.intro":
     "Các tổ hợp bài trong Texas Hold'em từ mạnh đến yếu. Xác suất tính cho bài tốt nhất từ 7 lá (2 bài tay + 5 lá chung).",
   "guide.poker101.hand1.title": "1. Royal Flush — 0.003%",
@@ -199,7 +201,7 @@ export const vi = {
   "guide.poker101.hand10.body":
     "Không có tổ hợp nào. Lá bài cao nhất tính. Vẫn có thể thắng nếu đối thủ cũng miss — chú ý đọc bluff.",
 
-  "guide.elo.tiers.title": "Bảng Hạng",
+  "guide.elo.tiers.title": "Bảng hạng",
 
   // Elo Tiers (long-term)
   "rank.godlike": "Thần Bài - Vua Trò Chơi",

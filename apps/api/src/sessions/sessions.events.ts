@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { Observable, Subject, filter, map, merge, interval } from "rxjs";
+import { Injectable, Logger } from "@nestjs/common";
+import { Observable, Subject, filter, finalize, map, merge, share, interval } from "rxjs";
 import type { SessionPlayerDto, SessionWithCreatorDto } from "./sessions.service";
 import type { EloResult } from "../elo/elo.service";
 
@@ -38,14 +38,18 @@ export interface SseMessage {
 
 @Injectable()
 export class SessionsEventsService {
+  private readonly logger = new Logger(SessionsEventsService.name);
   private readonly subject = new Subject<SessionEvent>();
+
+  // Single shared heartbeat timer — all SSE connections reuse this one interval
+  // rather than each creating its own. share() makes it multicast.
+  private readonly heartbeat$ = interval(15_000).pipe(
+    map((): SseMessage => ({ data: "", type: "heartbeat" })),
+    share(),
+  );
 
   publish(event: SessionEvent): void {
     this.subject.next(event);
-  }
-
-  private heartbeat(): Observable<SseMessage> {
-    return interval(15_000).pipe(map(() => ({ data: "", type: "heartbeat" })));
   }
 
   streamFor(sessionId: string): Observable<SseMessage> {
@@ -53,7 +57,9 @@ export class SessionsEventsService {
       filter((e) => e.sessionId === sessionId),
       map((e) => ({ data: JSON.stringify(e), type: e.type })),
     );
-    return merge(events$, this.heartbeat());
+    return merge(events$, this.heartbeat$).pipe(
+      finalize(() => this.logger.debug(`SSE session stream closed: ${sessionId}`)),
+    );
   }
 
   streamForDomain(domain: string): Observable<SseMessage> {
@@ -61,6 +67,8 @@ export class SessionsEventsService {
       filter((e) => e.domain === domain),
       map((e) => ({ data: JSON.stringify(e), type: e.type })),
     );
-    return merge(events$, this.heartbeat());
+    return merge(events$, this.heartbeat$).pipe(
+      finalize(() => this.logger.debug(`SSE domain stream closed: ${domain}`)),
+    );
   }
 }

@@ -66,24 +66,35 @@ export class EloService {
         buyIn,
       );
 
-      for (const result of results) {
-        await tx
-          .getRepository(SessionPlayer)
-          .update(
-            { sessionId, playerId: result.playerId },
-            { eloBefore: result.eloBefore, eloAfter: result.eloAfter },
-          );
+      // Batch update session_players in one query using unnest arrays
+      const playerIds = results.map((r) => r.playerId);
+      const eloBefores = results.map((r) => r.eloBefore);
+      const eloAfters = results.map((r) => r.eloAfter);
+      const changes = results.map((r) => r.change);
 
-        await tx
-          .createQueryBuilder()
-          .update(Player)
-          .set({
-            elo: () => `elo + ${result.change}`,
-            gamesPlayed: () => `games_played + 1`,
-          })
-          .where("id = :id", { id: result.playerId })
-          .execute();
-      }
+      await tx.query(
+        `UPDATE session_players sp
+         SET elo_before = v.elo_before, elo_after = v.elo_after
+         FROM (
+           SELECT unnest($1::text[]) AS player_id,
+                  unnest($2::int[]) AS elo_before,
+                  unnest($3::int[]) AS elo_after
+         ) v
+         WHERE sp.session_id = $4 AND sp.player_id = v.player_id`,
+        [playerIds, eloBefores, eloAfters, sessionId],
+      );
+
+      // Batch update player ELO + games_played in one query
+      await tx.query(
+        `UPDATE players p
+         SET elo = p.elo + v.change, games_played = games_played + 1
+         FROM (
+           SELECT unnest($1::text[]) AS id,
+                  unnest($2::int[]) AS change
+         ) v
+         WHERE p.id = v.id`,
+        [playerIds, changes],
+      );
 
       await tx
         .getRepository(Session)
