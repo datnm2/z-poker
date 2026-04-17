@@ -10,6 +10,40 @@ export const vi = {
   "login.tagline": "Theo dõi Elo Poker Văn phòng",
   "login.signInGoogle": "Đăng nhập với Google",
   "login.domainHint": "Người chơi được nhóm theo tên miền email",
+  "login.valueDomain": "Tách biệt theo email công ty",
+  "login.valueRealtime": "Elo cập nhật ngay sau ván",
+  "login.valueTiers": "6 hạng từ Cá Con đến Thần Bài",
+  "login.backToLanding": "← Về trang chủ",
+
+  // Landing (logged-out home)
+  "landing.headline": "Poker trưa văn phòng, có Elo đàng hoàng.",
+  "landing.subhead":
+    "Chỉ có 30–45 phút giờ trưa, nghỉ ngang cũng không sao — mỗi phiên là một nấc Elo, chơi càng nhiều trưa càng lộ trình độ.",
+  "landing.ctaPrimary": "Đăng nhập để chơi",
+  "landing.ctaGuide": "Xem cách chơi",
+  "landing.domainPill": "Tách biệt theo công ty (email domain)",
+  "landing.whyTitle": "Tại sao Z-Poker?",
+  "landing.why1.title": "Hợp với giờ trưa",
+  "landing.why1.body":
+    "Một ván poker \"đúng chuẩn\" cần vài tiếng. Văn phòng chỉ có 30–45 phút. Z-Poker nghỉ ngang vẫn tính Elo theo chip cuối — không cần chơi tới người cuối cùng.",
+  "landing.why2.title": "Tracking dài hạn",
+  "landing.why2.body":
+    "Mỗi buổi trưa là một phiên, Elo cộng dồn qua tháng. Ai giỏi thật sự lộ ra sau nhiều phiên — không phải ăn may 1 ván.",
+  "landing.why3.title": "Chỉ có đồng nghiệp",
+  "landing.why3.body":
+    "Tự động nhóm theo tên miền email — chỉ thấy bảng xếp hạng công ty mình. Không lẫn người lạ.",
+  "landing.previewTitle": "Bảng xếp hạng nhóm bạn sẽ trông như này",
+  "landing.previewDemo": "Demo — đăng nhập để xem nhóm thật",
+  "landing.tiersTitle": "6 hạng. Bạn đang ở đâu?",
+  "landing.howTitle": "Cách hoạt động",
+  "landing.how1": "Tạo phiên trưa & đặt buy-in",
+  "landing.how2": "Hết giờ? Nhập chip còn, xong thôi",
+  "landing.how3": "Khoá phiên → Elo cộng dồn dài hạn",
+  "landing.footerCta": "Sẵn sàng leo rank?",
+  "landing.funPill": "🎉 Chơi vui — không tiền thật",
+  "landing.disclaimerTitle": "Chỉ để vui, không phải cờ bạc",
+  "landing.disclaimerBody":
+    "Z-Poker dùng chip ảo để tracking Elo và tạo không khí giờ trưa. Không liên quan tiền thật, không phải gambling, không khuyến khích đánh bạc. Mọi quy đổi tiền tệ giữa người chơi nằm ngoài phạm vi của app.",
 
   // Nav
   "nav.leaderboard": "Bảng xếp hạng",
@@ -230,7 +264,7 @@ export const vi = {
   "game.sponsor": "Nhà Tài Trợ - Chip Feeder",
 
   // Session History page
-  "sessions.history.title": "Lịch sử phiên",
+  "sessions.history.title": "Toàn bộ phiên trong domain",
   "sessions.history.empty": "Chưa có phiên nào đã kết thúc.",
   "sessions.history.players": "người chơi",
   "sessions.history.loading": "Đang tải…",

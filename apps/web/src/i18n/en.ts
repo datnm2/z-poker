@@ -10,6 +10,40 @@ export const en = {
   "login.tagline": "Office Poker Elo Tracker",
   "login.signInGoogle": "Sign in with Google",
   "login.domainHint": "Players are grouped by email domain",
+  "login.valueDomain": "Grouped by your company email",
+  "login.valueRealtime": "Elo updates right after each game",
+  "login.valueTiers": "6 tiers from Fish to Poker God",
+  "login.backToLanding": "← Back to home",
+
+  // Landing (logged-out home)
+  "landing.headline": "Lunch-break poker, with real Elo.",
+  "landing.subhead":
+    "You've got 30–45 minutes. Games end when lunch ends — and that's fine. Every session moves your Elo; real skill shows over many lunches.",
+  "landing.ctaPrimary": "Sign in to play",
+  "landing.ctaGuide": "How it works",
+  "landing.domainPill": "Isolated per company (email domain)",
+  "landing.whyTitle": "Why Z-Poker?",
+  "landing.why1.title": "Built for lunch breaks",
+  "landing.why1.body":
+    "A \"real\" poker game runs for hours. You've got 30–45 minutes. Z-Poker scores you on chip counts when time runs out — no need to play to the last person standing.",
+  "landing.why2.title": "Long-term tracking",
+  "landing.why2.body":
+    "Every lunch is a session. Elo compounds across months. True skill shows over many games — not one lucky day.",
+  "landing.why3.title": "Just your coworkers",
+  "landing.why3.body":
+    "Auto-grouped by your email domain — you only see your company's leaderboard. No strangers mixed in.",
+  "landing.previewTitle": "Your group's leaderboard will look like this",
+  "landing.previewDemo": "Demo — sign in to see your real group",
+  "landing.tiersTitle": "6 ranks. Where do you stand?",
+  "landing.howTitle": "How it works",
+  "landing.how1": "Start a lunch session, set the buy-in",
+  "landing.how2": "Time's up? Enter your remaining chips",
+  "landing.how3": "Lock the session → Elo stacks up over time",
+  "landing.footerCta": "Ready to climb?",
+  "landing.funPill": "🎉 Just for fun — no real money",
+  "landing.disclaimerTitle": "For fun, not gambling",
+  "landing.disclaimerBody":
+    "Z-Poker uses virtual chips to track Elo and add some fun to lunch breaks. No real money, not gambling, no betting encouraged. Any cash settlement between players is outside the app's scope.",
 
   // Nav
   "nav.leaderboard": "Leaderboard",
@@ -231,7 +265,7 @@ export const en = {
   "game.sponsor": "Sponsor",
 
   // Session History page
-  "sessions.history.title": "Session History",
+  "sessions.history.title": "All Sessions In Domain",
   "sessions.history.empty": "No locked sessions yet.",
   "sessions.history.players": "players",
   "sessions.history.loading": "Loading…",

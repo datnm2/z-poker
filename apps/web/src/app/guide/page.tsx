@@ -114,7 +114,7 @@ const sections: Section[] = [
 
 function GuideContent() {
   const { t } = useI18n();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, signInWithGoogle } = useAuth();
 
   const sectionIds = sections.map((s) =>
     s.titleKey.replace(/\./g, "-")
@@ -122,20 +122,29 @@ function GuideContent() {
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("guide.title")}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/"
+          className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 py-1 text-sm text-muted transition hover:text-foreground"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>{t("back")}</span>
+        </Link>
         <LanguageSwitcher />
       </div>
+      <h1 className="mt-2 text-2xl font-bold">{t("guide.title")}</h1>
 
       {!isLoggedIn && (
         <div className="mt-4 flex items-center justify-between rounded-xl border border-accent/30 bg-accent/5 px-4 py-3">
           <p className="text-sm text-muted">{t("guide.signInPrompt")}</p>
-          <Link
-            href="/login"
+          <button
+            onClick={signInWithGoogle}
             className="ml-4 shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-slate-900 transition hover:brightness-110"
           >
             {t("guide.signInBtn")}
-          </Link>
+          </button>
         </div>
       )}
 
