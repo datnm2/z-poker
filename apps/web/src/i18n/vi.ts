@@ -202,7 +202,7 @@ export const vi = {
 
   "guide.elo.tiers.title": "Bảng hạng",
   "rank.division": "Hạng",
-  "rank.eloToNext": "đến hạng tiếp",
+  "rank.eloToNext": "đến bậc tiếp",
 
   // Elo Tiers
   "rank.godlike": "Thần Bài - Vua Trò Chơi",

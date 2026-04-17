@@ -178,10 +178,13 @@ function LeaderboardContent() {
     <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className="min-w-0">
           <h1 className="bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-2xl font-bold text-transparent">
             {t("leaderboard.title")}
           </h1>
+          {player?.domain && (
+            <p className="mt-0.5 truncate font-mono text-xs text-accent/80">@{player.domain}</p>
+          )}
           <p className="mt-0.5 text-xs text-muted">{t("leaderboard.slogan")}</p>
         </div>
         <LanguageSwitcher />
@@ -357,10 +360,12 @@ function LeaderboardContent() {
                     </span>
                   )}
                 </span>
-                {/* Medal overlay for top 3 with avatars */}
-                {isTopThree && p.avatarUrl && (
+                {/* Rank number badge — top 3 get colored medals; rest get neutral badge when avatar is shown */}
+                {p.avatarUrl && (
                   <span
-                    className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ${badge.medalBg} ${badge.medalText} ring-2 ring-background shadow-md`}
+                    className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-background shadow-md ${
+                      isTopThree ? `${badge.medalBg} ${badge.medalText}` : "bg-slate-700 text-slate-300"
+                    }`}
                   >
                     {i + 1}
                   </span>
@@ -396,7 +401,11 @@ function LeaderboardContent() {
                       </div>
                       {divInfo.eloToNext !== null && (
                         <span className="flex-shrink-0 text-[10px] text-muted/60">
-                          +{divInfo.eloToNext} elo{divInfo.nextTierKey ? ` → ${t(divInfo.nextTierKey)}` : ""}
+                          {divInfo.nextTierKey ? (
+                            <>↑ {divInfo.eloToNext} → {t(divInfo.nextTierKey)}</>
+                          ) : (
+                            <>↑ {divInfo.eloToNext} {t("rank.eloToNext")}</>
+                          )}
                         </span>
                       )}
                     </div>

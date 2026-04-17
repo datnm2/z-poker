@@ -202,7 +202,7 @@ export const en = {
 
   "guide.elo.tiers.title": "Rank tiers",
   "rank.division": "Rank",
-  "rank.eloToNext": "to next rank",
+  "rank.eloToNext": "to next tier",
 
   // Elo Tiers
   "rank.godlike": "Poker God! King Of Poker!",
