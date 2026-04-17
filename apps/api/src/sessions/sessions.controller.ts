@@ -65,6 +65,20 @@ export class SessionsController {
     return { totalSessions };
   }
 
+  @Get("history")
+  async history(
+    @CurrentUser() user: AuthedUser,
+    @Query("cursor") cursor?: string,
+    @Query("limit") limit?: string,
+  ) {
+    const lim = Math.min(Math.max(parseInt(limit ?? "10", 10) || 10, 1), 50);
+    return this.sessionsService.listLockedHistoryForDomain(
+      user.domain,
+      cursor,
+      lim,
+    );
+  }
+
   @Get()
   async list(
     @CurrentUser() user: AuthedUser,

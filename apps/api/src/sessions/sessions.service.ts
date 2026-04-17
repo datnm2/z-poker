@@ -45,6 +45,31 @@ export interface SessionDetailDto {
   players: SessionPlayerDto[];
 }
 
+export interface SessionHistoryItemDto {
+  id: string;
+  playedDate: string;
+  buyIn: number;
+  lockedAt: string;
+  playerCount: number;
+  dealer: {
+    playerId: string;
+    name: string;
+    avatarUrl: string | null;
+  } | null;
+  winner: {
+    playerId: string;
+    name: string;
+    avatarUrl: string | null;
+    chipDelta: number;
+  } | null;
+}
+
+export interface SessionHistoryPageDto {
+  data: SessionHistoryItemDto[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 function toDateString(v: unknown): string {
   if (v instanceof Date) return v.toISOString().slice(0, 10);
   return String(v);
@@ -78,6 +103,130 @@ export class SessionsService {
 
   async countLockedForDomain(domain: string): Promise<number> {
     return this.sessions.count({ where: { domain, isLocked: true } });
+  }
+
+  async listLockedHistoryForDomain(
+    domain: string,
+    cursor?: string,
+    limit = 10,
+  ): Promise<SessionHistoryPageDto> {
+    const qb = this.sessions
+      .createQueryBuilder("s")
+      .where("s.domain = :domain", { domain })
+      .andWhere("s.is_locked = true")
+      .andWhere("s.locked_at IS NOT NULL")
+      .orderBy("s.locked_at", "DESC")
+      .take(limit + 1);
+
+    if (cursor) {
+      qb.andWhere("s.locked_at < :cursor", { cursor: new Date(cursor) });
+    }
+
+    const rows = await qb.getMany();
+    const hasMore = rows.length > limit;
+    const data = hasMore ? rows.slice(0, limit) : rows;
+    const sessionIds = data.map((s) => s.id);
+
+    if (sessionIds.length === 0) {
+      return { data: [], nextCursor: null, hasMore: false };
+    }
+
+    // Batch-load all session_players joined with Player for count + top-1 winner
+    const spRows = await this.sessionPlayers
+      .createQueryBuilder("sp")
+      .innerJoin(Player, "p", "p.id = sp.player_id")
+      .select([
+        'sp.session_id AS "sessionId"',
+        'sp.player_id AS "playerId"',
+        'sp.chips_end AS "chipsEnd"',
+        'p.name AS "playerName"',
+        'p.avatar_url AS "playerAvatarUrl"',
+      ])
+      .where("sp.session_id IN (:...sessionIds)", { sessionIds })
+      .getRawMany<{
+        sessionId: string;
+        playerId: string;
+        chipsEnd: number | null;
+        playerName: string;
+        playerAvatarUrl: string | null;
+      }>();
+
+    // Batch-load dealers (creators) — one query for all sessions
+    const creatorIds = Array.from(new Set(data.map((s) => s.createdBy)));
+    const dealers = await this.players.find({
+      where: creatorIds.map((id) => ({ id })),
+      select: ["id", "name", "avatarUrl"],
+    });
+    const dealerById = new Map(dealers.map((d) => [d.id, d]));
+
+    // buyIn lives on Session — winner chipDelta = chipsEnd - session.buyIn
+    const buyInBySession = new Map(data.map((s) => [s.id, Number(s.buyIn)]));
+
+    type Entry = {
+      count: number;
+      winner: {
+        playerId: string;
+        name: string;
+        avatarUrl: string | null;
+        chipsEnd: number;
+      } | null;
+    };
+    const bySession = new Map<string, Entry>();
+    for (const r of spRows) {
+      const entry = bySession.get(r.sessionId) ?? { count: 0, winner: null };
+      entry.count++;
+      if (r.chipsEnd != null) {
+        const buyIn = buyInBySession.get(r.sessionId) ?? 0;
+        const delta = r.chipsEnd - buyIn;
+        const currDelta =
+          entry.winner != null
+            ? entry.winner.chipsEnd - buyIn
+            : -Infinity;
+        if (delta > currDelta) {
+          entry.winner = {
+            playerId: r.playerId,
+            name: r.playerName,
+            avatarUrl: r.playerAvatarUrl,
+            chipsEnd: r.chipsEnd,
+          };
+        }
+      }
+      bySession.set(r.sessionId, entry);
+    }
+
+    return {
+      data: data.map((s) => {
+        const entry = bySession.get(s.id) ?? { count: 0, winner: null };
+        const buyIn = Number(s.buyIn);
+        const dealer = dealerById.get(s.createdBy);
+        return {
+          id: s.id,
+          playedDate: toDateString(s.playedDate),
+          buyIn,
+          lockedAt: s.lockedAt!.toISOString(),
+          playerCount: entry.count,
+          dealer: dealer
+            ? {
+                playerId: dealer.id,
+                name: dealer.name,
+                avatarUrl: dealer.avatarUrl,
+              }
+            : null,
+          winner: entry.winner
+            ? {
+                playerId: entry.winner.playerId,
+                name: entry.winner.name,
+                avatarUrl: entry.winner.avatarUrl,
+                chipDelta: entry.winner.chipsEnd - buyIn,
+              }
+            : null,
+        };
+      }),
+      nextCursor: hasMore
+        ? data[data.length - 1].lockedAt!.toISOString()
+        : null,
+      hasMore,
+    };
   }
 
   async listActiveForDomain(domain: string): Promise<SessionWithCreatorDto[]> {

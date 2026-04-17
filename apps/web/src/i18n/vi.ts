@@ -228,4 +228,14 @@ export const vi = {
   "game.survivor": "Sống Sót",
   "game.bleeder": "Chảy Máu",
   "game.sponsor": "Nhà Tài Trợ - Chip Feeder",
+
+  // Session History page
+  "sessions.history.title": "Lịch sử phiên",
+  "sessions.history.empty": "Chưa có phiên nào đã kết thúc.",
+  "sessions.history.players": "người chơi",
+  "sessions.history.loading": "Đang tải…",
+  "sessions.history.buyIn": "Buy-in",
+  "sessions.history.dealer": "Chủ phiên",
+  "sessions.history.topWinner": "Nhất phiên",
+  "sessions.history.chips": "chip",
 } as const;

@@ -192,15 +192,17 @@ function LeaderboardContent() {
 
       {/* Stats */}
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {[
-          { label: t("leaderboard.players"), value: players.length },
-          { label: t("leaderboard.totalGames"), value: totalSessions },
-        ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-card-border bg-card p-3 text-center">
-            <div className="text-lg font-bold tabular-nums text-foreground">{s.value}</div>
-            <div className="text-xs text-muted">{s.label}</div>
-          </div>
-        ))}
+        <div className="rounded-xl border border-card-border bg-card p-3 text-center">
+          <div className="text-lg font-bold tabular-nums text-foreground">{players.length}</div>
+          <div className="text-xs text-muted">{t("leaderboard.players")}</div>
+        </div>
+        <Link
+          href="/sessions"
+          className="rounded-xl border border-card-border bg-card p-3 text-center transition-all duration-150 hover:border-accent/40 active:scale-[0.98]"
+        >
+          <div className="text-lg font-bold tabular-nums text-foreground">{totalSessions}</div>
+          <div className="text-xs text-muted">{t("leaderboard.totalGames")}</div>
+        </Link>
       </div>
 
       {/* Active Sessions */}

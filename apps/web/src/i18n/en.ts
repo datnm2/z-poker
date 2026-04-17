@@ -229,4 +229,14 @@ export const en = {
   "game.survivor": "Survivor",
   "game.bleeder": "Bleeder",
   "game.sponsor": "Sponsor",
+
+  // Session History page
+  "sessions.history.title": "Session History",
+  "sessions.history.empty": "No locked sessions yet.",
+  "sessions.history.players": "players",
+  "sessions.history.loading": "Loading…",
+  "sessions.history.buyIn": "Buy-in",
+  "sessions.history.dealer": "Dealer",
+  "sessions.history.topWinner": "Top winner",
+  "sessions.history.chips": "chips",
 } as const;
