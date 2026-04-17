@@ -464,12 +464,40 @@ const WHY_CARDS = [
   { icon: "🏢", titleKey: "landing.why3.title" as const, bodyKey: "landing.why3.body" as const, accent: "from-blue-400/20 to-transparent" },
 ];
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://z-poker.vercel.app";
+
+const LANDING_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Z-Poker",
+  url: SITE_URL,
+  description:
+    "Office lunch-break poker tracker with long-term Elo rating, isolated per company email domain. Virtual chips only — for fun, not gambling.",
+  applicationCategory: "GameApplication",
+  operatingSystem: "Web",
+  inLanguage: ["vi", "en"],
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  author: {
+    "@type": "Organization",
+    name: "Dat Light Solution",
+    url: "https://dat09vn.com",
+  },
+};
+
 function LandingPage() {
   const { t } = useI18n();
   const { signInWithGoogle } = useAuth();
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 pb-12 pt-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(LANDING_JSON_LD) }}
+      />
       {/* Top bar */}
       <div className="flex items-center justify-end">
         <LanguageSwitcher />
