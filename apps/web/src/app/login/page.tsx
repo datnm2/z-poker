@@ -3,18 +3,14 @@
 import Link from "next/link";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
-import { LanguageSwitcher } from "@/components/language-switcher";
+import { Loading } from "@/components/loading";
 
 export default function LoginPage() {
   const { signInWithGoogle, isLoading } = useAuth();
   const { t } = useI18n();
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    );
+    return <Loading fullscreen />;
   }
 
   const valueProps = [
@@ -25,11 +21,16 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col px-4">
-      <div className="flex items-center justify-between pt-4">
-        <Link href="/" className="text-xs text-muted hover:text-foreground">
+      <div className="flex items-center pt-4 pr-24">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 rounded-lg border border-card-border bg-card/60 px-2.5 py-1 text-xs text-muted transition active:scale-95 active:text-foreground"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
           {t("login.backToLanding")}
         </Link>
-        <LanguageSwitcher />
       </div>
 
       <div className="flex flex-1 items-center justify-center">
@@ -37,7 +38,7 @@ export default function LoginPage() {
           {/* Brand */}
           <div className="flex flex-col items-center">
             <div className="animate-pop-in text-5xl">🃏</div>
-            <h1 className="mt-2 bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-4xl font-black tracking-tight text-transparent">
+            <h1 className="mt-2 bg-gradient-to-r from-accent to-accent-strong bg-clip-text text-4xl font-black tracking-tight text-transparent">
               Z-Poker
             </h1>
             <p className="mt-2 text-sm text-muted">{t("login.tagline")}</p>

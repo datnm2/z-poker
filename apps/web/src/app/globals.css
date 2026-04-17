@@ -1,28 +1,50 @@
 @import "tailwindcss";
 
-:root {
+:root,
+:root[data-theme="dark"] {
   --background: #0f172a;
   --foreground: #e2e8f0;
-  --accent: #f59e0b;
+  --accent: #d946ef;
+  --accent-strong: #c026d3;
+  --accent-contrast: #ffffff;
+  --accent-glow: 217 70 239;
   --card: #1e293b;
   --card-border: #334155;
   --muted: #94a3b8;
+  --surface-input: #1e293b;
+  --felt-tint: rgba(217, 70, 239, 0.08);
+}
+
+:root[data-theme="light"] {
+  --background: #faf5ff;
+  --foreground: #1e1b2e;
+  --accent: #c026d3;
+  --accent-strong: #a21caf;
+  --accent-contrast: #ffffff;
+  --accent-glow: 192 38 211;
+  --card: #ffffff;
+  --card-border: #e9d5ff;
+  --muted: #6b6782;
+  --surface-input: #ffffff;
+  --felt-tint: rgba(192, 38, 211, 0.08);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-contrast: var(--accent-contrast);
   --color-card: var(--card);
   --color-card-border: var(--card-border);
   --color-muted: var(--muted);
+  --color-surface-input: var(--surface-input);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  /* Subtle felt-table radial for depth */
-  background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245,158,11,0.06) 0%, transparent 60%);
+  background-image: radial-gradient(ellipse 80% 50% at 50% -10%, var(--felt-tint) 0%, transparent 60%);
   background-attachment: fixed;
 }
 
@@ -60,8 +82,8 @@ input[type="number"] {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
-  50%       { box-shadow: 0 0 16px 4px rgba(245,158,11,0.35); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--accent-glow), 0); }
+  50%       { box-shadow: 0 0 16px 4px rgba(var(--accent-glow), 0.35); }
 }
 
 @keyframes elo-draw {
@@ -81,3 +103,44 @@ input[type="number"] {
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-elo-draw    { animation: elo-draw 1.1s cubic-bezier(0.4,0,0.2,1) forwards; }
 .animate-elo-fade-in { animation: elo-fade-in 0.6s ease-out 0.7s both; }
+
+.poker-chip {
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle, var(--card) 0 32%, transparent 33%),
+    conic-gradient(
+      var(--accent) 0 22.5deg,
+      var(--card) 22.5deg 45deg,
+      var(--accent) 45deg 67.5deg,
+      var(--card) 67.5deg 90deg,
+      var(--accent) 90deg 112.5deg,
+      var(--card) 112.5deg 135deg,
+      var(--accent) 135deg 157.5deg,
+      var(--card) 157.5deg 180deg,
+      var(--accent) 180deg 202.5deg,
+      var(--card) 202.5deg 225deg,
+      var(--accent) 225deg 247.5deg,
+      var(--card) 247.5deg 270deg,
+      var(--accent) 270deg 292.5deg,
+      var(--card) 292.5deg 315deg,
+      var(--accent) 315deg 337.5deg,
+      var(--card) 337.5deg 360deg
+    );
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent),
+    0 4px 12px -2px color-mix(in oklab, var(--accent) 25%, transparent);
+  position: relative;
+}
+
+.poker-chip::after {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border-radius: 9999px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+@keyframes chip-spin { to { transform: rotate(360deg); } }
+.animate-chip-spin { animation: chip-spin 1.1s linear infinite; }

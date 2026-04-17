@@ -12,14 +12,14 @@ export function LanguageSwitcher() {
   const { locale, setLocale } = useI18n();
 
   return (
-    <div className="inline-flex rounded-lg border border-card-border bg-card p-0.5">
+    <div className="inline-flex h-8 items-center rounded-lg border border-card-border bg-card p-0.5">
       {(Object.keys(labels) as Locale[]).map((lng) => (
         <button
           key={lng}
           onClick={() => setLocale(lng)}
-          className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
+          className={`rounded-md px-2 py-1 text-[11px] font-semibold transition ${
             locale === lng
-              ? "bg-accent text-slate-900"
+              ? "bg-accent text-accent-contrast"
               : "text-muted hover:text-foreground"
           }`}
         >

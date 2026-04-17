@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useI18n } from "@/providers/i18n-provider";
 import { useAuth } from "@/providers/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { ELO_TIERS } from "@/lib/ranks";
 import type { TranslationKey } from "@/i18n/translations";
 
@@ -121,18 +120,17 @@ function GuideContent() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-6">
-      <div className="flex items-center justify-between gap-3">
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
+      <div className="flex items-center gap-3">
         <Link
           href="/"
-          className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 py-1 text-sm text-muted transition hover:text-foreground"
+          className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-card-border bg-card/60 px-2.5 py-1 text-sm text-muted transition active:scale-95 active:text-foreground"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           <span>{t("back")}</span>
         </Link>
-        <LanguageSwitcher />
       </div>
       <h1 className="mt-2 text-2xl font-bold">{t("guide.title")}</h1>
 
@@ -141,7 +139,7 @@ function GuideContent() {
           <p className="text-sm text-muted">{t("guide.signInPrompt")}</p>
           <button
             onClick={signInWithGoogle}
-            className="ml-4 shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-slate-900 transition hover:brightness-110"
+            className="ml-4 shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-contrast transition hover:brightness-110"
           >
             {t("guide.signInBtn")}
           </button>
@@ -149,16 +147,21 @@ function GuideContent() {
       )}
 
       {/* TOC */}
-      <nav className="mt-4 rounded-xl border border-card-border bg-card p-4">
-        <ol className="space-y-1">
+      <nav className="mt-4 rounded-xl border border-card-border bg-card p-3">
+        <ol className="space-y-1.5">
           {sections.map((section, i) => (
             <li key={section.titleKey}>
               <a
                 href={`#${sectionIds[i]}`}
-                className="flex items-center gap-2 text-sm text-muted hover:text-accent transition"
+                className="flex items-center justify-between gap-2 rounded-lg border border-card-border bg-card/50 px-3 py-2 text-sm text-foreground transition active:scale-[0.98] active:border-accent/40 active:bg-accent/5"
               >
-                <span className="text-xs font-mono text-accent/60 w-5 shrink-0">{i + 1}.</span>
-                {t(section.titleKey)}
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="w-5 shrink-0 font-mono text-xs text-accent/70">{i + 1}.</span>
+                  <span className="truncate">{t(section.titleKey)}</span>
+                </span>
+                <svg className="h-4 w-4 flex-shrink-0 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </a>
             </li>
           ))}

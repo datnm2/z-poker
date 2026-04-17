@@ -7,6 +7,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { AuthGuard } from "@/components/auth-guard";
 import { BottomNav } from "@/components/bottom-nav";
+import { Loading } from "@/components/loading";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Session, Player, SessionPlayer } from "@/types/database";
 import type { TranslationKey } from "@/i18n/translations";
@@ -106,7 +107,7 @@ function WaitingBanner({ t }: { t: (key: TranslationKey) => string }) {
   return (
     <div className="mt-4 rounded-xl border border-accent/30 bg-accent/10 px-4 py-3">
       <div className="flex items-center gap-3">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent flex-shrink-0" />
+        <span className="poker-chip animate-chip-spin inline-block h-4 w-4 flex-shrink-0" />
         <p className="text-sm font-medium text-accent">{t("session.allChipsReady")}</p>
       </div>
       <p
@@ -334,11 +335,7 @@ function SessionContent() {
   };
 
   if (loading || !session) {
-    return (
-      <div className="flex flex-1 items-center justify-center min-h-screen">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    );
+    return <Loading fullscreen />;
   }
 
   const isCreator = session.createdBy === me?.id;
@@ -379,10 +376,14 @@ function SessionContent() {
     myRow != null && confirmedSpIds.has(myRow.id) && !reEditingSpIds.has(myRow.id);
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-6">
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:text-foreground">
+        <button
+          onClick={() => router.back()}
+          aria-label={t("back")}
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-card-border bg-card/60 text-muted transition active:scale-95 active:bg-accent/10 active:text-foreground"
+        >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
@@ -638,7 +639,7 @@ function SessionContent() {
         <div className="mt-4 space-y-2">
           {canJoin && !isCreator && (
             <div>
-              <button onClick={joinSession} className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-slate-900 transition hover:bg-amber-400 active:scale-[0.98]">
+              <button onClick={joinSession} className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-accent-contrast transition hover:bg-accent-strong active:scale-[0.98]">
                 {t("session.joinSession")}
               </button>
               <p className="mt-1.5 text-center text-xs text-muted italic">{t("session.joinHype")}</p>
@@ -647,7 +648,7 @@ function SessionContent() {
           {canJoin && isCreator && (
             <div>
               <div className="flex gap-2">
-                <button onClick={joinSession} className="flex-1 rounded-xl bg-accent px-4 py-3 font-semibold text-slate-900 transition hover:bg-amber-400 active:scale-[0.98]">
+                <button onClick={joinSession} className="flex-1 rounded-xl bg-accent px-4 py-3 font-semibold text-accent-contrast transition hover:bg-accent-strong active:scale-[0.98]">
                   {t("session.joinSession")}
                 </button>
                 <div className="flex-1 rounded-xl border border-card-border bg-card px-4 py-3 text-center text-sm text-muted">
@@ -663,10 +664,10 @@ function SessionContent() {
                 onClick={handleLockClick}
                 className={`w-full rounded-xl px-4 py-3 font-semibold transition active:scale-[0.98] ${
                   isValid && !locking
-                    ? "bg-accent text-slate-900 hover:bg-amber-400"
+                    ? "bg-accent text-accent-contrast hover:bg-accent-strong"
                     : locking
                     ? "bg-slate-700 text-slate-400 cursor-wait"
-                    : "bg-accent/60 text-slate-900/70 hover:bg-accent/70"
+                    : "bg-accent/60 text-accent-contrast/70 hover:bg-accent/70"
                 }`}
               >
                 {locking ? t("session.calculating") : t("session.lockCalculate")}

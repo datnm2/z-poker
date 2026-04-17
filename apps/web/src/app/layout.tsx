@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AuthProvider } from "@/providers/auth-provider";
 import { I18nProvider } from "@/providers/i18n-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { AppTopBar } from "@/components/app-top-bar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -97,8 +99,15 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#0f172a",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+    { media: "(prefers-color-scheme: light)", color: "#faf5ff" },
+  ],
 };
+
+const THEME_INIT_SCRIPT = `
+(function(){try{var t=localStorage.getItem('z-poker-theme');if(t!=='light'&&t!=='dark')t='dark';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();
+`;
 
 export default function RootLayout({
   children,
@@ -109,25 +118,32 @@ export default function RootLayout({
     <html
       lang="vi"
       suppressHydrationWarning
+      data-theme="dark"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body suppressHydrationWarning className="flex min-h-dvh flex-col bg-background text-foreground antialiased">
         <ClerkProvider>
-          <I18nProvider>
-            <AuthProvider>
-              <main className="flex flex-1 flex-col">{children}</main>
-              <footer className="pb-20 pt-3 text-center text-xs text-muted-foreground/40">
-                <a
-                  href="https://dat09vn.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-colors hover:text-muted-foreground"
-                >
-                  Powered by Dat Light Solution
-                </a>
-              </footer>
-            </AuthProvider>
-          </I18nProvider>
+          <ThemeProvider>
+            <I18nProvider>
+              <AuthProvider>
+                <AppTopBar />
+                <main className="flex flex-1 flex-col">{children}</main>
+                <footer className="pb-20 pt-3 text-center text-xs text-muted/40">
+                  <a
+                    href="https://dat09vn.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-colors hover:text-muted"
+                  >
+                    Powered by Dat Light Solution
+                  </a>
+                </footer>
+              </AuthProvider>
+            </I18nProvider>
+          </ThemeProvider>
         </ClerkProvider>
         {GA_ID && (
           <>

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { BottomNav } from "@/components/bottom-nav";
-import { LanguageSwitcher } from "@/components/language-switcher";
+import { Loading } from "@/components/loading";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Player, Session } from "@/types/database";
 import { getEloTier, getDivisionInfo, ELO_TIERS } from "@/lib/ranks";
@@ -101,11 +101,7 @@ function LeaderboardContent() {
   };
 
   if (authLoading || loading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    );
+    return <Loading />;
   }
 
   if (!isLoggedIn) {
@@ -120,35 +116,78 @@ function LeaderboardContent() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="min-w-0">
-          <h1 className="bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-2xl font-bold text-transparent">
-            {t("leaderboard.title")}
-          </h1>
-          {player?.domain && (
-            <p className="mt-0.5 truncate font-mono text-xs text-accent/80">@{player.domain}</p>
-          )}
-          <p className="mt-0.5 text-xs text-muted">{t("leaderboard.slogan")}</p>
-        </div>
-        <LanguageSwitcher />
-      </div>
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
+      {/* Domain HQ hero */}
+      <section className="relative overflow-hidden rounded-2xl border border-card-border bg-card p-4">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/20 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-accent-strong/15 blur-3xl"
+        />
 
-      {/* Stats */}
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <div className="rounded-xl border border-card-border bg-card p-3 text-center">
-          <div className="text-lg font-bold tabular-nums text-foreground">{players.length}</div>
-          <div className="text-xs text-muted">{t("leaderboard.players")}</div>
+        <div className="relative">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="bg-gradient-to-r from-accent to-accent-strong bg-clip-text text-2xl font-black leading-tight tracking-tight text-transparent">
+                {t("leaderboard.title")}
+              </h1>
+              <p className="mt-1 text-xs text-muted">{t("leaderboard.slogan")}</p>
+            </div>
+            {player?.domain && (
+              <span className="inline-flex max-w-[45%] flex-shrink-0 items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[11px] font-semibold text-accent">
+                <svg className="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 21V8l9-5 9 5v13M9 21V12h6v9" />
+                </svg>
+                <span className="truncate font-mono">@{player.domain}</span>
+              </span>
+            )}
+          </div>
+
+          {/* Stats row — one panel, two halves. Right half is tappable. */}
+          <div className="mt-4 flex items-stretch overflow-hidden rounded-xl border border-card-border bg-background/40">
+            <div className="flex flex-1 flex-col items-start justify-center px-4 py-3">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-black tabular-nums text-foreground">
+                  {players.length}
+                </span>
+              </div>
+              <span className="mt-0.5 text-[11px] uppercase tracking-wide text-muted">
+                {t("leaderboard.players")}
+              </span>
+            </div>
+
+            <div aria-hidden className="w-px bg-card-border" />
+
+            <Link
+              href="/sessions"
+              className="group flex flex-1 items-center justify-between gap-2 px-4 py-3 transition-colors active:bg-accent/10"
+            >
+              <div className="flex flex-col items-start">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-black tabular-nums text-foreground">
+                    {totalSessions}
+                  </span>
+                </div>
+                <span className="mt-0.5 flex items-center gap-1 text-[11px] uppercase tracking-wide text-accent">
+                  {t("leaderboard.totalGames")}
+                </span>
+              </div>
+              <svg
+                className="h-4 w-4 flex-shrink-0 text-accent/70 transition-transform group-active:translate-x-0.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
         </div>
-        <Link
-          href="/sessions"
-          className="rounded-xl border border-card-border bg-card p-3 text-center transition-all duration-150 hover:border-accent/40 active:scale-[0.98]"
-        >
-          <div className="text-lg font-bold tabular-nums text-foreground">{totalSessions}</div>
-          <div className="text-xs text-muted">{t("leaderboard.totalGames")}</div>
-        </Link>
-      </div>
+      </section>
 
       {/* Active Sessions */}
       {activeSessions.length > 0 && (
@@ -254,7 +293,7 @@ function LeaderboardContent() {
                 <button
                   onClick={createSession}
                   disabled={buyIn < 1}
-                  className="min-h-11 flex-1 rounded-xl bg-accent py-2.5 font-semibold text-slate-900 transition-all duration-150 active:scale-[0.97] disabled:opacity-40"
+                  className="min-h-11 flex-1 rounded-xl bg-accent py-2.5 font-semibold text-accent-contrast transition-all duration-150 active:scale-[0.97] disabled:opacity-40"
                 >
                   {t("leaderboard.create")}
                 </button>
@@ -263,7 +302,7 @@ function LeaderboardContent() {
           ) : (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="min-h-11 w-full rounded-xl bg-accent px-4 py-3 font-semibold text-slate-900 transition-all duration-150 active:scale-[0.97]"
+              className="min-h-11 w-full rounded-xl bg-accent px-4 py-3 font-semibold text-accent-contrast transition-all duration-150 active:scale-[0.97]"
             >
               {t("leaderboard.newSession")}
             </button>
@@ -461,20 +500,16 @@ function LandingPage() {
   const { signInWithGoogle } = useAuth();
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-12 pt-6">
+    <div className="mx-auto w-full max-w-lg px-4 pb-12 pt-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(LANDING_JSON_LD) }}
       />
-      {/* Top bar */}
-      <div className="flex items-center justify-end">
-        <LanguageSwitcher />
-      </div>
 
       {/* Hero */}
-      <section className="mt-6 flex flex-col items-center text-center">
+      <section className="flex flex-col items-center text-center">
         <div className="animate-pop-in text-5xl">🃏</div>
-        <h1 className="mt-2 bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-4xl font-black tracking-tight text-transparent">
+        <h1 className="mt-2 bg-gradient-to-r from-accent to-accent-strong bg-clip-text text-4xl font-black tracking-tight text-transparent">
           Z-Poker
         </h1>
         <p className="mt-3 text-balance text-xl font-bold leading-snug text-foreground">
@@ -486,7 +521,7 @@ function LandingPage() {
 
         <button
           onClick={signInWithGoogle}
-          className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-base font-bold text-slate-900 shadow-lg shadow-amber-500/20 transition-all duration-150 active:scale-[0.97]"
+          className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-base font-bold text-accent-contrast shadow-lg shadow-accent/30 transition-all duration-150 active:scale-[0.97]"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -496,8 +531,14 @@ function LandingPage() {
           </svg>
           {t("login.signInGoogle")}
         </button>
-        <Link href="/guide" className="mt-3 text-sm text-muted underline underline-offset-4">
+        <Link
+          href="/guide"
+          className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-accent underline underline-offset-4 active:text-accent-strong"
+        >
           {t("landing.ctaGuide")}
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 12h15" />
+          </svg>
         </Link>
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
@@ -647,7 +688,7 @@ function LandingPage() {
         <p className="text-base font-bold text-foreground">{t("landing.footerCta")}</p>
         <button
           onClick={signInWithGoogle}
-          className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-base font-bold text-slate-900 shadow-lg shadow-amber-500/20 transition-all duration-150 active:scale-[0.97]"
+          className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-base font-bold text-accent-contrast shadow-lg shadow-accent/30 transition-all duration-150 active:scale-[0.97]"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />

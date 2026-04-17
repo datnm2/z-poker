@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
+import { Loading } from "@/components/loading";
 import type { Player } from "@/types/database";
 import { getEloTier, getDivisionInfo } from "@/lib/ranks";
 
@@ -53,11 +54,7 @@ export function PlayerProfile({
   }, [fetchProfile]);
 
   if (loading || !player) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    );
+    return <Loading />;
   }
 
   const wins = sessions.filter(
@@ -87,7 +84,7 @@ export function PlayerProfile({
     <div>
       {/* Player info */}
       <div className="text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent text-2xl font-bold text-slate-900 overflow-hidden">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent text-2xl font-bold text-accent-contrast overflow-hidden">
           {player.avatarUrl ? (
             <img src={player.avatarUrl} alt="" className="h-full w-full object-cover" />
           ) : (
@@ -205,8 +202,8 @@ export function PlayerProfile({
                 <svg viewBox="0 0 300 100" className="w-full" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="eloArea" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                      <stop offset="0%" stopColor="#d946ef" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#d946ef" stopOpacity="0" />
                     </linearGradient>
                   </defs>
 
@@ -241,7 +238,7 @@ export function PlayerProfile({
                   <polyline
                     points={polyStr}
                     fill="none"
-                    stroke="#f59e0b"
+                    stroke="#d946ef"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -256,7 +253,7 @@ export function PlayerProfile({
                     const isLowest = i === lowestIdx;
                     const isCurrent = i === lastIdx;
                     const isHighlight = isPeak || isLowest;
-                    const ringColor = isPeak ? "#34d399" : isLowest ? "#f87171" : "#f59e0b";
+                    const ringColor = isPeak ? "#34d399" : isLowest ? "#f87171" : "#d946ef";
                     return (
                       <g key={i}>
                         {isHighlight && (
@@ -266,7 +263,7 @@ export function PlayerProfile({
                           cx={p.x}
                           cy={p.y}
                           r={isHighlight ? 3 : isCurrent ? 3.5 : 2.5}
-                          fill={isPeak ? "#34d399" : isLowest ? "#f87171" : "#f59e0b"}
+                          fill={isPeak ? "#34d399" : isLowest ? "#f87171" : "#d946ef"}
                         />
                       </g>
                     );
@@ -279,7 +276,7 @@ export function PlayerProfile({
                       cy={points[lastIdx].y}
                       r="3"
                       fill="none"
-                      stroke="#f59e0b"
+                      stroke="#d946ef"
                       strokeWidth="1.5"
                       vectorEffect="non-scaling-stroke"
                     >
@@ -328,7 +325,7 @@ export function PlayerProfile({
                 <Link
                   key={s.id}
                   href={`/session/${s.sessionId}`}
-                  className="flex items-center justify-between rounded-xl border border-card-border bg-card p-3 transition hover:border-accent/30"
+                  className="flex items-center justify-between gap-2 rounded-xl border border-card-border bg-card p-3 transition-all duration-150 hover:border-accent/30 active:scale-[0.98] active:border-accent/50"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium">
@@ -359,20 +356,25 @@ export function PlayerProfile({
                       </div>
                     )}
                   </div>
-                  {delta != null ? (
-                    <span
-                      className={`flex-shrink-0 text-sm font-bold ${
-                        delta >= 0 ? "text-green-400" : "text-red-400"
-                      }`}
-                    >
-                      {delta >= 0 ? "+" : ""}
-                      {delta}
-                    </span>
-                  ) : (
-                    <span className="flex-shrink-0 rounded-full bg-green-500/20 px-2 py-0.5 text-xs font-medium text-green-400">
-                      {t("session.open")}
-                    </span>
-                  )}
+                  <div className="flex flex-shrink-0 items-center gap-1.5">
+                    {delta != null ? (
+                      <span
+                        className={`text-sm font-bold ${
+                          delta >= 0 ? "text-green-400" : "text-red-400"
+                        }`}
+                      >
+                        {delta >= 0 ? "+" : ""}
+                        {delta}
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-xs font-medium text-green-400">
+                        {t("session.open")}
+                      </span>
+                    )}
+                    <svg className="h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </Link>
               );
             })}

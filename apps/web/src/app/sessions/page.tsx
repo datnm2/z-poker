@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { Loading } from "@/components/loading";
 
 interface HistoryItem {
   id: string;
@@ -88,26 +89,22 @@ export default function SessionsHistoryPage() {
   }, [loadMore]);
 
   if (authLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center pt-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-6">
-      <div className="mb-4 flex items-center gap-3">
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
+      <div className="mb-4 flex items-center gap-3 pr-24">
         <Link
           href="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-card-border text-muted transition-colors hover:text-foreground"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-card-border bg-card/60 text-muted transition active:scale-95 active:bg-accent/10 active:text-foreground"
           aria-label={t("back")}
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-xl font-bold text-transparent">
+        <h1 className="bg-gradient-to-r from-accent to-accent-strong bg-clip-text text-xl font-bold text-transparent">
           {t("sessions.history.title")}
         </h1>
       </div>

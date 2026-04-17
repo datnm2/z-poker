@@ -6,7 +6,7 @@ import { useI18n } from "@/providers/i18n-provider";
 import { AuthGuard } from "@/components/auth-guard";
 import { BottomNav } from "@/components/bottom-nav";
 import { PlayerProfile } from "@/components/player-profile";
-import { LanguageSwitcher } from "@/components/language-switcher";
+import { Loading } from "@/components/loading";
 
 function ProfileContent() {
   const { player, signOut, updatePlayerName } = useAuth();
@@ -16,11 +16,7 @@ function ProfileContent() {
   const [saving, setSaving] = useState(false);
 
   if (!player) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-      </div>
-    );
+    return <Loading />;
   }
 
   const startEdit = () => {
@@ -38,11 +34,7 @@ function ProfileContent() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-6">
-      <div className="mb-4 flex justify-end">
-        <LanguageSwitcher />
-      </div>
-
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
       {/* Inline name editor */}
       <div className="mb-4 flex items-center gap-2">
         {editingName ? (
@@ -58,7 +50,7 @@ function ProfileContent() {
             <button
               onClick={saveName}
               disabled={saving || !nameInput.trim()}
-              className="rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-slate-900 disabled:opacity-40 active:scale-95"
+              className="rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-accent-contrast disabled:opacity-40 active:scale-95"
             >
               {saving ? "…" : t("profile.saveName")}
             </button>
@@ -72,9 +64,9 @@ function ProfileContent() {
         ) : (
           <button
             onClick={startEdit}
-            className="flex items-center gap-1.5 rounded-lg border border-card-border px-3 py-1.5 text-xs text-muted transition hover:border-accent hover:text-accent"
+            className="flex items-center gap-1.5 rounded-lg border border-card-border bg-card/60 px-3 py-1.5 text-xs text-foreground transition active:scale-[0.97] active:border-accent active:bg-accent/10"
           >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-3.5 w-3.5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z" />
             </svg>
             {t("profile.editName")}
@@ -85,7 +77,7 @@ function ProfileContent() {
       <PlayerProfile playerId={player.id} isOwnProfile />
       <button
         onClick={signOut}
-        className="mt-6 w-full rounded-xl border border-red-500/30 py-3 text-sm font-medium text-red-400 transition hover:bg-red-500/10"
+        className="mt-6 w-full rounded-xl border border-red-500/30 bg-red-500/5 py-3 text-sm font-medium text-red-400 transition-colors active:bg-red-500/15"
       >
         {t("profile.signOut")}
       </button>
