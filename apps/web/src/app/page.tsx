@@ -464,7 +464,7 @@ const WHY_CARDS = [
   { icon: "🏢", titleKey: "landing.why3.title" as const, bodyKey: "landing.why3.body" as const, accent: "from-blue-400/20 to-transparent" },
 ];
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://z-poker.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zpoker.vercel.app";
 
 const LANDING_JSON_LD = {
   "@context": "https://schema.org",

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://z-poker.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://zpoker.vercel.app";
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const TITLE = "Z-Poker — Poker trưa văn phòng, có Elo đàng hoàng";
