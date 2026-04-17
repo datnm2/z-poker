@@ -83,6 +83,13 @@ export const en = {
   "profile.eloHistory": "Elo History",
   "profile.recentSessions": "Recent Sessions",
   "profile.signOut": "Sign Out",
+  "profile.peak": "Peak",
+  "profile.lowest": "Low",
+  "profile.rankProgress": "Rank progress",
+  "profile.resultWin": "Won",
+  "profile.resultLose": "Lost",
+  "profile.resultBroke": "Busted",
+  "profile.resultBreakeven": "Even",
 
   // Guide
   "guide.title": "How to Play",

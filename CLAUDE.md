@@ -1,5 +1,51 @@
 @AGENTS.md
 
+# Product overview
+
+**Z-Poker** = office cash-game poker tracker với ELO ranking, isolated theo email domain (multi-tenant theo công ty).
+
+## Game flow
+1. Creator tạo `Session` với buy-in (default 1000 chips) + ngày
+2. Add players (mình hoặc người khác trong domain) → mỗi `SessionPlayer` snapshot `eloBefore`
+3. Players nhập `chipsEnd` (chip cuối) qua UI
+4. Creator **lock** session → trigger ELO recalc + update player ranks
+5. Session immutable, kết quả lên leaderboard
+
+Real-time qua **SSE** (`/sessions/stream` domain-wide, `/:id/stream` per session).
+Events: `session.created`, `session.player_joined`, `session.chips_updated`, `session.locked`.
+
+## ELO system (`apps/api/src/elo/elo.math.ts`)
+- **Formula**: `change = round(K × (N/2) × (actual − expected))`
+  - `expected = 1 / (1 + 10^((avgElo − playerElo) / 400))` — 400 = ELO scaling chuẩn của Arpad Elo
+  - `actual = 0.5 + 0.5 × (chipsEnd − buyIn) / (buyIn × (N − 1))` — linear theo chip
+- **K=70** (giảm từ 100 để bớt swing; chess dùng 10–40 nhưng casual game cần feedback rõ)
+- **Zero-sum**: `sum(chipsEnd) == buyIn × N` enforced at lock
+- **Starting ELO**: 1200
+
+## Rank tiers (`apps/web/src/lib/ranks.ts`, names ở `apps/web/src/i18n/vi.ts`)
+| Tier | ELO | Divisions |
+|---|---|---|
+| 👑 Thần Bài - Vua Trò Chơi | 1600+ | — |
+| 🦈 Kẻ Săn Mồi | 1450–1600 | ★, ★★, ★★★ |
+| 💰 Lão Luyện | 1300–1450 | ★, ★★, ★★★ |
+| 🎯 Tay Mới Chơi | 1150–1300 | ★, ★★, ★★★ |
+| 🃏 Tay Non Và Xanh | 1000–1150 | ★, ★★, ★★★ |
+| 🐟 Cá Con - Chip Feeder | <1000 | — |
+
+Mid tiers chia 50-elo divisions; rank tính theo domain (count players higher elo + 1).
+
+## Multi-tenancy
+- Email domain (`@acme.com`) = tenant key
+- Extracted in `apps/api/src/auth/clerk.guard.ts` → `AuthedUser.domain`
+- Tất cả query filter theo domain → công ty A không thấy công ty B
+
+## i18n
+Bilingual: `apps/web/src/i18n/en.ts` + `vi.ts` (default Vietnamese).
+
+## Key files
+- API: `sessions/`, `players/`, `elo/elo.math.ts`, `elo/elo.service.ts`, `auth/clerk.guard.ts`
+- Web: `app/page.tsx` (leaderboard), `app/session/[id]/page.tsx` (session detail), `app/profile/page.tsx`, `lib/ranks.ts`
+
 # Monorepo layout
 
 ```

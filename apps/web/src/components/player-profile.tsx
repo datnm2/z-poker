@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import type { Player } from "@/types/database";
-import { getEloTier } from "@/lib/ranks";
+import { getEloTier, getDivisionInfo } from "@/lib/ranks";
 
 interface SessionRecord {
   id: string;
@@ -75,6 +75,14 @@ export function PlayerProfile({
   const eloMax = eloHistory.length > 0 ? Math.max(...eloHistory) + 20 : 1220;
   const eloRange = eloMax - eloMin || 1;
 
+  const peakElo = eloHistory.length > 0 ? Math.max(...eloHistory) : null;
+  const lowestElo = eloHistory.length > 0 ? Math.min(...eloHistory) : null;
+  const showLowest = lowestElo != null && peakElo != null && peakElo - lowestElo >= 20;
+
+  const tier = getEloTier(player.elo);
+  const divInfo = getDivisionInfo(player.elo);
+  const tierStars = divInfo.stars > 0 ? "★".repeat(divInfo.stars) + "☆".repeat(3 - divInfo.stars) : null;
+
   return (
     <div>
       {/* Player info */}
@@ -87,19 +95,52 @@ export function PlayerProfile({
           )}
         </div>
         <h1 className="mt-3 text-xl font-bold">{player.name}</h1>
-        {(() => {
-          const tier = getEloTier(player.elo);
-          return (
-            <div className={`mt-1 inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-sm font-semibold ${tier.bgClass} ${tier.colorClass}`}>
-              <span>{tier.icon}</span>
-              <span>{t(tier.key)}</span>
-            </div>
-          );
-        })()}
+        <div className={`mt-1 inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-sm font-semibold ${tier.bgClass} ${tier.colorClass}`}>
+          <span>{tier.icon}</span>
+          <span>{t(tier.key)}</span>
+          {tierStars && (
+            <span className="ml-1 tracking-tight">
+              <span className={tier.colorClass}>{tierStars.slice(0, divInfo.stars)}</span>
+              <span className="opacity-25">{tierStars.slice(divInfo.stars)}</span>
+            </span>
+          )}
+        </div>
         <p className="mt-1 text-sm text-muted">
           {player.email.replace(/^(.{2})[^@]+(@.+)$/, "$1***$2")}
         </p>
       </div>
+
+      {/* Rank progress card */}
+      {divInfo.eloToNext !== null && (
+        <div className="mt-4 rounded-xl border border-card-border bg-card p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold text-muted">{t("profile.rankProgress")}</span>
+            <span className="text-xs text-muted/80">
+              {divInfo.nextTierKey ? (
+                <>↑ {divInfo.eloToNext} → {t(divInfo.nextTierKey)}</>
+              ) : (
+                <>↑ {divInfo.eloToNext} {t("rank.eloToNext")}</>
+              )}
+            </span>
+          </div>
+          <div className="relative h-2 w-full rounded-full bg-slate-700">
+            <div
+              className={`absolute inset-y-0 left-0 rounded-full ${tier.fillClass}`}
+              style={{
+                width: tier.hasDivisions
+                  ? `${(divInfo.stars - 1) * 33.33 + divInfo.progressPct * 0.3333}%`
+                  : `${divInfo.progressPct}%`,
+              }}
+            />
+            {tier.hasDivisions && (
+              <>
+                <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "33.33%" }} />
+                <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "66.66%" }} />
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="mt-6 grid grid-cols-3 gap-3">
@@ -121,37 +162,134 @@ export function PlayerProfile({
       {/* Elo chart */}
       {eloHistory.length > 1 && (
         <div className="mt-6">
-          <h2 className="mb-2 text-sm font-semibold text-muted">
-            {t("profile.eloHistory")}
-          </h2>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-muted">
+              {t("profile.eloHistory")}
+            </h2>
+            <div className="flex items-center gap-1.5">
+              {peakElo != null && (
+                <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                  📈 {t("profile.peak")} {peakElo}
+                </span>
+              )}
+              {showLowest && lowestElo != null && (
+                <span className="rounded-full bg-red-400/15 px-2 py-0.5 text-[10px] font-bold text-red-400">
+                  📉 {t("profile.lowest")} {lowestElo}
+                </span>
+              )}
+            </div>
+          </div>
           <div className="rounded-xl border border-card-border bg-card p-4">
-            <svg viewBox="0 0 300 100" className="w-full" preserveAspectRatio="none">
-              <polyline
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                points={eloHistory
-                  .map((elo, i) => {
-                    const x = (i / (eloHistory.length - 1)) * 296 + 2;
-                    const y = 96 - ((elo - eloMin) / eloRange) * 92;
-                    return `${x},${y}`;
-                  })
-                  .join(" ")}
-              />
-              {eloHistory.map((elo, i) => {
+            {(() => {
+              const points = eloHistory.map((elo, i) => {
                 const x = (i / (eloHistory.length - 1)) * 296 + 2;
                 const y = 96 - ((elo - eloMin) / eloRange) * 92;
-                return (
-                  <circle
-                    key={i}
-                    cx={x}
-                    cy={y}
-                    r="3"
-                    fill="#f59e0b"
+                return { x, y, elo };
+              });
+              const polyStr = points.map((p) => `${p.x},${p.y}`).join(" ");
+              const areaPath = `M ${points[0].x},${points[0].y} ${points.slice(1).map((p) => `L ${p.x},${p.y}`).join(" ")} L ${points[points.length - 1].x},96 L ${points[0].x},96 Z`;
+
+              const peakIdx = peakElo != null ? eloHistory.indexOf(peakElo) : -1;
+              const lowestIdx = showLowest && lowestElo != null ? eloHistory.indexOf(lowestElo) : -1;
+              const lastIdx = points.length - 1;
+
+              const TIER_BOUNDARIES = [
+                { elo: 1600, color: "#a78bfa" },
+                { elo: 1450, color: "#60a5fa" },
+                { elo: 1300, color: "#34d399" },
+                { elo: 1150, color: "#facc15" },
+                { elo: 1000, color: "#fb923c" },
+              ];
+
+              return (
+                <svg viewBox="0 0 300 100" className="w-full" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="eloArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Tier boundary dashed lines */}
+                  {TIER_BOUNDARIES.filter((b) => b.elo >= eloMin && b.elo <= eloMax).map((b) => {
+                    const y = 96 - ((b.elo - eloMin) / eloRange) * 92;
+                    return (
+                      <line
+                        key={b.elo}
+                        x1="0"
+                        x2="300"
+                        y1={y}
+                        y2={y}
+                        stroke={b.color}
+                        strokeWidth="1"
+                        strokeDasharray="2,3"
+                        opacity="0.22"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    );
+                  })}
+
+                  {/* Area fill */}
+                  <path
+                    d={areaPath}
+                    fill="url(#eloArea)"
+                    className="animate-elo-fade-in"
+                    style={{ opacity: 0 }}
                   />
-                );
-              })}
-            </svg>
+
+                  {/* Trend line with reveal */}
+                  <polyline
+                    points={polyStr}
+                    fill="none"
+                    stroke="#f59e0b"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    vectorEffect="non-scaling-stroke"
+                    className="animate-elo-draw"
+                    style={{ strokeDasharray: 1000, strokeDashoffset: 1000 }}
+                  />
+
+                  {/* Dots */}
+                  {points.map((p, i) => {
+                    const isPeak = i === peakIdx;
+                    const isLowest = i === lowestIdx;
+                    const isCurrent = i === lastIdx;
+                    const isHighlight = isPeak || isLowest;
+                    const ringColor = isPeak ? "#34d399" : isLowest ? "#f87171" : "#f59e0b";
+                    return (
+                      <g key={i}>
+                        {isHighlight && (
+                          <circle cx={p.x} cy={p.y} r="5" fill="none" stroke={ringColor} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+                        )}
+                        <circle
+                          cx={p.x}
+                          cy={p.y}
+                          r={isHighlight ? 3 : isCurrent ? 3.5 : 2.5}
+                          fill={isPeak ? "#34d399" : isLowest ? "#f87171" : "#f59e0b"}
+                        />
+                      </g>
+                    );
+                  })}
+
+                  {/* Current point pulse */}
+                  {points.length > 0 && (
+                    <circle
+                      cx={points[lastIdx].x}
+                      cy={points[lastIdx].y}
+                      r="3"
+                      fill="none"
+                      stroke="#f59e0b"
+                      strokeWidth="1.5"
+                      vectorEffect="non-scaling-stroke"
+                    >
+                      <animate attributeName="r" values="3;10" dur="1.6s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="1;0" dur="1.6s" repeatCount="indefinite" />
+                    </circle>
+                  )}
+                </svg>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -168,13 +306,31 @@ export function PlayerProfile({
                 s.eloAfter != null && s.eloBefore != null
                   ? s.eloAfter - s.eloBefore
                   : null;
+
+              // Outcome badge — derived from chipsEnd vs buyIn
+              let outcome: { icon: string; labelKey: "profile.resultWin" | "profile.resultLose" | "profile.resultBroke" | "profile.resultBreakeven"; color: string } | null = null;
+              if (s.chipsEnd != null) {
+                const d = s.chipsEnd - s.session.buyIn;
+                if (s.chipsEnd === 0) outcome = { icon: "💸", labelKey: "profile.resultBroke", color: "text-red-400" };
+                else if (d > 0) outcome = { icon: "📈", labelKey: "profile.resultWin", color: "text-green-400" };
+                else if (d === 0) outcome = { icon: "⚖️", labelKey: "profile.resultBreakeven", color: "text-yellow-400" };
+                else outcome = { icon: "📉", labelKey: "profile.resultLose", color: "text-orange-400" };
+              }
+
+              // Tier change
+              const tierChanged =
+                s.eloBefore != null && s.eloAfter != null &&
+                getEloTier(s.eloBefore).key !== getEloTier(s.eloAfter).key;
+              const newTier = s.eloAfter != null ? getEloTier(s.eloAfter) : null;
+              const isRankUp = s.eloBefore != null && s.eloAfter != null && s.eloAfter > s.eloBefore;
+
               return (
                 <Link
                   key={s.id}
                   href={`/session/${s.sessionId}`}
                   className="flex items-center justify-between rounded-xl border border-card-border bg-card p-3 transition hover:border-accent/30"
                 >
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium">
                       {s.session.playedDate}
                       {s.session.lockedAt && (
@@ -188,10 +344,24 @@ export function PlayerProfile({
                       {" · "}
                       {t("session.chips")}: {s.chipsEnd ?? "-"}
                     </div>
+                    {(outcome || tierChanged) && (
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        {outcome && (
+                          <span className={`text-[10px] font-semibold ${outcome.color}`}>
+                            {outcome.icon} {t(outcome.labelKey)}
+                          </span>
+                        )}
+                        {tierChanged && newTier && (
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${newTier.bgClass} ${newTier.colorClass}`}>
+                            {isRankUp ? "⬆" : "⬇"} {newTier.icon} {t(newTier.key)}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {delta != null ? (
                     <span
-                      className={`text-sm font-bold ${
+                      className={`flex-shrink-0 text-sm font-bold ${
                         delta >= 0 ? "text-green-400" : "text-red-400"
                       }`}
                     >
@@ -199,7 +369,7 @@ export function PlayerProfile({
                       {delta}
                     </span>
                   ) : (
-                    <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-xs font-medium text-green-400">
+                    <span className="flex-shrink-0 rounded-full bg-green-500/20 px-2 py-0.5 text-xs font-medium text-green-400">
                       {t("session.open")}
                     </span>
                   )}

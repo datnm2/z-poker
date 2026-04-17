@@ -26,9 +26,9 @@ describe("computeEloChanges", () => {
       ],
       1000,
     );
-    // expected=0.5, actual=1.0 for winner → K*(1.0-0.5)=32 → round(32)=32
-    expect(result[0].change).toBe(32);
-    expect(result[1].change).toBe(-32);
+    // expected=0.5, actual=1.0 for winner → K*(N/2)*(1.0-0.5) = 70*1*0.5 = 35
+    expect(result[0].change).toBe(35);
+    expect(result[1].change).toBe(-35);
   });
 
   it("penalizes the favorite for losing to the underdog", () => {

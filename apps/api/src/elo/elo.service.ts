@@ -14,7 +14,7 @@ export class EloService {
 
   /**
    * Calculates Elo updates for a session, applies them, and locks the session.
-   * Mirrors supabase/migrations/002_new_elo_formula.sql (group-average, K=100).
+   * Mirrors supabase/migrations/002_new_elo_formula.sql (group-average, K=70).
    */
   async calculateAndLock(sessionId: string): Promise<EloResult[]> {
     return this.dataSource.transaction(async (tx) => {

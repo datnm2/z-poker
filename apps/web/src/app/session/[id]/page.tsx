@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth as useClerkAuth } from "@clerk/nextjs";
 import { useAuth } from "@/providers/auth-provider";
@@ -538,14 +539,19 @@ function SessionContent() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    {sp.player.avatarUrl ? (
-                      <img src={sp.player.avatarUrl} alt="" className="h-6 w-6 rounded-full flex-shrink-0" />
-                    ) : (
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-700 text-[10px] font-bold text-slate-300 flex-shrink-0">
-                        {sp.player.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                    <span className="truncate font-medium">{sp.player.name}</span>
+                    <Link
+                      href={`/player/${sp.playerId}`}
+                      className="flex min-w-0 items-center gap-1.5 transition-opacity hover:opacity-80 active:opacity-60"
+                    >
+                      {sp.player.avatarUrl ? (
+                        <img src={sp.player.avatarUrl} alt="" className="h-6 w-6 rounded-full flex-shrink-0" />
+                      ) : (
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-700 text-[10px] font-bold text-slate-300 flex-shrink-0">
+                          {sp.player.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <span className="truncate font-medium">{sp.player.name}</span>
+                    </Link>
                     {sp.playerId === session.createdBy && (
                       <span className="flex-shrink-0 rounded bg-purple-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-purple-400">
                         {t("session.host")}

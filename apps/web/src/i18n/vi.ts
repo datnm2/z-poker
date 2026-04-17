@@ -83,6 +83,13 @@ export const vi = {
   "profile.eloHistory": "Lịch sử Elo",
   "profile.recentSessions": "Phiên gần đây",
   "profile.signOut": "Đăng xuất",
+  "profile.peak": "Đỉnh",
+  "profile.lowest": "Đáy",
+  "profile.rankProgress": "Tiến độ hạng",
+  "profile.resultWin": "Thắng",
+  "profile.resultLose": "Thua",
+  "profile.resultBroke": "Cháy sạch",
+  "profile.resultBreakeven": "Hoà",
 
   // Guide
   "guide.title": "Cách chơi",

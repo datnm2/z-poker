@@ -1,6 +1,6 @@
 // Pure functions extracted for unit testing. Mirrors migration 002.
 
-export const K = 100;
+export const K = 70;
 
 export interface EloInput {
   playerId: string;
