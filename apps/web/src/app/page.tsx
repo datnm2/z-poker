@@ -27,7 +27,8 @@ function LeaderboardContent() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [buyIn, setBuyIn] = useState(800);
+  const [buyInInput, setBuyInInput] = useState("100");
+  const buyIn = parseInt(buyInInput, 10);
 
   const fetchData = useCallback(async () => {
     const [p, s, stats] = await Promise.all([
@@ -278,8 +279,10 @@ function LeaderboardContent() {
               </label>
               <input
                 type="number"
-                value={buyIn}
-                onChange={(e) => setBuyIn(parseInt(e.target.value, 10) || 0)}
+                inputMode="numeric"
+                value={buyInInput}
+                onChange={(e) => setBuyInInput(e.target.value.replace(/[^0-9]/g, ""))}
+                onBlur={() => { if (!buyInInput) setBuyInInput("100"); }}
                 min={1}
                 className="w-full rounded-lg border border-card-border bg-slate-800 px-3 py-2.5 font-mono text-foreground focus:border-accent focus:outline-none"
               />
@@ -292,7 +295,7 @@ function LeaderboardContent() {
                 </button>
                 <button
                   onClick={createSession}
-                  disabled={buyIn < 1}
+                  disabled={!Number.isFinite(buyIn) || buyIn < 1}
                   className="min-h-11 flex-1 rounded-xl bg-accent py-2.5 font-semibold text-accent-contrast transition-all duration-150 active:scale-[0.97] disabled:opacity-40"
                 >
                   {t("leaderboard.create")}

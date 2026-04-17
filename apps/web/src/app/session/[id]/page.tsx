@@ -134,21 +134,24 @@ interface ChipInputProps {
 }
 
 function ChipInput({ spId: _spId, playerId, myId, isCreator, confirmed, chipVal, placeholder, onChange, onFocus, onConfirm, onReEdit }: ChipInputProps) {
+  const { t } = useI18n();
   const canEdit = isCreator || playerId === myId;
   if (!canEdit) return <div className="font-mono text-sm text-muted">{chipVal || "–"}</div>;
 
   if (confirmed) {
     return (
-      <div className="flex items-center gap-1.5">
-        <span className="font-mono text-sm font-medium text-green-400">{chipVal || "\u2013"}</span>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-sm font-semibold text-green-400">{chipVal || "\u2013"}</span>
         {isCreator ? (
           <button
             onClick={onReEdit}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:text-accent transition"
+            aria-label={t("session.edit")}
+            className="inline-flex h-8 flex-shrink-0 items-center gap-1 rounded-lg border border-card-border bg-card/60 px-2 text-xs font-medium text-muted transition active:scale-95 active:border-accent active:bg-accent/10 active:text-accent"
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z" />
             </svg>
+            <span>{t("session.edit")}</span>
           </button>
         ) : (
           <svg className="h-4 w-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -160,23 +163,25 @@ function ChipInput({ spId: _spId, playerId, myId, isCreator, confirmed, chipVal,
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       <input
         type="number"
+        inputMode="numeric"
         value={chipVal}
         placeholder={placeholder}
-        className="w-24 rounded-lg border border-card-border bg-slate-800 px-2 py-2 text-right font-mono text-sm text-foreground focus:border-accent focus:outline-none"
+        className="h-10 w-20 rounded-lg border border-card-border bg-slate-800 px-2 text-right font-mono text-sm text-foreground placeholder:text-muted/60 focus:border-accent focus:outline-none sm:w-24"
         onChange={(e) => onChange(e.target.value)}
         onFocus={onFocus}
       />
       <button
         onClick={onConfirm}
         disabled={!chipVal}
-        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-green-500/20 text-green-400 transition hover:bg-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+        className="inline-flex h-10 flex-shrink-0 items-center gap-1 rounded-lg bg-green-500/20 px-2.5 text-xs font-semibold text-green-400 transition active:scale-95 active:bg-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
       >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
+        <span>{t("session.confirm")}</span>
       </button>
     </div>
   );
@@ -407,46 +412,122 @@ function SessionContent() {
       {/* Waiting banner — non-creator once they've confirmed their chips */}
       {showWaiting && <WaitingBanner t={t} />}
 
+      {/* Session ELO stakes — visible to all while session is open */}
+      {!session.isLocked && players.length > 0 && (() => {
+        const K = 70;
+        const N = players.length;
+        const avgElo = Math.round(
+          players.reduce((s, p) => s + (p.eloBefore ?? p.player.elo), 0) / N,
+        );
+        const myPlayerRow = players.find((p) => p.playerId === me?.id);
+        const myElo = myPlayerRow?.eloBefore ?? myPlayerRow?.player.elo ?? me?.elo ?? null;
+        const canShowStakes = myElo != null && N >= 2;
+        const expected = canShowStakes
+          ? 1 / (1 + Math.pow(10, (avgElo - myElo) / 400))
+          : null;
+        const maxGain = expected != null ? Math.max(1, Math.ceil(K * (N / 2) * (1 - expected))) : null;
+        const maxLoss = expected != null ? Math.max(1, Math.ceil(K * (N / 2) * expected)) : null;
+
+        return (
+          <div className="mt-4 rounded-2xl border border-card-border bg-card p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-xs font-medium text-muted">{t("session.stakes")}</p>
+              <span className="text-[10px] text-muted">
+                {N} {t("session.playersCount")}
+              </span>
+            </div>
+            <div className={canShowStakes ? "grid grid-cols-3 gap-2" : "grid grid-cols-1 gap-2"}>
+              <div className="rounded-lg bg-card-border/30 p-2 text-center">
+                <p className="text-[10px] uppercase tracking-wide text-muted">{t("session.avgElo")}</p>
+                <p className="mt-0.5 font-mono text-lg font-bold text-foreground">{avgElo}</p>
+              </div>
+              {canShowStakes && maxGain != null && (
+                <div className="rounded-lg bg-emerald-500/10 p-2 text-center ring-1 ring-emerald-500/20">
+                  <p className="text-[10px] uppercase tracking-wide text-emerald-400/80">{t("session.maxGain")}</p>
+                  <p className="mt-0.5 font-mono text-lg font-bold text-emerald-400">+{maxGain}</p>
+                </div>
+              )}
+              {canShowStakes && maxLoss != null && (
+                <div className="rounded-lg bg-red-500/10 p-2 text-center ring-1 ring-red-500/20">
+                  <p className="text-[10px] uppercase tracking-wide text-red-400/80">{t("session.maxLoss")}</p>
+                  <p className="mt-0.5 font-mono text-lg font-bold text-red-400">−{maxLoss}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Chip validation bar — visible to creator */}
       {!session.isLocked && isCreator && players.length > 0 && (() => {
         const confirmedCount = players.filter((p) => confirmedSpIds.has(p.id) && !reEditingSpIds.has(p.id)).length;
         const delta = actualTotal - expectedTotal;
         const isCheating = allChipsEntered && delta < 0;
         const isExtra = allChipsEntered && delta > 0;
+        const ratio = expectedTotal > 0 ? Math.min(100, (actualTotal / expectedTotal) * 100) : 0;
+        const borderClass = isValid
+          ? "border-green-500/40 bg-green-500/5"
+          : isCheating
+          ? "border-red-500/40 bg-red-500/5"
+          : isExtra
+          ? "border-yellow-500/40 bg-yellow-500/5"
+          : "border-card-border bg-card";
+        const fillClass = isValid
+          ? "bg-green-500"
+          : isCheating
+          ? "bg-red-500"
+          : isExtra
+          ? "bg-yellow-500"
+          : "bg-accent";
+        const headlineColor = isValid
+          ? "text-green-400"
+          : isCheating
+          ? "text-red-400"
+          : isExtra
+          ? "text-yellow-400"
+          : "text-foreground";
         return (
-          <div className={`mt-4 rounded-xl border p-3 text-sm ${
-            allChipsEntered && isValid
-              ? "border-green-500/30 bg-green-500/10 text-green-400"
-              : isCheating
-              ? "border-red-500/40 bg-red-500/10 text-red-400"
-              : "border-card-border bg-card text-muted"
-          }`}>
+          <div className={`mt-4 rounded-xl border p-3 text-sm ${borderClass}`}>
+            {/* Primary: chips entered / expected */}
             <div className="flex items-center justify-between">
-              <span className={isCheating ? "text-red-400" : isExtra ? "text-yellow-400" : ""}>
-                {t("session.chips")}: {actualTotal} / {expectedTotal}
+              <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
+                <span>💰</span>
+                <span>{t("session.chipsEntered")}</span>
               </span>
-              <span className={confirmedCount === players.length ? "text-green-400" : ""}>
-                {confirmedCount}/{players.length} {t("session.confirmed")}
+              <span className={`font-mono text-sm font-semibold tabular-nums ${headlineColor}`}>
+                {actualTotal.toLocaleString()} / {expectedTotal.toLocaleString()}
               </span>
             </div>
-            {isCheating && (
-              <div className="mt-1.5 flex items-center gap-1 font-semibold text-red-400">
-                {t("session.cheatWarning")} {Math.abs(delta)}
-              </div>
-            )}
-            {isExtra && (
-              <div className="mt-1.5 text-yellow-400">
-                {t("session.extraWarning")} {delta}
-              </div>
-            )}
-            {/* Progress bar */}
-            <div className="mt-2 h-1 rounded-full bg-slate-700 overflow-hidden">
+            {/* Progress bar — fills with chips, not with head count */}
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-700">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  allChipsEntered && isValid ? "bg-green-500" : isCheating ? "bg-red-500" : "bg-accent"
-                }`}
-                style={{ width: `${players.length > 0 ? (confirmedCount / players.length) * 100 : 0}%` }}
+                className={`h-full rounded-full transition-all duration-500 ${fillClass}`}
+                style={{ width: `${ratio}%` }}
               />
+            </div>
+            {/* Sub-rows */}
+            <div className="mt-2 flex items-center justify-between text-xs text-muted">
+              {isValid ? (
+                <span className="font-semibold text-green-400">✓ {t("session.readyToLock")}</span>
+              ) : isCheating ? (
+                <span className="font-semibold text-red-400">
+                  {t("session.cheatWarning")} {Math.abs(delta).toLocaleString()}
+                </span>
+              ) : isExtra ? (
+                <span className="font-semibold text-yellow-400">
+                  {t("session.extraWarning")} {delta.toLocaleString()}
+                </span>
+              ) : (
+                <span>
+                  {t("session.remainingToAccount")}:{" "}
+                  <span className="font-mono font-semibold text-foreground">
+                    {Math.max(0, expectedTotal - actualTotal).toLocaleString()}
+                  </span>
+                </span>
+              )}
+              <span className={confirmedCount === players.length ? "font-semibold text-green-400" : ""}>
+                👥 {confirmedCount}/{players.length}
+              </span>
             </div>
           </div>
         );
