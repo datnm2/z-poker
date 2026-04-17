@@ -1,4 +1,4 @@
-Game này Poker văn phòng, chơi offline ,tracking online. Mỗi ngày chỉ 1 phiên. 1 phiên là gồm nhiều ván liên tiếp trong giừo nghỉ trưa 9trung bình tầm 5 ván)
+Game này Poker văn phòng, chơi offline ,tracking online. Mỗi ngày chỉ 1 phiên. 1 phiên là gồm nhiều ván liên tiếp trong giừo nghỉ trưa 9trung bình tầm 5 ván
 
 màn hình kết quả mỗi phiên cần có thể hiện tăng rank, tụt rank
 để người chơi có thể biết được mình đã tiến bộ hay tụt lùi so với lần trước

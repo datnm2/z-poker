@@ -11,7 +11,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { streamUrl } from "@/lib/api";
 import type { Player, Session } from "@/types/database";
 import type { SessionEvent } from "@/types/events";
-import { getEloTier, ELO_TIERS } from "@/lib/ranks";
+import { getEloTier, getDivisionInfo, ELO_TIERS } from "@/lib/ranks";
 
 interface ActiveSession extends Session {
   creator: { id: string; name: string } | null;
@@ -167,7 +167,6 @@ function LeaderboardContent() {
     );
   }
 
-  const topElo = players[0]?.elo ?? 0;
 
   const RANK_BADGES = [
     { label: "1ST", ringClass: "ring-2 ring-amber-400", bgClass: "bg-amber-400/20", textClass: "text-amber-400", medalBg: "bg-amber-400", medalText: "text-slate-900" },
@@ -189,23 +188,13 @@ function LeaderboardContent() {
       </div>
 
       {/* Stats */}
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-4 grid grid-cols-2 gap-2">
         {[
-          { label: t("leaderboard.players"), value: players.length, accent: false },
-          { label: t("leaderboard.totalGames"), value: totalSessions, accent: false },
-          { label: t("leaderboard.topElo"), value: topElo, accent: true },
+          { label: t("leaderboard.players"), value: players.length },
+          { label: t("leaderboard.totalGames"), value: totalSessions },
         ].map((s) => (
-          <div
-            key={s.label}
-            className={`rounded-xl border p-3 text-center ${
-              s.accent
-                ? "border-accent/30 bg-accent/10"
-                : "border-card-border bg-card"
-            }`}
-          >
-            <div className={`text-lg font-bold tabular-nums ${s.accent ? "text-accent" : "text-foreground"}`}>
-              {s.value}
-            </div>
+          <div key={s.label} className="rounded-xl border border-card-border bg-card p-3 text-center">
+            <div className="text-lg font-bold tabular-nums text-foreground">{s.value}</div>
             <div className="text-xs text-muted">{s.label}</div>
           </div>
         ))}
@@ -378,30 +367,62 @@ function LeaderboardContent() {
                 )}
               </div>
 
-              {/* Name + games */}
-              <div className="flex-1 min-w-0">
-                <div className={`truncate font-semibold ${isFirst ? "text-foreground" : "text-foreground"}`}>
-                  {p.name}
-                </div>
-                <div className="mt-0.5 text-xs text-muted">
-                  {p.gamesPlayed}{" "}
-                  {p.gamesPlayed === 1 ? t("leaderboard.game") : t("leaderboard.games")}
-                </div>
-              </div>
-
-              {/* Elo + tier */}
-              <div className="flex flex-col items-end gap-1">
-                <div
-                  className={`font-mono text-xl font-bold tabular-nums ${
-                    isFirst ? "text-accent" : "text-foreground"
-                  }`}
-                >
-                  {p.elo}
-                </div>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${tier.bgClass} ${tier.colorClass}`}>
-                  {t(tier.key)}
-                </span>
-              </div>
+              {/* Center: name + rank + progress */}
+              {(() => {
+                const divInfo = getDivisionInfo(p.elo);
+                const stars = divInfo.stars > 0 ? "★".repeat(divInfo.stars) + "☆".repeat(3 - divInfo.stars) : null;
+                return (
+                  <div className="flex flex-1 min-w-0 flex-col gap-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate font-semibold text-foreground">{p.name}</span>
+                      <span className={`font-mono text-xl font-bold tabular-nums flex-shrink-0 ${isFirst ? "text-accent" : "text-foreground"}`}>
+                        {p.elo}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${tier.bgClass} ${tier.colorClass}`}>
+                          {tier.icon} {t(tier.key)}
+                          {stars && (
+                            <span className="ml-1 tracking-tight">
+                              <span className={tier.colorClass}>{stars.slice(0, divInfo.stars)}</span>
+                              <span className="opacity-25">{stars.slice(divInfo.stars)}</span>
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-[10px] text-muted">
+                          {p.gamesPlayed} {p.gamesPlayed === 1 ? t("leaderboard.game") : t("leaderboard.games")}
+                        </span>
+                      </div>
+                      {divInfo.eloToNext !== null && (
+                        <span className="flex-shrink-0 text-[10px] text-muted/60">
+                          +{divInfo.eloToNext} elo{divInfo.nextTierKey ? ` → ${t(divInfo.nextTierKey)}` : ""}
+                        </span>
+                      )}
+                    </div>
+                    {divInfo.eloToNext !== null && (
+                      <div className="relative h-2 w-full rounded-full bg-slate-700">
+                        {/* Fill: offset by completed divisions + progress within current div */}
+                        <div
+                          className={`absolute inset-y-0 left-0 rounded-full ${tier.fillClass}`}
+                          style={{
+                            width: tier.hasDivisions
+                              ? `${(divInfo.stars - 1) * 33.33 + divInfo.progressPct * 0.3333}%`
+                              : `${divInfo.progressPct}%`,
+                          }}
+                        />
+                        {/* Division markers */}
+                        {tier.hasDivisions && (
+                          <>
+                            <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "33.33%" }} />
+                            <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "66.66%" }} />
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </Link>
           );
         })}
@@ -411,14 +432,16 @@ function LeaderboardContent() {
       {players.length > 0 && (
         <div className="mt-5 rounded-xl border border-card-border bg-card/50 p-3">
           <p className="mb-2 text-xs font-semibold text-muted">{t("guide.elo.tiers.title")}</p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-col gap-1.5">
             {ELO_TIERS.map((tier) => (
-              <span
-                key={tier.key}
-                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${tier.bgClass} ${tier.colorClass}`}
-              >
-                {tier.minElo === -Infinity ? `<${ELO_TIERS[ELO_TIERS.length - 2].minElo}` : `${tier.minElo}+`}
-              </span>
+              <div key={tier.key} className="flex items-center justify-between">
+                <span className={`text-[11px] font-semibold ${tier.colorClass}`}>
+                  {tier.icon} {t(tier.key)}
+                </span>
+                <span className="text-[10px] text-muted">
+                  {tier.minElo === -Infinity ? `< ${tier.maxElo}` : tier.maxElo === Infinity ? `${tier.minElo}+` : `${tier.minElo} – ${tier.maxElo - 1}`}
+                </span>
+              </div>
             ))}
           </div>
         </div>

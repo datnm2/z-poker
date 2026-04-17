@@ -19,9 +19,8 @@ export const en = {
   // Leaderboard
   "leaderboard.title": "Leaderboard",
   "leaderboard.slogan": "Outlast. Outchip. Outrank.",
-  "leaderboard.players": "Players",
-  "leaderboard.totalGames": "Total Games",
-  "leaderboard.topElo": "Top Elo",
+  "leaderboard.players": "Total Players",
+  "leaderboard.totalGames": "Total Sessions Played",
   "leaderboard.newSession": "+ New Session",
   "leaderboard.activeSessions": "Active Sessions",
   "leaderboard.buyInLabel": "Buy-in",
@@ -202,17 +201,16 @@ export const en = {
     "No combination at all. Highest single card plays. Can still win if all opponents also miss — pay attention to who's bluffing.",
 
   "guide.elo.tiers.title": "Rank tiers",
+  "rank.division": "Rank",
+  "rank.eloToNext": "to next rank",
 
-  // Elo Tiers (long-term)
-  "rank.godlike": "Poker God — King of the Table",
-  "rank.legend": "Legendary Hitman",
-  "rank.shark": "Card Shark — Don't Touch",
-  "rank.veteran": "High Roller",
-  "rank.diamond": "Cold-Blooded",
-  "rank.grinder": "Knows What They're Doing",
-  "rank.rookie": "New Blood",
-  "rank.gambler": "Hot Head",
-  "rank.fish": "Young & Wet Behind the Ears",
+  // Elo Tiers
+  "rank.godlike": "Poker God! King Of Poker!",
+  "rank.predator": "Predator",
+  "rank.veteran": "Veteran",
+  "rank.novice": "Novice",
+  "rank.rookie": "Rookie",
+  "rank.fish": "Fish",
 
 
   // Session Titles (short-term)

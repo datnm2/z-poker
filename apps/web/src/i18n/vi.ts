@@ -19,9 +19,8 @@ export const vi = {
   // Leaderboard
   "leaderboard.title": "Bảng xếp hạng",
   "leaderboard.slogan": "Trụ lại. Gom chip. Leo rank.",
-  "leaderboard.players": "Người chơi",
-  "leaderboard.totalGames": "Tổng ván",
-  "leaderboard.topElo": "Elo cao",
+  "leaderboard.players": "Tổng game thủ",
+  "leaderboard.totalGames": "Tổng ván đã chơi",
   "leaderboard.newSession": "+ Ván mới",
   "leaderboard.activeSessions": "Phiên đang chơi",
   "leaderboard.buyInLabel": "Buy-in",
@@ -202,17 +201,16 @@ export const vi = {
     "Không có tổ hợp nào. Lá bài cao nhất tính. Vẫn có thể thắng nếu đối thủ cũng miss — chú ý đọc bluff.",
 
   "guide.elo.tiers.title": "Bảng hạng",
+  "rank.division": "Hạng",
+  "rank.eloToNext": "đến hạng tiếp",
 
-  // Elo Tiers (long-term)
+  // Elo Tiers
   "rank.godlike": "Thần Bài - Vua Trò Chơi",
-  "rank.legend": "Sát Thủ Huyền Thoại",
-  "rank.shark": "Cá Mập, Đừng Đụng Vào",
-  "rank.veteran": "Tay To",
-  "rank.diamond": "Tay Cứng Cựa",
-  "rank.grinder": "Tay Biết Chơi Đấy",
-  "rank.rookie": "Tay Mới",
-  "rank.gambler": "Đầu Nóng",
-  "rank.fish": "Cá Non Và Xanh",
+  "rank.predator": "Kẻ Săn Mồi",
+  "rank.veteran": "Lão Luyện",
+  "rank.novice": "Tay Mới Chơi",
+  "rank.rookie": "Tay Non Và Xanh",
+  "rank.fish": "Cá Con - Chip Feeder",
 
   // Session Titles (short-term)
   "game.dominator": "Bá Chủ",
@@ -220,5 +218,5 @@ export const vi = {
   "game.profitHunter": "Thợ Săn",
   "game.survivor": "Sống Sót",
   "game.bleeder": "Chảy Máu",
-  "game.sponsor": "Nhà Tài Trợ",
+  "game.sponsor": "Nhà Tài Trợ - Chip Feeder",
 } as const;
