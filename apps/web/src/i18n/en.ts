@@ -65,6 +65,8 @@ export const en = {
   "session.confirmed": "Confirmed",
   "session.confirm": "Confirm",
   "session.results": "Results",
+  "session.rankedUp": "Ranked up to",
+  "session.rankedDown": "Dropped to",
   "session.rank": "Rank",
   "session.dealer": "Dealer",
   "session.dealerHint": "Or stay as Dealer — you can edit chips & lock without joining",

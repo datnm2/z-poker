@@ -65,6 +65,8 @@ export const vi = {
   "session.confirmed": "Đã xác nhận",
   "session.confirm": "Xác nhận",
   "session.results": "Kết quả",
+  "session.rankedUp": "Lên hạng",
+  "session.rankedDown": "Xuống hạng",
   "session.rank": "Xếp hạng",
   "session.dealer": "Dealer",
   "session.dealerHint": "Hoặc đứng Dealer — bạn vẫn sửa chip & khóa phiên mà không cần tham gia",

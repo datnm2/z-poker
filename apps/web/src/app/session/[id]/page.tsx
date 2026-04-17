@@ -11,7 +11,7 @@ import { streamUrl } from "@/lib/api";
 import type { Session, Player, SessionPlayer } from "@/types/database";
 import type { SessionEvent } from "@/types/events";
 import type { TranslationKey } from "@/i18n/translations";
-import { getSessionTitle, getEloTier } from "@/lib/ranks";
+import { getSessionTitle, getEloTier, getDivisionInfo } from "@/lib/ranks";
 
 interface PlayerRow extends SessionPlayer {
   player: Pick<Player, "id" | "name" | "elo" | "avatarUrl">;
@@ -572,6 +572,60 @@ function SessionContent() {
                       </div>
                     );
                   })()}
+                  {session.isLocked && sp.eloAfter != null && sp.eloBefore != null && (() => {
+                    const beforeTier = getEloTier(sp.eloBefore);
+                    const afterTier = getEloTier(sp.eloAfter);
+                    const tierChanged = beforeTier.key !== afterTier.key;
+                    const isRankUp = sp.eloAfter > sp.eloBefore;
+                    const divInfo = getDivisionInfo(sp.eloAfter);
+                    const stars = divInfo.stars > 0 ? "★".repeat(divInfo.stars) + "☆".repeat(3 - divInfo.stars) : null;
+                    return (
+                      <>
+                        {tierChanged && (
+                          <div
+                            className={`mt-0.5 text-xs font-semibold ${afterTier.colorClass} animate-pop-in`}
+                            style={justLocked ? { animationDelay: `${animDelay + 600}ms`, opacity: 0, animationFillMode: "forwards" } : undefined}
+                          >
+                            {isRankUp ? "⬆" : "⬇"} {t(isRankUp ? "session.rankedUp" : "session.rankedDown")} {afterTier.icon} {t(afterTier.key)}
+                          </div>
+                        )}
+                        <div
+                          className={`mt-1 flex flex-col gap-1 ${justLocked ? "animate-slide-in" : ""}`}
+                          style={justLocked ? { animationDelay: `${animDelay + 800}ms`, opacity: 0, animationFillMode: "forwards" } : undefined}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${afterTier.bgClass} ${afterTier.colorClass}`}>
+                              {afterTier.icon} {t(afterTier.key)}
+                              {stars && (
+                                <span className="ml-1 tracking-tight">
+                                  <span className={afterTier.colorClass}>{stars.slice(0, divInfo.stars)}</span>
+                                  <span className="opacity-25">{stars.slice(divInfo.stars)}</span>
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                          {divInfo.eloToNext !== null && (
+                            <div className="relative h-1.5 w-full rounded-full bg-slate-700">
+                              <div
+                                className={`absolute inset-y-0 left-0 rounded-full ${afterTier.fillClass}`}
+                                style={{
+                                  width: afterTier.hasDivisions
+                                    ? `${(divInfo.stars - 1) * 33.33 + divInfo.progressPct * 0.3333}%`
+                                    : `${divInfo.progressPct}%`,
+                                }}
+                              />
+                              {afterTier.hasDivisions && (
+                                <>
+                                  <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "33.33%" }} />
+                                  <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "66.66%" }} />
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {session.isLocked ? (
@@ -579,7 +633,8 @@ function SessionContent() {
                     className="text-right animate-pop-in"
                     style={{ animationDelay: `${animDelay + 300}ms`, opacity: 0, animationFillMode: "forwards" }}
                   >
-                    <div className="font-mono text-lg font-bold">{sp.chipsEnd}</div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted">{t("session.chips")}</div>
+                    <div className="font-mono text-lg font-bold leading-tight">{sp.chipsEnd}</div>
                     {sp.chipsEnd != null && (
                       <div className={`text-xs font-semibold ${sp.chipsEnd - session.buyIn >= 0 ? "text-green-400" : "text-red-400"}`}>
                         {sp.chipsEnd - session.buyIn >= 0 ? "+" : ""}{sp.chipsEnd - session.buyIn}
