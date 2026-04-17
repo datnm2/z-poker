@@ -45,6 +45,7 @@ export type SessionEvent =
       sessionId: string;
       sessionPlayerId: string;
       chipsEnd: number | null;
+      actorId: string;
     }
   | {
       type: "session.locked";

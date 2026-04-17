@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth as useClerkAuth } from "@clerk/nextjs";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { AuthGuard } from "@/components/auth-guard";
 import { BottomNav } from "@/components/bottom-nav";
-import { streamUrl } from "@/lib/api";
+import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Session, Player, SessionPlayer } from "@/types/database";
-import type { SessionEvent } from "@/types/events";
 import type { TranslationKey } from "@/i18n/translations";
 import { getSessionTitle, getEloTier, getDivisionInfo } from "@/lib/ranks";
 
@@ -186,7 +184,6 @@ function ChipInput({ spId: _spId, playerId, myId, isCreator, confirmed, chipVal,
 function SessionContent() {
   const { id } = useParams<{ id: string }>();
   const { player: me, api } = useAuth();
-  const { getToken } = useClerkAuth();
   const { t } = useI18n();
   const router = useRouter();
 
@@ -235,103 +232,70 @@ function SessionContent() {
     fetchSession();
   }, [fetchSession]);
 
-  // SSE subscription — typed events with in-place state patches.
-  // Falls back to a full refetch on error (covers reconnect drift).
-  useEffect(() => {
-    if (!id) return;
-    let cancelled = false;
-    let es: EventSource | null = null;
-
-    (async () => {
-      const token = await getToken();
-      if (cancelled || !token) return;
-      es = new EventSource(streamUrl(`/sessions/${id}/stream`, token));
-
-      es.addEventListener("session.player_joined", (ev) => {
-        try {
-          const data = JSON.parse((ev as MessageEvent).data) as SessionEvent;
-          if (data.type !== "session.player_joined") return;
-          setPlayers((prev) => {
-            if (prev.some((p) => p.id === data.sessionPlayer.id)) return prev;
-            return [...prev, data.sessionPlayer];
-          });
+  const sseHandlers = useMemo<SseHandlers>(
+    () => ({
+      "session.player_joined": (data) => {
+        setPlayers((prev) => {
+          if (prev.some((p) => p.id === data.sessionPlayer.id)) return prev;
+          return [...prev, data.sessionPlayer];
+        });
+        setLocalChips((prev) => ({
+          ...prev,
+          [data.sessionPlayer.id]:
+            data.sessionPlayer.chipsEnd != null
+              ? String(data.sessionPlayer.chipsEnd)
+              : "",
+        }));
+      },
+      "session.chips_updated": (data) => {
+        // Skip echo of our own action — UI already reflects it, and re-applying
+        // would flicker the confirmed state if we're mid-focus on another row.
+        if (me && data.actorId === me.id) return;
+        setPlayers((prev) =>
+          prev.map((p) =>
+            p.id === data.sessionPlayerId ? { ...p, chipsEnd: data.chipsEnd } : p,
+          ),
+        );
+        if (focusedSpId.current !== data.sessionPlayerId) {
           setLocalChips((prev) => ({
             ...prev,
-            [data.sessionPlayer.id]:
-              data.sessionPlayer.chipsEnd != null
-                ? String(data.sessionPlayer.chipsEnd)
-                : "",
+            [data.sessionPlayerId]:
+              data.chipsEnd != null ? String(data.chipsEnd) : "",
           }));
-        } catch {
-          /* noop */
-        }
-      });
-
-      es.addEventListener("session.chips_updated", (ev) => {
-        try {
-          const data = JSON.parse((ev as MessageEvent).data) as SessionEvent;
-          if (data.type !== "session.chips_updated") return;
-          setPlayers((prev) =>
-            prev.map((p) =>
-              p.id === data.sessionPlayerId
-                ? { ...p, chipsEnd: data.chipsEnd }
-                : p,
-            ),
-          );
-          // Don't clobber the local input if this user is currently editing it
-          if (focusedSpId.current !== data.sessionPlayerId) {
-            setLocalChips((prev) => ({
-              ...prev,
-              [data.sessionPlayerId]:
-                data.chipsEnd != null ? String(data.chipsEnd) : "",
-            }));
-            if (data.chipsEnd != null) {
-              setConfirmedSpIds((prev) => {
-                const next = new Set(prev);
-                next.add(data.sessionPlayerId);
-                return next;
-              });
-            }
+          if (data.chipsEnd != null) {
+            setConfirmedSpIds((prev) => {
+              const next = new Set(prev);
+              next.add(data.sessionPlayerId);
+              return next;
+            });
           }
-        } catch {
-          /* noop */
         }
-      });
+      },
+      "session.locked": (data) => {
+        if (!prevLockedRef.current) setJustLocked(true);
+        prevLockedRef.current = true;
+        setSession((prev) =>
+          prev ? { ...prev, isLocked: true, lockedAt: new Date().toISOString() } : prev,
+        );
+        const byId = new Map(data.results.map((r) => [r.playerId, r]));
+        setPlayers((prev) =>
+          prev.map((p) => {
+            const r = byId.get(p.playerId);
+            if (!r) return p;
+            return { ...p, eloBefore: r.eloBefore, eloAfter: r.eloAfter };
+          }),
+        );
+      },
+    }),
+    [me],
+  );
 
-      es.addEventListener("session.locked", (ev) => {
-        try {
-          const data = JSON.parse((ev as MessageEvent).data) as SessionEvent;
-          if (data.type !== "session.locked") return;
-          if (!prevLockedRef.current) setJustLocked(true);
-          prevLockedRef.current = true;
-          setSession((prev) =>
-            prev ? { ...prev, isLocked: true, lockedAt: new Date().toISOString() } : prev,
-          );
-          // Apply ELO results to local rows
-          const byId = new Map(data.results.map((r) => [r.playerId, r]));
-          setPlayers((prev) =>
-            prev.map((p) => {
-              const r = byId.get(p.playerId);
-              if (!r) return p;
-              return { ...p, eloBefore: r.eloBefore, eloAfter: r.eloAfter };
-            }),
-          );
-        } catch {
-          /* noop */
-        }
-      });
-
-      es.onerror = () => {
-        // Browser auto-reconnects; refetch once to clear any drift
-        fetchSession();
-      };
-    })();
-
-    return () => {
-      cancelled = true;
-      es?.close();
-    };
-  }, [id, getToken, fetchSession]);
+  useSseStream({
+    path: id ? `/sessions/${id}/stream` : null,
+    handlers: sseHandlers,
+    onResync: fetchSession,
+    enabled: !!id,
+  });
 
   const joinSession = async () => {
     if (!session || !me) return;

@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth as useClerkAuth } from "@clerk/nextjs";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { streamUrl } from "@/lib/api";
+import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Player, Session } from "@/types/database";
-import type { SessionEvent } from "@/types/events";
 import { getEloTier, getDivisionInfo, ELO_TIERS } from "@/lib/ranks";
 
 interface ActiveSession extends Session {
@@ -22,7 +20,6 @@ type LeaderboardPlayer = Pick<Player, "id" | "name" | "elo" | "gamesPlayed" | "a
 
 function LeaderboardContent() {
   const { player, api, isLoggedIn, isLoading: authLoading } = useAuth();
-  const { getToken } = useClerkAuth();
   const { t } = useI18n();
   const [players, setPlayers] = useState<LeaderboardPlayer[]>([]);
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
@@ -44,11 +41,6 @@ function LeaderboardContent() {
     setLoading(false);
   }, [api]);
 
-  const refetchPlayers = useCallback(async () => {
-    const p = await api.get<Player[]>("/players");
-    setPlayers(p);
-  }, [api]);
-
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
       setLoading(true);
@@ -56,75 +48,51 @@ function LeaderboardContent() {
     }
   }, [authLoading, isLoggedIn, fetchData]);
 
-  // Domain-wide SSE: real-time updates for new sessions and locks
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    let cancelled = false;
-    let es: EventSource | null = null;
-
-    (async () => {
-      const token = await getToken();
-      if (cancelled || !token) return;
-      es = new EventSource(streamUrl("/sessions/stream", token));
-
-      es.addEventListener("session.created", (ev) => {
-        try {
-          const data = JSON.parse((ev as MessageEvent).data) as SessionEvent;
-          if (data.type !== "session.created") return;
-          setActiveSessions((prev) => {
-            if (prev.some((s) => s.id === data.session.id)) return prev;
-            return [data.session, ...prev];
+  const sseHandlers = useMemo<SseHandlers>(
+    () => ({
+      "session.created": (data) => {
+        setActiveSessions((prev) => {
+          if (prev.some((s) => s.id === data.session.id)) return prev;
+          return [data.session, ...prev];
+        });
+      },
+      "session.player_joined": (data) => {
+        setActiveSessions((prev) =>
+          prev.map((s) =>
+            s.id === data.sessionId
+              ? {
+                  ...s,
+                  playerIds: s.playerIds.includes(data.sessionPlayer.playerId)
+                    ? s.playerIds
+                    : [...s.playerIds, data.sessionPlayer.playerId],
+                }
+              : s,
+          ),
+        );
+      },
+      "session.locked": (data) => {
+        setActiveSessions((prev) => prev.filter((s) => s.id !== data.sessionId));
+        // Patch ELO locally from payload instead of refetching /players.
+        const byId = new Map(data.results.map((r) => [r.playerId, r.eloAfter]));
+        setPlayers((prev) => {
+          const next = prev.map((p) => {
+            const nextElo = byId.get(p.id);
+            return nextElo != null ? { ...p, elo: nextElo, gamesPlayed: p.gamesPlayed + 1 } : p;
           });
-        } catch {
-          /* noop */
-        }
-      });
+          return [...next].sort((a, b) => b.elo - a.elo);
+        });
+        setTotalSessions((n) => n + 1);
+      },
+    }),
+    [],
+  );
 
-      es.addEventListener("session.player_joined", (ev) => {
-        try {
-          const data = JSON.parse((ev as MessageEvent).data) as SessionEvent;
-          if (data.type !== "session.player_joined") return;
-          setActiveSessions((prev) =>
-            prev.map((s) =>
-              s.id === data.sessionId
-                ? {
-                    ...s,
-                    playerIds: s.playerIds.includes(data.sessionPlayer.playerId)
-                      ? s.playerIds
-                      : [...s.playerIds, data.sessionPlayer.playerId],
-                  }
-                : s,
-            ),
-          );
-        } catch {
-          /* noop */
-        }
-      });
-
-      es.addEventListener("session.locked", (ev) => {
-        try {
-          const data = JSON.parse((ev as MessageEvent).data) as SessionEvent;
-          if (data.type !== "session.locked") return;
-          setActiveSessions((prev) =>
-            prev.filter((s) => s.id !== data.sessionId),
-          );
-          refetchPlayers();
-        } catch {
-          /* noop */
-        }
-      });
-
-      es.onerror = () => {
-        // Browser auto-reconnects; refetch once to clear any drift
-        fetchData();
-      };
-    })();
-
-    return () => {
-      cancelled = true;
-      es?.close();
-    };
-  }, [isLoggedIn, getToken, fetchData, refetchPlayers]);
+  useSseStream({
+    path: isLoggedIn ? "/sessions/stream" : null,
+    handlers: sseHandlers,
+    onResync: fetchData,
+    enabled: isLoggedIn,
+  });
 
   const createSession = async () => {
     if (!player) return;

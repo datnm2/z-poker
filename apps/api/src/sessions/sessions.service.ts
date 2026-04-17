@@ -491,6 +491,7 @@ export class SessionsService {
       sessionId,
       sessionPlayerId,
       chipsEnd,
+      actorId: user.userId,
     });
   }
 

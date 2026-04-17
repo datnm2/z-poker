@@ -22,6 +22,7 @@ export type SessionEvent =
       sessionId: string;
       sessionPlayerId: string;
       chipsEnd: number | null;
+      actorId: string;
     }
   | {
       type: "session.locked";
@@ -62,9 +63,18 @@ export class SessionsEventsService {
     );
   }
 
+  // Domain stream skips chips_updated — that's per-session noise the leaderboard
+  // doesn't need. player_joined stays because the leaderboard shows player count
+  // per active session.
+  private static readonly DOMAIN_TYPES: ReadonlySet<SessionEvent["type"]> = new Set([
+    "session.created",
+    "session.player_joined",
+    "session.locked",
+  ]);
+
   streamForDomain(domain: string): Observable<SseMessage> {
     const events$ = this.subject.asObservable().pipe(
-      filter((e) => e.domain === domain),
+      filter((e) => e.domain === domain && SessionsEventsService.DOMAIN_TYPES.has(e.type)),
       map((e) => ({ data: JSON.stringify(e), type: e.type })),
     );
     return merge(events$, this.heartbeat$).pipe(
