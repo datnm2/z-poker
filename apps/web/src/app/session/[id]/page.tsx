@@ -171,7 +171,7 @@ function ChipInput({ spId: _spId, playerId, myId, isCreator, confirmed, chipVal,
         inputMode="numeric"
         value={chipVal}
         placeholder={placeholder}
-        className="h-10 w-20 rounded-lg border border-card-border bg-slate-800 px-2 text-right font-mono text-sm text-foreground placeholder:text-muted/60 focus:border-accent focus:outline-none sm:w-24"
+        className="h-10 w-36 rounded-lg border border-card-border bg-slate-800 px-2 text-right font-mono text-sm text-foreground placeholder:text-muted/60 focus:border-accent focus:outline-none sm:w-40"
         onChange={(e) => onChange(e.target.value)}
         onFocus={onFocus}
       />

@@ -38,7 +38,7 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
   const palette = PALETTES[index % PALETTES.length];
   const title = current ? current.title[locale] ?? current.title.en : "";
   const body = current ? current.body[locale] ?? current.body.en : "";
-  const stepLabel = locale === "vi" ? "Highlight AI" : "AI Highlight";
+  const stepLabel = locale === "vi" ? "MC kể chuyện" : "MC's take";
 
   useEffect(() => { setMounted(true); }, []);
 

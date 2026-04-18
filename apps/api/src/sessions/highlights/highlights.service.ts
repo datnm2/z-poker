@@ -87,7 +87,13 @@ export class HighlightsService {
       const session = await this.sessions.findOne({ where: { id: sessionId } });
       if (!session) return;
 
-      const prompt = this.buildPrompt(session.buyIn, session.playedDate, contexts);
+      const targetCount = Math.max(2, Math.min(6, Math.ceil(contexts.length / 2)));
+      const prompt = this.buildPrompt(
+        session.buyIn,
+        session.playedDate,
+        contexts,
+        targetCount,
+      );
       const raw = await this.ai.generateJson<{
         items: SessionHighlights["items"];
       }>(prompt, { schema: HIGHLIGHTS_SCHEMA });
@@ -95,7 +101,7 @@ export class HighlightsService {
       const highlights: SessionHighlights = {
         generatedAt: new Date().toISOString(),
         model: this.ai.getDefaultModel(),
-        items: (raw.items ?? []).slice(0, 3),
+        items: (raw.items ?? []).slice(0, targetCount),
       };
 
       await this.sessions.update({ id: sessionId }, { highlights });
@@ -182,13 +188,14 @@ export class HighlightsService {
     buyIn: number,
     playedDate: string,
     contexts: PlayerContext[],
+    targetCount: number,
   ): string {
     const playersJson = JSON.stringify(contexts, null, 2);
     return `Mày là MC sòng bài văn phòng, mồm mép lanh như lái xe ôm công nghệ, chuyên đá đểu đồng nghiệp sau mỗi session poker giờ nghỉ trưa. Vibe: cà khịa dí dỏm, troll vừa đủ đau, KHÔNG tục, KHÔNG động chạm ngoại hình/giới tính/gia đình. Tưởng tượng mày đang lên sóng stream, phải làm cho anh em cười lăn nhưng thua vẫn thấy vui.
 
-Session hôm nay (${playedDate}), buy-in ${buyIn} chip/người. Dưới đây là data session này + lịch sử 10 session gần nhất của từng người chơi (history có thể rỗng nếu người đó mới chơi lần đầu).
+Session hôm nay (${playedDate}), buy-in ${buyIn} chip/người, ${contexts.length} người chơi. Dưới đây là data session này + lịch sử 10 session gần nhất của từng người chơi (history có thể rỗng nếu người đó mới chơi lần đầu).
 
-Nhiệm vụ: viết ĐÚNG 3 highlight troll nhất của ngày. Mỗi highlight gán vào 1 player cụ thể. Bắt đúng pattern:
+Nhiệm vụ: viết ĐÚNG ${targetCount} highlight troll nhất của ngày. Mỗi highlight gán vào 1 player cụ thể. Bắt đúng pattern:
 - Thắng/thua liên tục (>=3 session liên tiếp nhìn từ history) → "Thần bài nhập" / "Sao thua hoài vậy"
 - Comeback (thua chuỗi rồi thắng giòn giã) → "Trở lại và lợi hại hơn xưa"
 - Thắng đậm (chipDelta to nhất bàn) → "Nhà vô địch chip", "Đè bàn hốt cú lớn"
@@ -205,8 +212,8 @@ Tone examples (bắt chước vibe này):
 - "đang phong độ đỉnh cao bỗng hôm nay về mo, Zeus ngủ quên"
 
 Output — SONG NGỮ (BẮT BUỘC):
-- ĐÚNG 3 items
-- title: object { vi, en } — mỗi ngôn ngữ là 1 câu ngắn punchy (<=6 từ), cà khịa
+- ĐÚNG ${targetCount} items
+- title: object { vi, en } — mỗi ngôn ngữ là 1 câu ngắn punchy (<=8 từ), cà khịa
 - body: object { vi, en } — 1-2 câu, BẮT BUỘC nêu con số cụ thể từ data (chip delta, số streak, elo change). Thêm cú troll, ẩn dụ vui, hoặc lời khuyên mỉa mai. Tiếng Anh cũng phải giữ tone troll tự nhiên — KHÔNG dịch word-by-word từ Việt, viết lại cho hợp văn hoá English trash-talk office poker.
 - emoji: 1 emoji duy nhất
 - playerId PHẢI khớp data

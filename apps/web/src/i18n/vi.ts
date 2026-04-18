@@ -117,9 +117,9 @@ export const vi = {
   "session.fighters": "Chiến binh",
   "session.sortedByElo": "xếp theo Elo",
   "session.highlights.title": "🎬 Highlights của ván",
-  "session.highlights.cta": "AI đã soi xong — chạm để xem drama",
-  "session.highlights.loading": "AI đang soi bài...",
-  "session.highlights.loadingHint": "Tổng hợp highlight của ván, chờ tí nhé",
+  "session.highlights.cta": "MC sòng bài đã soi xong — chạm để xem drama",
+  "session.highlights.loading": "MC sòng bài đang soi bài...",
+  "session.highlights.loadingHint": "MC đang tổng hợp drama của ván, chờ tí nhé",
   "session.joinHype": "Nhảy vào đi — Elo của bạn đang chờ. Chứng minh ai là số 1.",
 
   // Profile
