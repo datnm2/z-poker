@@ -111,10 +111,44 @@ function LeaderboardContent() {
   }
 
 
+  // Top 3 — breathing hairline border + rare diagonal corner glint (jewelry-like).
   const RANK_BADGES = [
-    { label: "1ST", ringClass: "ring-2 ring-amber-400", bgClass: "bg-amber-400/20", textClass: "text-amber-400", medalBg: "bg-amber-400", medalText: "text-slate-900" },
-    { label: "2ND", ringClass: "ring-2 ring-slate-400", bgClass: "bg-slate-400/20", textClass: "text-slate-300", medalBg: "bg-slate-300", medalText: "text-slate-900" },
-    { label: "3RD", ringClass: "ring-2 ring-amber-700", bgClass: "bg-amber-700/20", textClass: "text-amber-600", medalBg: "bg-amber-700", medalText: "text-white" },
+    {
+      // #1 Gold
+      medalBg: "bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600",
+      medalText: "text-amber-950",
+      iconColor: "text-amber-300",
+      style: {
+        "--rank-color": "#fbbf24",
+        "--rank-speed": "4.5s",
+        "--rank-glint-speed": "6.5s",
+      } as React.CSSProperties,
+      glintColor: "rgba(254, 243, 199, 0.85)",
+    },
+    {
+      // #2 Silver
+      medalBg: "bg-gradient-to-br from-slate-100 via-slate-300 to-slate-500",
+      medalText: "text-slate-900",
+      iconColor: "text-slate-200",
+      style: {
+        "--rank-color": "#cbd5e1",
+        "--rank-speed": "5.5s",
+        "--rank-glint-speed": "8s",
+      } as React.CSSProperties,
+      glintColor: "rgba(248, 250, 252, 0.8)",
+    },
+    {
+      // #3 Bronze
+      medalBg: "bg-gradient-to-br from-orange-400 via-orange-600 to-amber-800",
+      medalText: "text-white",
+      iconColor: "text-orange-400",
+      style: {
+        "--rank-color": "#ea580c",
+        "--rank-speed": "6s",
+        "--rank-glint-speed": "9s",
+      } as React.CSSProperties,
+      glintColor: "rgba(253, 186, 116, 0.75)",
+    },
   ];
 
   return (
@@ -320,46 +354,55 @@ function LeaderboardContent() {
           const tier = getEloTier(p.elo);
           const badge = RANK_BADGES[i];
           const isTopThree = i < 3;
-          const isFirst = i === 0;
+          const isMe = player?.id === p.id;
 
           return (
             <Link
               key={p.id}
               href={`/player/${p.id}`}
-              className={`animate-slide-in flex min-h-[60px] items-center gap-3 rounded-xl border p-3 transition-all duration-150 active:scale-[0.98] ${
-                isFirst
-                  ? "border-accent/40 bg-gradient-to-r from-accent/10 to-card animate-pulse-glow"
+              className={`animate-slide-in relative flex min-h-[60px] items-center gap-3 rounded-xl border p-3 transition-all duration-150 active:scale-[0.98] ${
+                isTopThree
+                  ? `border-transparent bg-card animate-rank-border-breathe`
                   : "border-card-border bg-card active:border-accent/20"
-              }`}
-              style={{ animationDelay: `${i * 40}ms` }}
+              } ${isMe ? "ring-2 ring-accent/70 ring-offset-2 ring-offset-background" : ""}`}
+              style={{
+                animationDelay: `${i * 40}ms`,
+                ...(isTopThree ? badge.style : {}),
+              }}
             >
+              {isTopThree && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl"
+                >
+                  <span
+                    className="absolute left-0 top-0 h-16 w-16 animate-rank-glint rounded-full blur-xl"
+                    style={{
+                      background: `radial-gradient(circle, ${badge.glintColor} 0%, transparent 70%)`,
+                      animationDelay: `${i * 2.2}s`,
+                    }}
+                  />
+                </span>
+              )}
               {/* Rank / Avatar */}
               <div className="relative flex-shrink-0">
-                <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold overflow-hidden ${
-                    isTopThree
-                      ? `${badge.ringClass} ${badge.bgClass}`
-                      : "bg-slate-800 text-slate-400"
-                  }`}
-                >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold overflow-hidden bg-slate-800">
                   {p.avatarUrl ? (
                     <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <span className={isTopThree ? badge.textClass : "text-slate-400"}>
-                      {isTopThree ? badge.label : i + 1}
+                    <span className="text-slate-400">
+                      {(p.name?.[0] ?? "?").toUpperCase()}
                     </span>
                   )}
                 </span>
-                {/* Rank number badge — top 3 get colored medals; rest get neutral badge when avatar is shown */}
-                {p.avatarUrl && (
-                  <span
-                    className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-background shadow-md ${
-                      isTopThree ? `${badge.medalBg} ${badge.medalText}` : "bg-slate-700 text-slate-300"
-                    }`}
-                  >
-                    {i + 1}
-                  </span>
-                )}
+                {/* Rank medal — top 3 get metal medals; rest get neutral number badge */}
+                <span
+                  className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-background shadow-md ${
+                    isTopThree ? `${badge.medalBg} ${badge.medalText}` : "bg-slate-700 text-slate-300"
+                  }`}
+                >
+                  {i + 1}
+                </span>
               </div>
 
               {/* Center: name + rank + progress */}
@@ -367,10 +410,21 @@ function LeaderboardContent() {
                 const divInfo = getDivisionInfo(p.elo);
                 const stars = divInfo.stars > 0 ? "★".repeat(divInfo.stars) + "☆".repeat(3 - divInfo.stars) : null;
                 return (
-                  <div className="flex flex-1 min-w-0 flex-col gap-1">
+                  <div className="relative flex flex-1 min-w-0 flex-col gap-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="truncate font-semibold text-foreground">{p.name}</span>
-                      <span className={`font-mono text-xl font-bold tabular-nums flex-shrink-0 ${isFirst ? "text-accent" : "text-foreground"}`}>
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="truncate font-semibold text-foreground">{p.name}</span>
+                        {isMe && (
+                          <span className="flex-shrink-0 rounded-full border border-accent/50 bg-accent/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-accent">
+                            {t("leaderboard.you")}
+                          </span>
+                        )}
+                      </span>
+                      <span
+                        className={`font-mono text-xl font-bold tabular-nums flex-shrink-0 ${
+                          isTopThree ? badge.iconColor : "text-foreground"
+                        }`}
+                      >
                         {p.elo}
                       </span>
                     </div>

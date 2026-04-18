@@ -54,6 +54,7 @@ export const en = {
   "leaderboard.title": "Leaderboard",
   "leaderboard.slogan": "Outlast. Outchip. Outrank.",
   "leaderboard.players": "Total Players",
+  "leaderboard.you": "You",
   "leaderboard.totalGames": "Total Sessions Played",
   "leaderboard.newSession": "+ New Session",
   "leaderboard.activeSessions": "Active Sessions",

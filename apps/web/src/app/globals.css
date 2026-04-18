@@ -347,7 +347,7 @@ input[type="number"] {
 
 .animate-shimmer-text {
   background-size: 200% 100%;
-  animation: shimmer-text 3.2s linear infinite;
+  animation: shimmer-text 6s linear infinite;
 }
 
 @keyframes badge-sheen {
@@ -361,13 +361,45 @@ input[type="number"] {
   animation-delay: 1.2s;
 }
 
+/* Subtle breathing border for top-3 — hairline that softly brightens */
+@keyframes rank-border-breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--rank-color, #fbbf24) 50%, transparent),
+      0 0 14px -4px color-mix(in oklab, var(--rank-color, #fbbf24) 55%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--rank-color, #fbbf24) 85%, transparent),
+      0 0 22px -2px color-mix(in oklab, var(--rank-color, #fbbf24) 70%, transparent);
+  }
+}
+.animate-rank-border-breathe {
+  animation: rank-border-breathe var(--rank-speed, 4.5s) ease-in-out infinite;
+}
+
+/* Corner glint — specular highlight that travels diagonally then fades.
+   Starts top-left as a small bright point, sweeps to bottom-right, disappears.
+   Long idle gap between glints (rare, jewelry-like). */
+@keyframes rank-glint {
+  0%        { opacity: 0; transform: translate(-30%, -30%) scale(0.6); }
+  8%        { opacity: 1; }
+  25%       { opacity: 1; transform: translate(130%, 130%) scale(1.1); }
+  32%, 100% { opacity: 0; transform: translate(130%, 130%) scale(1.1); }
+}
+.animate-rank-glint {
+  animation: rank-glint var(--rank-glint-speed, 7s) ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card-orbit-ring,
   .pcard,
   .skeleton-bar,
   .skeleton-dot,
   .animate-shimmer-text,
-  .animate-badge-sheen {
+  .animate-badge-sheen,
+  .animate-rank-border-breathe,
+  .animate-rank-glint {
     animation: none !important;
   }
   .animate-chip-spin { animation: none; }

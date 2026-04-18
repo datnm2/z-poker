@@ -54,6 +54,7 @@ export const vi = {
   "leaderboard.title": "Bảng xếp hạng",
   "leaderboard.slogan": "Trụ lại. Gom chip. Leo rank.",
   "leaderboard.players": "Tổng game thủ",
+  "leaderboard.you": "Bạn",
   "leaderboard.totalGames": "Tổng ván đã chơi",
   "leaderboard.newSession": "+ Ván mới",
   "leaderboard.activeSessions": "Phiên đang chơi",
