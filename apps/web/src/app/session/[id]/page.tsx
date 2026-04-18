@@ -498,8 +498,8 @@ function SessionContent() {
         );
       })()}
 
-      {/* Chip validation bar — visible to creator */}
-      {!session.isLocked && isCreator && players.length > 0 && (() => {
+      {/* Chip validation bar — visible to all players for transparency */}
+      {!session.isLocked && players.length > 0 && (() => {
         const confirmedCount = players.filter((p) => confirmedSpIds.has(p.id) && !reEditingSpIds.has(p.id)).length;
         const delta = actualTotal - expectedTotal;
         const isCheating = allChipsEntered && delta < 0;

@@ -100,15 +100,14 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
     const x = e.clientX - rect.left;
     if (x < rect.width / 3) prev();
     else if (x > (rect.width * 2) / 3) next();
+    else setPaused((p) => !p);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
-    setPaused(true);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    setPaused(false);
     if (touchStartY.current == null) return;
     const deltaY = e.changedTouches[0].clientY - touchStartY.current;
     touchStartY.current = null;
@@ -131,13 +130,20 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
     >
       <div
         className={`relative flex h-full w-full max-w-md flex-col overflow-hidden bg-gradient-to-br ${palette} sm:my-auto sm:h-[95vh] sm:rounded-3xl sm:shadow-2xl`}
-        onMouseDown={() => setPaused(true)}
-        onMouseUp={() => setPaused(false)}
-        onMouseLeave={() => setPaused(false)}
         onClick={handleTap}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.3),transparent_60%)]" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.1] mix-blend-overlay [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:20px_20px]" />
+
+        {paused && (
+          <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-black/50 backdrop-blur-md ring-2 ring-white/40">
+              <svg className="h-10 w-10 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+              </svg>
+            </div>
+          </div>
+        )}
 
         {/* Progress bars */}
         <div className="absolute inset-x-0 top-0 z-20 flex gap-1 px-3 pt-3">
@@ -164,13 +170,26 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
               · {index + 1}/{total} · {stepLabel}
             </span>
           </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
-            aria-label="Close"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); setPaused((p) => !p); }}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
+              aria-label={paused ? "Play" : "Pause"}
+            >
+              {paused ? (
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+              ) : (
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
+              )}
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onClose(); }}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Powered-by badge — bottom-left corner on story */}
