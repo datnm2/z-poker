@@ -285,4 +285,9 @@ export const vi = {
   "sessions.history.dealer": "Chủ phiên",
   "sessions.history.topWinner": "Nhất phiên",
   "sessions.history.chips": "chip",
+
+  // Footer
+  "footer.poweredBy": "Phát triển bởi",
+  "footer.brand": "Dat Light Solution",
+  "footer.visitSite": "Ghé thăm dat09vn.com",
 } as const;

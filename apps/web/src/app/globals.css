@@ -340,11 +340,34 @@ input[type="number"] {
   100% { background-position: -200% 0; }
 }
 
+@keyframes shimmer-text {
+  0%   { background-position: 200% 50%; }
+  100% { background-position: -200% 50%; }
+}
+
+.animate-shimmer-text {
+  background-size: 200% 100%;
+  animation: shimmer-text 3.2s linear infinite;
+}
+
+@keyframes badge-sheen {
+  0%        { transform: translateX(-120%) skewX(-20deg); opacity: 0; }
+  40%       { opacity: 0.9; }
+  100%      { transform: translateX(260%) skewX(-20deg); opacity: 0; }
+}
+
+.animate-badge-sheen {
+  animation: badge-sheen 4.5s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card-orbit-ring,
   .pcard,
   .skeleton-bar,
-  .skeleton-dot {
+  .skeleton-dot,
+  .animate-shimmer-text,
+  .animate-badge-sheen {
     animation: none !important;
   }
   .animate-chip-spin { animation: none; }

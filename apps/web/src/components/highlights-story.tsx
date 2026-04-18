@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "@/providers/i18n-provider";
+import { PoweredByBadge } from "@/components/powered-by-badge";
 import type { HighlightItem, SessionPlayerWithPlayer } from "@/types/database";
 
 interface Props {
@@ -154,8 +155,8 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
 
         {/* Header row: logo + step label + close */}
         <div className="relative z-20 flex items-center justify-between px-5 pb-2 pt-6 text-white">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-sm font-black text-white shadow-md shadow-fuchsia-900/40">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-sm font-black text-white shadow-md shadow-fuchsia-900/40">
               Z
             </span>
             <span className="font-mono text-sm font-black text-white drop-shadow-sm">Z-Poker</span>
@@ -170,6 +171,16 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
           >
             ✕
           </button>
+        </div>
+
+        {/* Powered-by badge — bottom-left corner on story */}
+        <div
+          className="pointer-events-none absolute bottom-[max(env(safe-area-inset-bottom),0.75rem)] left-4 z-30"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span className="pointer-events-auto">
+            <PoweredByBadge size="sm" variant="onDark" />
+          </span>
         </div>
 
         {/* Centered content: player → emoji → title → body */}

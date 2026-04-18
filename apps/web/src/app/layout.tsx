@@ -6,6 +6,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { I18nProvider } from "@/providers/i18n-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { AppTopBar } from "@/components/app-top-bar";
+import { PoweredByBadge } from "@/components/powered-by-badge";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -131,15 +132,8 @@ export default function RootLayout({
               <AuthProvider>
                 <AppTopBar />
                 <main className="flex flex-1 flex-col">{children}</main>
-                <footer className="pb-20 pt-3 text-center text-xs text-muted/40">
-                  <a
-                    href="https://dat09vn.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transition-colors hover:text-muted"
-                  >
-                    Powered by Dat Light Solution
-                  </a>
+                <footer className="flex justify-center pb-24 pt-6">
+                  <PoweredByBadge />
                 </footer>
               </AuthProvider>
             </I18nProvider>

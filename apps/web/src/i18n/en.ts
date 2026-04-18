@@ -286,4 +286,9 @@ export const en = {
   "sessions.history.dealer": "Dealer",
   "sessions.history.topWinner": "Top winner",
   "sessions.history.chips": "chips",
+
+  // Footer
+  "footer.poweredBy": "Powered by",
+  "footer.brand": "Dat Light Solution",
+  "footer.visitSite": "Visit dat09vn.com",
 } as const;
