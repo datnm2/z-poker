@@ -46,6 +46,18 @@ Bilingual: `apps/web/src/i18n/en.ts` + `vi.ts` (default Vietnamese).
 - API: `sessions/`, `players/`, `elo/elo.math.ts`, `elo/elo.service.ts`, `auth/clerk.guard.ts`
 - Web: `app/page.tsx` (leaderboard), `app/session/[id]/page.tsx` (session detail), `app/profile/page.tsx`, `lib/ranks.ts`
 
+## Homepage (`apps/web/src/app/page.tsx`)
+Single route `/` renders 2 states based on `useAuth().isLoggedIn`:
+- **Logged-out** → `LandingPage`: hero + Google sign-in (`signInWithGoogle`), WHY cards, mock leaderboard preview, rank ladder, HOW steps, "for fun only" disclaimer, JSON-LD `WebApplication` schema for SEO.
+- **Logged-in** → `LeaderboardContent`: domain HQ hero (player count + total sessions link → `/sessions`), active sessions list, create-session form (buy-in input, default 100; "physical" mode only, "online" disabled), player rankings with tier badges + division stars + ELO-to-next progress bar, rank legend.
+
+Data flow:
+- Parallel fetch: `/players`, `/sessions?active=true`, `/sessions/stats` via `api` client
+- SSE subscription to `/sessions/stream` with handlers for `session.created`, `session.player_joined`, `session.locked` (locked event patches ELO locally from `results` payload instead of refetching)
+- `onResync` → full `fetchData()` refetch
+
+Mobile-first: `max-w-lg`, `BottomNav`, `min-h-11`/`min-h-[52px]` tap targets, `active:scale-[0.97]` feedback. All strings via `t()` from i18n provider.
+
 # Monorepo layout
 
 ```
