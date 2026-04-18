@@ -152,11 +152,17 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
           ))}
         </div>
 
-        {/* Header row: step label + close */}
+        {/* Header row: logo + step label + close */}
         <div className="relative z-20 flex items-center justify-between px-5 pb-2 pt-6 text-white">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/80">
-            {index + 1} / {total} · {stepLabel}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-sm font-black text-white shadow-md shadow-fuchsia-900/40">
+              Z
+            </span>
+            <span className="font-mono text-sm font-black text-white drop-shadow-sm">Z-Poker</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/60">
+              · {index + 1}/{total} · {stepLabel}
+            </span>
+          </div>
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
@@ -166,8 +172,35 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
           </button>
         </div>
 
-        {/* Centered content */}
-        <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-5 px-6 text-white">
+        {/* Centered content: player → emoji → title → body */}
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-5 px-6 pb-[max(env(safe-area-inset-bottom),1.25rem)] text-white">
+          {/* Player badge - centered above emoji */}
+          <div className="flex items-center gap-3 rounded-2xl bg-white/20 px-5 py-3 shadow-lg shadow-black/30 ring-1 ring-white/40 backdrop-blur-md">
+            {playerMeta?.player.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={playerMeta.player.avatarUrl}
+                alt={current.playerName}
+                className="h-12 w-12 rounded-full border-2 border-white shadow-md"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/30 text-base font-black text-white">
+                {current.playerName.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="flex flex-col text-left leading-snug">
+              <span className="text-base font-black drop-shadow-sm">{current.playerName}</span>
+              {eloDelta != null && playerMeta && (
+                <span className="text-sm font-medium text-white/90">
+                  Elo {playerMeta.eloBefore} → {playerMeta.eloAfter}
+                  <span className={`ml-1 font-black ${eloDelta >= 0 ? "text-emerald-200" : "text-rose-200"}`}>
+                    ({eloDelta >= 0 ? "+" : ""}{eloDelta})
+                  </span>
+                </span>
+              )}
+            </div>
+          </div>
+
           <div
             key={`emoji-${index}`}
             className="select-none text-[7rem] leading-none drop-shadow-[0_10px_40px_rgba(0,0,0,0.5)] animate-pop-in sm:text-[9rem]"
@@ -187,39 +220,6 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
           >
             {body}
           </p>
-        </div>
-
-        {/* Player badge - safe-area-aware bottom */}
-        <div
-          className="relative z-10 flex justify-center px-6 pb-[max(env(safe-area-inset-bottom),1.25rem)] pt-4"
-        >
-          <div className="flex items-center gap-3 rounded-full bg-black/40 px-4 py-2 backdrop-blur-md">
-            {playerMeta?.player.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={playerMeta.player.avatarUrl}
-                alt={current.playerName}
-                className="h-9 w-9 rounded-full border-2 border-white/70"
-              />
-            ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-bold">
-                {current.playerName.slice(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div className="flex flex-col text-left leading-tight">
-              <span className="text-sm font-semibold">{current.playerName}</span>
-              {eloDelta != null && playerMeta && (
-                <span className="text-xs text-white/80">
-                  Elo {playerMeta.eloBefore} → {playerMeta.eloAfter}
-                  <span
-                    className={`ml-1 font-bold ${eloDelta >= 0 ? "text-emerald-200" : "text-rose-200"}`}
-                  >
-                    ({eloDelta >= 0 ? "+" : ""}{eloDelta})
-                  </span>
-                </span>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>
