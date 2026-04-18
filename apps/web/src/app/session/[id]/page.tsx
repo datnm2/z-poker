@@ -425,8 +425,9 @@ function SessionContent() {
         const expected = canShowStakes
           ? 1 / (1 + Math.pow(10, (avgElo - myElo) / 400))
           : null;
+        const actualMin = N >= 2 ? 0.5 - 0.5 / (N - 1) : 0;
         const maxGain = expected != null ? Math.max(1, Math.ceil(K * (N / 2) * (1 - expected))) : null;
-        const maxLoss = expected != null ? Math.max(1, Math.ceil(K * (N / 2) * expected)) : null;
+        const maxLoss = expected != null ? Math.max(1, -Math.ceil(K * (N / 2) * (actualMin - expected))) : null;
 
         return (
           <div className="mt-4 rounded-2xl border border-card-border bg-card p-3">

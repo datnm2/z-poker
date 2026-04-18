@@ -143,7 +143,7 @@ export const vi = {
     "Z-Poker giúp văn phòng của bạn theo dõi các ván poker và xếp hạng người chơi bằng hệ thống Elo.",
   "guide.howToPlay.step1.title": "1. Tạo phiên chơi",
   "guide.howToPlay.step1.body":
-    'Từ bảng xếp hạng, nhấn "+ Ván mới", chọn chế độ (Bài vật lý hoặc Online — sắp có thêm), đặt mức buy-in (mặc định: 800 chip), rồi nhấn Tạo. Có thể mở nhiều phiên cùng lúc.',
+    'Từ bảng xếp hạng, nhấn "+ Ván mới", chọn chế độ (Bài vật lý hoặc Online — sắp có thêm), đặt mức buy-in (mặc định: 100 chip) rồi nhấn Tạo. Có thể mở nhiều phiên cùng lúc.',
   "guide.howToPlay.step2.title": "2. Tham gia phiên",
   "guide.howToPlay.step2.body":
     'Người chơi tham gia bằng cách nhấn vào phiên đang mở trên bảng xếp hạng và bấm "Tham gia phiên". Chủ phiên có thể đứng vai Dealer — quản lý ván chơi mà không chiếm ghế.',
@@ -191,13 +191,13 @@ export const vi = {
     "Sau mỗi phiên, Z-Poker so sánh Elo hiện tại của bạn với Elo trung bình của tất cả mọi người trong bàn. Thành tích của bạn được đo bằng độ lệch giữa số chip cuối cùng và số chip buy-in. Kết thúc trên buy-in là kết quả tích cực, dưới buy-in là tiêu cực — chip lệch càng nhiều thì điểm thay đổi càng lớn.",
   "guide.elo.kfactor.title": "Hệ số K",
   "guide.elo.kfactor.body":
-    "Z-Poker dùng K=100. Elo có thể thay đổi tối đa ±100 điểm mỗi phiên, bất kể có bao nhiêu người chơi. Thắng một nhóm mạnh sẽ được nhiều điểm hơn thắng nhóm yếu.",
+    "Z-Poker dùng K=70, nhân thêm N/2 (N = số người chơi) để bàn đông có swing hợp lý. Bàn 2 người đổi tối đa ±70, bàn 6 người ±210. Thắng một nhóm mạnh được nhiều điểm hơn thắng nhóm yếu. Luôn làm tròn lên (ceil) — giúp Elo hệ thống tăng nhẹ theo thời gian; người thắng chip luôn được tối thiểu +1.",
   "guide.elo.formula.title": "Công thức",
   "guide.elo.formula.body":
-    "Điểm kỳ vọng: 1 / (1 + 10^((elo_trung_bình − elo_bạn) / 400)), với elo_trung_bình là Elo trung bình của cả bàn. Điểm thực tế: 0.5 + 0.5 × (chip_cuối − buy_in) / (buy_in × (N − 1)), với N là số người chơi. Thay đổi Elo = K × (thực_tế − kỳ_vọng).",
+    "Điểm kỳ vọng: 1 / (1 + 10^((elo_trung_bình − elo_bạn) / 400)), với elo_trung_bình là Elo trung bình của cả bàn. Điểm thực tế: 0.5 + 0.5 × (chip_cuối − buy_in) / (buy_in × (N − 1)), với N là số người chơi. Thay đổi Elo = ceil(K × N/2 × (thực_tế − kỳ_vọng)), tối thiểu +1 nếu có lãi chip.",
   "guide.elo.example.title": "Ví dụ",
   "guide.elo.example.body":
-    "Phiên 4 người, buy-in 1000. Elo bạn 1200, trung bình bàn 1350, bạn kết thúc với 1800 chip. Kỳ vọng ≈ 0.30. Thực tế = 0.5 + 0.5 × (800 / 3000) ≈ 0.633. Thay đổi = round(100 × (0.633 − 0.30)) ≈ +33 điểm.",
+    "Phiên 3 người, buy-in 100. Elo bạn 1090, trung bình bàn 1195, bạn kết thúc với 300 chip (ăn sạch). Kỳ vọng ≈ 0.354. Thực tế = 0.5 + 0.5 × (200 / 200) = 1.0. Thay đổi = ceil(70 × 1.5 × (1.0 − 0.354)) = +68 điểm.",
 
   "guide.strategy.title": "Tăng Elo của bạn",
   "guide.strategy.intro":

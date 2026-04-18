@@ -143,7 +143,7 @@ export const en = {
     "Z-Poker helps your office track poker sessions and rank players using the Elo rating system.",
   "guide.howToPlay.step1.title": "1. Create a session",
   "guide.howToPlay.step1.body":
-    'From the leaderboard, tap "+ New Session", choose a game mode (Physical Cards or Online — more coming), set the buy-in (default: 800 chips), then tap Create. Multiple sessions can be open at the same time.',
+    'From the leaderboard, tap "+ New Session", choose a game mode (Physical Cards or Online — more coming), set the buy-in (default: 100 chips), then tap Create. Multiple sessions can be open at the same time.',
   "guide.howToPlay.step2.title": "2. Join the session",
   "guide.howToPlay.step2.body":
     'Players join by tapping an active session on the leaderboard and pressing "Join Session". The host (creator) can choose to play as a Dealer — they get full control without using a seat.',
@@ -191,13 +191,13 @@ export const en = {
     "After each session, Z-Poker compares your current Elo against the average Elo of everyone at the table. Your performance is measured by how far your final chip count is from the buy-in. Finishing above buy-in is a positive result, below buy-in is negative — the bigger the chip delta, the bigger the score.",
   "guide.elo.kfactor.title": "K-factor",
   "guide.elo.kfactor.body":
-    "Z-Poker uses K=100. The maximum Elo change per session is ±100 points, regardless of how many players are at the table. Beating a stronger group gives you more points than beating a weaker one.",
+    "Z-Poker uses K=70, scaled by N/2 (N = number of players) so bigger tables produce meaningful swings. A 2-player game swings up to ±70, a 6-player game up to ±210. Beating a stronger group earns more points than beating a weaker one. Rounding is always ceil — the system Elo drifts up slightly over time, and any chip gain earns at least +1.",
   "guide.elo.formula.title": "The formula",
   "guide.elo.formula.body":
-    "Expected score: 1 / (1 + 10^((avg_elo − your_elo) / 400)), where avg_elo is the average Elo of all players in the session. Actual score: 0.5 + 0.5 × (chips_end − buy_in) / (buy_in × (N − 1)), where N is the number of players. Rating change: K × (actual − expected).",
+    "Expected score: 1 / (1 + 10^((avg_elo − your_elo) / 400)), where avg_elo is the table's average Elo. Actual score: 0.5 + 0.5 × (chips_end − buy_in) / (buy_in × (N − 1)), where N is the number of players. Rating change: ceil(K × N/2 × (actual − expected)), floored at +1 whenever you gained chips.",
   "guide.elo.example.title": "Example",
   "guide.elo.example.body":
-    "4-player session, buy-in 1000. Your Elo is 1200, the group average is 1350, and you finish with 1800 chips. Expected ≈ 0.30. Actual = 0.5 + 0.5 × (800 / 3000) ≈ 0.633. Change = round(100 × (0.633 − 0.30)) ≈ +33 points.",
+    "3-player session, buy-in 100. Your Elo is 1090, the table average is 1195, and you finish with 300 chips (sweep). Expected ≈ 0.354. Actual = 0.5 + 0.5 × (200 / 200) = 1.0. Change = ceil(70 × 1.5 × (1.0 − 0.354)) = +68 points.",
 
   "guide.strategy.title": "Level Up Your Elo",
   "guide.strategy.intro":
