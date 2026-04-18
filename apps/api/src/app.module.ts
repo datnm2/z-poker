@@ -5,6 +5,7 @@ import { AppController } from "./app.controller";
 import { AiModule } from "./ai/ai.module";
 import { AuthModule } from "./auth/auth.module";
 import { CacheModule } from "./cache/cache.module";
+import { DebugModule } from "./debug/debug.module";
 import { PlayersModule } from "./players/players.module";
 import { SessionsModule } from "./sessions/sessions.module";
 import { SessionsEventsModule } from "./sessions/sessions-events.module";
@@ -39,6 +40,7 @@ import { SessionsEventsModule } from "./sessions/sessions-events.module";
     PlayersModule,
     SessionsModule,
     AiModule,
+    DebugModule,
   ],
   controllers: [AppController],
 })

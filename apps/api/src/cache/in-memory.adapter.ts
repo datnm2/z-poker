@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { CacheAdapter } from "./cache-adapter.interface";
+import type { CacheAdapter, CacheEntryInfo } from "./cache-adapter.interface";
 
 interface Entry {
   value: unknown;
@@ -34,5 +34,27 @@ export class InMemoryCacheAdapter implements CacheAdapter {
     for (const key of this.store.keys()) {
       if (key.startsWith(prefix)) this.store.delete(key);
     }
+  }
+
+  async list(prefix?: string): Promise<CacheEntryInfo[]> {
+    const now = Date.now();
+    const result: CacheEntryInfo[] = [];
+    for (const [key, entry] of this.store.entries()) {
+      if (prefix && !key.startsWith(prefix)) continue;
+      if (entry.expiresAt !== null && entry.expiresAt <= now) {
+        this.store.delete(key);
+        continue;
+      }
+      const ttlMs =
+        entry.expiresAt !== null ? Math.max(0, entry.expiresAt - now) : null;
+      let size = 0;
+      try {
+        size = JSON.stringify(entry.value)?.length ?? 0;
+      } catch {
+        size = -1;
+      }
+      result.push({ key, expiresAt: entry.expiresAt, ttlMs, size });
+    }
+    return result.sort((a, b) => a.key.localeCompare(b.key));
   }
 }

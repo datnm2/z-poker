@@ -1,8 +1,16 @@
+export interface CacheEntryInfo {
+  key: string;
+  expiresAt: number | null;
+  ttlMs: number | null;
+  size: number;
+}
+
 export interface CacheAdapter {
   get<T>(key: string): Promise<T | undefined>;
   set<T>(key: string, value: T, ttlMs?: number): Promise<void>;
   del(key: string): Promise<void>;
   delByPrefix(prefix: string): Promise<void>;
+  list?(prefix?: string): Promise<CacheEntryInfo[]>;
 }
 
 export const DEFAULT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
