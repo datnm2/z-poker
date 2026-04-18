@@ -9,7 +9,8 @@ import { AuthGuard } from "@/components/auth-guard";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
-import type { Session, Player, SessionPlayer } from "@/types/database";
+import type { Session, Player, SessionPlayer, SessionHighlights } from "@/types/database";
+import { HighlightsStory } from "@/components/highlights-story";
 import type { TranslationKey } from "@/i18n/translations";
 import { getSessionTitle, getEloTier, getDivisionInfo } from "@/lib/ranks";
 
@@ -20,6 +21,7 @@ interface PlayerRow extends SessionPlayer {
 interface SessionDetail {
   session: Session;
   players: PlayerRow[];
+  highlights: SessionHighlights | null;
 }
 
 // Animates a number from `from` to `to` over `duration`ms
@@ -195,6 +197,9 @@ function SessionContent() {
 
   const [session, setSession] = useState<Session | null>(null);
   const [players, setPlayers] = useState<PlayerRow[]>([]);
+  const [highlights, setHighlights] = useState<SessionHighlights | null>(null);
+  const [storyOpen, setStoryOpen] = useState(false);
+  const storyAutoShown = useRef(false);
   const [localChips, setLocalChips] = useState<Record<string, string>>({});
   const focusedSpId = useRef<string | null>(null);
   const prevLockedRef = useRef<boolean>(false);
@@ -213,6 +218,7 @@ function SessionContent() {
     }
     prevLockedRef.current = detail.session.isLocked;
     setPlayers(detail.players);
+    setHighlights(detail.highlights);
     setLocalChips((prev) => {
       const next = { ...prev };
       for (const row of detail.players) {
@@ -237,6 +243,39 @@ function SessionContent() {
   useEffect(() => {
     fetchSession();
   }, [fetchSession]);
+
+  // Poll for highlights after lock (AI is async on backend)
+  useEffect(() => {
+    if (!session?.isLocked || highlights) return;
+    let attempts = 0;
+    const maxAttempts = 20;
+    const interval = setInterval(async () => {
+      attempts += 1;
+      try {
+        const detail = await api.get<SessionDetail>(`/sessions/${id}`);
+        if (detail.highlights) {
+          setHighlights(detail.highlights);
+          clearInterval(interval);
+        } else if (attempts >= maxAttempts) {
+          clearInterval(interval);
+        }
+      } catch {
+        clearInterval(interval);
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [session?.isLocked, highlights, id, api]);
+
+  // Auto-show story once per (session, user) when highlights arrive
+  useEffect(() => {
+    if (!highlights || !me || !session?.isLocked || storyAutoShown.current) return;
+    storyAutoShown.current = true;
+    const key = `highlights.seen.${session.id}.${me.id}`;
+    if (typeof window === "undefined" || localStorage.getItem(key)) return;
+    localStorage.setItem(key, "1");
+    const t = setTimeout(() => setStoryOpen(true), 400);
+    return () => clearTimeout(t);
+  }, [highlights, me, session?.id, session?.isLocked]);
 
   const sseHandlers = useMemo<SseHandlers>(
     () => ({
@@ -539,6 +578,53 @@ function SessionContent() {
         <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-center">
           <p className="text-sm font-semibold text-accent">{t("session.results")}</p>
         </div>
+      )}
+
+      {/* AI highlights banner */}
+      {session.isLocked && (
+        <>
+          {highlights ? (
+            <button
+              onClick={() => setStoryOpen(true)}
+              className="mt-3 flex w-full items-center gap-3 overflow-hidden rounded-xl border border-fuchsia-400/40 bg-gradient-to-r from-fuchsia-500/15 via-purple-500/15 to-indigo-500/15 px-4 py-3 text-left transition hover:from-fuchsia-500/25 hover:via-purple-500/25 hover:to-indigo-500/25"
+            >
+              <div className="flex -space-x-2">
+                {highlights.items.slice(0, 3).map((it, i) => (
+                  <span
+                    key={i}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-card bg-black/40 text-lg"
+                  >
+                    {it.emoji}
+                  </span>
+                ))}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">{t("session.highlights.title")}</p>
+                <p className="text-xs text-muted">{t("session.highlights.cta")}</p>
+              </div>
+              <span className="text-muted">›</span>
+            </button>
+          ) : (
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-card-border bg-card/60 px-4 py-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-fuchsia-500/20 text-lg animate-pulse">
+                🤖
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground">{t("session.highlights.loading")}</p>
+                <p className="text-xs text-muted">{t("session.highlights.loadingHint")}</p>
+              </div>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-transparent" />
+            </div>
+          )}
+        </>
+      )}
+
+      {storyOpen && highlights && (
+        <HighlightsStory
+          items={highlights.items}
+          players={players}
+          onClose={() => setStoryOpen(false)}
+        />
       )}
 
       {/* Player list */}

@@ -5,6 +5,7 @@ import {
   Index,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import type { SessionHighlights } from "./highlights/highlights.types";
 
 @Entity("sessions")
 @Index("idx_sessions_domain_date", ["domain", "playedDate"])
@@ -32,4 +33,7 @@ export class Session {
 
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt!: Date;
+
+  @Column({ type: "jsonb", nullable: true })
+  highlights!: SessionHighlights | null;
 }

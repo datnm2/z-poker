@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "./app.controller";
+import { AiModule } from "./ai/ai.module";
 import { AuthModule } from "./auth/auth.module";
 import { PlayersModule } from "./players/players.module";
 import { SessionsModule } from "./sessions/sessions.module";
@@ -33,6 +34,7 @@ import { SessionsModule } from "./sessions/sessions.module";
     AuthModule,
     PlayersModule,
     SessionsModule,
+    AiModule,
   ],
   controllers: [AppController],
 })

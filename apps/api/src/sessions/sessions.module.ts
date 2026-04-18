@@ -7,11 +7,13 @@ import { SessionsService } from "./sessions.service";
 import { SessionsController } from "./sessions.controller";
 import { SessionsEventsService } from "./sessions.events";
 import { EloModule } from "../elo/elo.module";
+import { HighlightsModule } from "./highlights/highlights.module";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Session, SessionPlayer, Player]),
     EloModule,
+    HighlightsModule,
   ],
   providers: [SessionsService, SessionsEventsService],
   controllers: [SessionsController],

@@ -116,6 +116,10 @@ export const en = {
   "session.fighters": "Fighters",
   "session.sortedByElo": "sorted by Elo",
   "session.joinHype": "Jump in — your Elo is on the line. Show them who's boss.",
+  "session.highlights.title": "🎬 Session highlights",
+  "session.highlights.cta": "AI has the tea — tap to see the drama",
+  "session.highlights.loading": "AI is reading the table...",
+  "session.highlights.loadingHint": "Cooking up the highlights, give it a sec",
 
   // Profile
   "profile.editName": "Edit name",

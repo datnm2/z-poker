@@ -115,6 +115,10 @@ export const vi = {
   "session.dealerHint": "Hoặc đứng Dealer — bạn vẫn sửa chip & khóa phiên mà không cần tham gia",
   "session.fighters": "Chiến binh",
   "session.sortedByElo": "xếp theo Elo",
+  "session.highlights.title": "🎬 Highlights của ván",
+  "session.highlights.cta": "AI đã soi xong — chạm để xem drama",
+  "session.highlights.loading": "AI đang soi bài...",
+  "session.highlights.loadingHint": "Tổng hợp highlight của ván, chờ tí nhé",
   "session.joinHype": "Nhảy vào đi — Elo của bạn đang chờ. Chứng minh ai là số 1.",
 
   // Profile

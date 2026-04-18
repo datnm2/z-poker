@@ -11,6 +11,8 @@ import { SessionPlayer } from "./session-player.entity";
 import { Player } from "../players/player.entity";
 import { EloService, type EloResult } from "../elo/elo.service";
 import { SessionsEventsService } from "./sessions.events";
+import { HighlightsService } from "./highlights/highlights.service";
+import type { SessionHighlights } from "./highlights/highlights.types";
 import type { AuthedUser } from "../auth/current-user.decorator";
 
 export interface SessionDto {
@@ -43,6 +45,7 @@ export interface SessionPlayerDto {
 export interface SessionDetailDto {
   session: SessionDto;
   players: SessionPlayerDto[];
+  highlights: SessionHighlights | null;
 }
 
 export interface SessionHistoryItemDto {
@@ -99,6 +102,7 @@ export class SessionsService {
     private readonly players: Repository<Player>,
     private readonly elo: EloService,
     private readonly events: SessionsEventsService,
+    private readonly highlights: HighlightsService,
   ) {}
 
   async countLockedForDomain(domain: string): Promise<number> {
@@ -387,6 +391,7 @@ export class SessionsService {
         updatedAt: r.updatedAt.toISOString(),
         player: { id: r.pId, name: r.pName, elo: Number(r.pElo), avatarUrl: r.pAvatarUrl },
       })),
+      highlights: session.highlights ?? null,
     };
   }
 
@@ -510,6 +515,7 @@ export class SessionsService {
       sessionId,
       results,
     });
+    void this.highlights.generateForSession(sessionId, session.domain);
     return { results };
   }
 }
