@@ -167,7 +167,7 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
             </span>
             <span className="font-mono text-sm font-black text-white drop-shadow-sm">Z-Poker</span>
             <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/60">
-              · {index + 1}/{total} · {stepLabel}
+              · {stepLabel}
             </span>
           </div>
           <div className="flex items-center gap-2">
