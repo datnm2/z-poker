@@ -29,6 +29,11 @@ export type SessionEvent =
       domain: string;
       sessionId: string;
       results: EloResult[];
+    }
+  | {
+      type: "session.highlights_ready";
+      domain: string;
+      sessionId: string;
     };
 
 export interface SseMessage {
@@ -53,6 +58,10 @@ export class SessionsEventsService {
     this.subject.next(event);
   }
 
+  get events$(): Observable<SessionEvent> {
+    return this.subject.asObservable();
+  }
+
   streamFor(sessionId: string): Observable<SseMessage> {
     const events$ = this.subject.asObservable().pipe(
       filter((e) => e.sessionId === sessionId),
@@ -65,7 +74,7 @@ export class SessionsEventsService {
 
   // Domain stream skips chips_updated — that's per-session noise the leaderboard
   // doesn't need. player_joined stays because the leaderboard shows player count
-  // per active session.
+  // per active session. highlights_ready is invalidation-only, not surfaced to UI.
   private static readonly DOMAIN_TYPES: ReadonlySet<SessionEvent["type"]> = new Set([
     "session.created",
     "session.player_joined",

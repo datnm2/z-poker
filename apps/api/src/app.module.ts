@@ -4,8 +4,10 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "./app.controller";
 import { AiModule } from "./ai/ai.module";
 import { AuthModule } from "./auth/auth.module";
+import { CacheModule } from "./cache/cache.module";
 import { PlayersModule } from "./players/players.module";
 import { SessionsModule } from "./sessions/sessions.module";
+import { SessionsEventsModule } from "./sessions/sessions-events.module";
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { SessionsModule } from "./sessions/sessions.module";
       },
     }),
     AuthModule,
+    SessionsEventsModule,
+    CacheModule,
     PlayersModule,
     SessionsModule,
     AiModule,

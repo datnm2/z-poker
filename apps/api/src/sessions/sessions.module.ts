@@ -5,7 +5,6 @@ import { SessionPlayer } from "./session-player.entity";
 import { Player } from "../players/player.entity";
 import { SessionsService } from "./sessions.service";
 import { SessionsController } from "./sessions.controller";
-import { SessionsEventsService } from "./sessions.events";
 import { EloModule } from "../elo/elo.module";
 import { HighlightsModule } from "./highlights/highlights.module";
 
@@ -15,7 +14,7 @@ import { HighlightsModule } from "./highlights/highlights.module";
     EloModule,
     HighlightsModule,
   ],
-  providers: [SessionsService, SessionsEventsService],
+  providers: [SessionsService],
   controllers: [SessionsController],
   exports: [SessionsService],
 })

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -14,6 +15,12 @@ import { SessionsEventsService } from "./sessions.events";
 import { HighlightsService } from "./highlights/highlights.service";
 import type { SessionHighlights } from "./highlights/highlights.types";
 import type { AuthedUser } from "../auth/current-user.decorator";
+import { CACHE_ADAPTER } from "../cache/cache.tokens";
+import {
+  CacheKeys,
+  DEFAULT_TTL_MS,
+  type CacheAdapter,
+} from "../cache/cache-adapter.interface";
 
 export interface SessionDto {
   id: string;
@@ -103,16 +110,35 @@ export class SessionsService {
     private readonly elo: EloService,
     private readonly events: SessionsEventsService,
     private readonly highlights: HighlightsService,
+    @Inject(CACHE_ADAPTER) private readonly cache: CacheAdapter,
   ) {}
 
   async countLockedForDomain(domain: string): Promise<number> {
-    return this.sessions.count({ where: { domain, isLocked: true } });
+    const key = CacheKeys.sessionsStats(domain);
+    const hit = await this.cache.get<number>(key);
+    if (hit !== undefined) return hit;
+    const fresh = await this.sessions.count({ where: { domain, isLocked: true } });
+    await this.cache.set(key, fresh, DEFAULT_TTL_MS);
+    return fresh;
   }
 
   async listLockedHistoryForDomain(
     domain: string,
     cursor?: string,
     limit = 10,
+  ): Promise<SessionHistoryPageDto> {
+    const key = CacheKeys.sessionsHistory(domain, cursor, limit);
+    const hit = await this.cache.get<SessionHistoryPageDto>(key);
+    if (hit !== undefined) return hit;
+    const fresh = await this.loadLockedHistory(domain, cursor, limit);
+    await this.cache.set(key, fresh, DEFAULT_TTL_MS);
+    return fresh;
+  }
+
+  private async loadLockedHistory(
+    domain: string,
+    cursor: string | undefined,
+    limit: number,
   ): Promise<SessionHistoryPageDto> {
     const qb = this.sessions
       .createQueryBuilder("s")
@@ -234,6 +260,17 @@ export class SessionsService {
   }
 
   async listActiveForDomain(domain: string): Promise<SessionWithCreatorDto[]> {
+    const key = CacheKeys.sessionsActive(domain);
+    const hit = await this.cache.get<SessionWithCreatorDto[]>(key);
+    if (hit !== undefined) return hit;
+    const fresh = await this.loadActiveForDomain(domain);
+    await this.cache.set(key, fresh, DEFAULT_TTL_MS);
+    return fresh;
+  }
+
+  private async loadActiveForDomain(
+    domain: string,
+  ): Promise<SessionWithCreatorDto[]> {
     const rows = await this.sessions
       .createQueryBuilder("s")
       .leftJoin(Player, "p", "p.id = s.created_by")
@@ -342,6 +379,23 @@ export class SessionsService {
   }
 
   async getDetail(
+    sessionId: string,
+    domain: string,
+  ): Promise<SessionDetailDto> {
+    const key = CacheKeys.sessionDetail(sessionId);
+    const hit = await this.cache.get<SessionDetailDto>(key);
+    if (hit !== undefined) {
+      if (hit.session.domain !== domain) {
+        throw new NotFoundException("Session not found");
+      }
+      return hit;
+    }
+    const fresh = await this.loadDetail(sessionId, domain);
+    await this.cache.set(key, fresh, DEFAULT_TTL_MS);
+    return fresh;
+  }
+
+  private async loadDetail(
     sessionId: string,
     domain: string,
   ): Promise<SessionDetailDto> {

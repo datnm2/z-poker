@@ -10,6 +10,7 @@ import {
   type PlayerHistoryEntryDto,
 } from "../../players/players.service";
 import { AiService } from "../../ai/ai.service";
+import { SessionsEventsService } from "../sessions.events";
 import type { SessionHighlights } from "./highlights.types";
 
 interface PlayerContext {
@@ -72,6 +73,7 @@ export class HighlightsService {
     private readonly sessionPlayers: Repository<SessionPlayer>,
     private readonly playersService: PlayersService,
     private readonly ai: AiService,
+    private readonly events: SessionsEventsService,
   ) {}
 
   async generateForSession(sessionId: string, domain: string): Promise<void> {
@@ -97,6 +99,7 @@ export class HighlightsService {
       };
 
       await this.sessions.update({ id: sessionId }, { highlights });
+      this.events.publish({ type: "session.highlights_ready", domain, sessionId });
       this.logger.log(`Highlights generated for session ${sessionId}`);
     } catch (err) {
       this.logger.error(`Highlights generation failed for ${sessionId}`, err);

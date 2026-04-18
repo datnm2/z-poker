@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Player } from "./player.entity";
 import { SessionPlayer } from "../sessions/session-player.entity";
 import { Session } from "../sessions/session.entity";
 import type { AuthedUser } from "../auth/current-user.decorator";
+import { CACHE_ADAPTER } from "../cache/cache.tokens";
+import {
+  CacheKeys,
+  DEFAULT_TTL_MS,
+  type CacheAdapter,
+} from "../cache/cache-adapter.interface";
 
 export interface PlayerDto {
   id: string;
@@ -58,6 +64,7 @@ export class PlayersService {
     private readonly sessionPlayers: Repository<SessionPlayer>,
     @InjectRepository(Session)
     private readonly sessions: Repository<Session>,
+    @Inject(CACHE_ADAPTER) private readonly cache: CacheAdapter,
   ) {}
 
   async findOrCreateMe(user: AuthedUser, displayName: string): Promise<PlayerDto> {
@@ -90,15 +97,23 @@ export class PlayersService {
   }
 
   async listForDomain(domain: string): Promise<PlayerDto[]> {
+    const key = CacheKeys.leaderboard(domain);
+    const hit = await this.cache.get<PlayerDto[]>(key);
+    if (hit !== undefined) return hit;
     const rows = await this.players.find({
       where: { domain },
       order: { elo: "DESC" },
       take: 200,
     });
-    return rows.map(toDto);
+    const fresh = rows.map(toDto);
+    await this.cache.set(key, fresh, DEFAULT_TTL_MS);
+    return fresh;
   }
 
   async getByIdForDomain(id: string, domain: string): Promise<PlayerWithRankDto> {
+    const key = CacheKeys.profile(domain, id);
+    const hit = await this.cache.get<PlayerWithRankDto>(key);
+    if (hit !== undefined) return hit;
     const { entities, raw } = await this.players
       .createQueryBuilder("p")
       .addSelect(
@@ -108,7 +123,12 @@ export class PlayersService {
       .where("p.id = :id AND p.domain = :domain", { id, domain })
       .getRawAndEntities();
     if (!entities.length) throw new NotFoundException("Player not found");
-    return { ...toDto(entities[0]), rank: raw[0].rank as number };
+    const fresh: PlayerWithRankDto = {
+      ...toDto(entities[0]),
+      rank: raw[0].rank as number,
+    };
+    await this.cache.set(key, fresh, DEFAULT_TTL_MS);
+    return fresh;
   }
 
   async getHistory(
@@ -116,7 +136,19 @@ export class PlayersService {
     domain: string,
     limit: number,
   ): Promise<PlayerHistoryEntryDto[]> {
-    // Domain tenancy is enforced by the s.domain = :domain join condition below
+    const key = CacheKeys.profileHistory(domain, playerId, limit);
+    const hit = await this.cache.get<PlayerHistoryEntryDto[]>(key);
+    if (hit !== undefined) return hit;
+    const fresh = await this.loadHistory(playerId, domain, limit);
+    await this.cache.set(key, fresh, DEFAULT_TTL_MS);
+    return fresh;
+  }
+
+  private async loadHistory(
+    playerId: string,
+    domain: string,
+    limit: number,
+  ): Promise<PlayerHistoryEntryDto[]> {
     const rows = await this.sessionPlayers
       .createQueryBuilder("sp")
       .innerJoin(Session, "s", "s.id = sp.session_id")
