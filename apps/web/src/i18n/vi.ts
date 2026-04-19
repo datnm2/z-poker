@@ -117,10 +117,10 @@ export const vi = {
   "session.fighters": "Chiến binh",
   "session.sortedByElo": "xếp theo Elo",
   "session.highlights.title": "🎬 Highlights của ván",
-  "session.highlights.cta": "MC sòng bài đã soi xong — chạm để xem drama",
-  "session.highlights.loading": "MC sòng bài đang soi bài...",
-  "session.highlights.loadingHint": "MC đang tổng hợp drama của ván, chờ tí nhé",
-  "session.highlights.hostedBy": "MC hôm nay",
+  "session.highlights.cta": "Đã tổng hợp drama — chạm để xem",
+  "session.highlights.loading": "Đang đọc dữ liệu lịch sử...",
+  "session.highlights.loadingHint": "Đang tổng hợp drama, chờ tí nhé",
+  "session.highlights.hostedBy": "Bởi",
   "session.joinHype": "Nhảy vào đi — Elo của bạn đang chờ. Chứng minh ai là số 1.",
 
   // Profile
@@ -266,7 +266,7 @@ export const vi = {
   "rank.godlike": "Thần Bài - Vua Trò Chơi",
   "rank.predator": "Kẻ Săn Mồi",
   "rank.veteran": "Lão Luyện",
-  "rank.novice": "Tay Mới Chơi",
+  "rank.novice": "Tay Mới",
   "rank.rookie": "Tay Non Và Xanh",
   "rank.fish": "Cá Con - Chip Feeder",
 

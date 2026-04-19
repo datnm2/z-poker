@@ -63,7 +63,7 @@ Real-time qua SSE → ai đó tạo/join/lock phiên là cả nhóm thấy ngay.
 | 👑 Thần Bài — Vua Trò Chơi | 1600+ |
 | 🦈 Kẻ Săn Mồi | 1450–1600 (★ ★★ ★★★) |
 | 💰 Lão Luyện | 1300–1450 (★ ★★ ★★★) |
-| 🎯 Tay Mới Chơi | 1150–1300 (★ ★★ ★★★) |
+| 🎯 Tay Mới | 1150–1300 (★ ★★ ★★★) |
 | 🃏 Tay Non Và Xanh | 1000–1150 (★ ★★ ★★★) |
 | 🐟 Cá Con — Chip Feeder | <1000 |
 

@@ -603,7 +603,7 @@ function SessionContent() {
                 <p className="text-xs text-muted">{t("session.highlights.cta")}</p>
                 {highlights.personaName && (
                   <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-fuchsia-300">
-                    {t("session.highlights.hostedBy")} · {highlights.personaName[locale] ?? highlights.personaName.en}
+                    {t("session.highlights.hostedBy")} "{highlights.personaName[locale] ?? highlights.personaName.en}"
                   </p>
                 )}
               </div>
