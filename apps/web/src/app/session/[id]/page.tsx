@@ -192,7 +192,7 @@ function ChipInput({ spId: _spId, playerId, myId, isCreator, confirmed, chipVal,
 function SessionContent() {
   const { id } = useParams<{ id: string }>();
   const { player: me, api } = useAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
 
   const [session, setSession] = useState<Session | null>(null);
@@ -601,6 +601,11 @@ function SessionContent() {
               <div className="flex-1">
                 <p className="text-sm font-bold text-foreground">{t("session.highlights.title")}</p>
                 <p className="text-xs text-muted">{t("session.highlights.cta")}</p>
+                {highlights.personaName && (
+                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-fuchsia-300">
+                    {t("session.highlights.hostedBy")} · {highlights.personaName[locale] ?? highlights.personaName.en}
+                  </p>
+                )}
               </div>
               <span className="text-muted">›</span>
             </button>
@@ -623,6 +628,7 @@ function SessionContent() {
         <HighlightsStory
           items={highlights.items}
           players={players}
+          personaName={highlights.personaName}
           onClose={() => setStoryOpen(false)}
         />
       )}

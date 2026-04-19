@@ -121,6 +121,7 @@ export const en = {
   "session.highlights.cta": "The MC has the tea — tap to see the drama",
   "session.highlights.loading": "MC is reading the table...",
   "session.highlights.loadingHint": "MC is cooking up the drama, give it a sec",
+  "session.highlights.hostedBy": "Today's MC",
 
   // Profile
   "profile.editName": "Edit name",

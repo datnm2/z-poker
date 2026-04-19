@@ -120,6 +120,7 @@ export const vi = {
   "session.highlights.cta": "MC sòng bài đã soi xong — chạm để xem drama",
   "session.highlights.loading": "MC sòng bài đang soi bài...",
   "session.highlights.loadingHint": "MC đang tổng hợp drama của ván, chờ tí nhé",
+  "session.highlights.hostedBy": "MC hôm nay",
   "session.joinHype": "Nhảy vào đi — Elo của bạn đang chờ. Chứng minh ai là số 1.",
 
   // Profile

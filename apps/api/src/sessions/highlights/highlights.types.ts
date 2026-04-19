@@ -15,4 +15,6 @@ export interface SessionHighlights {
   generatedAt: string;
   model: string;
   items: HighlightItem[];
+  personaId?: string;
+  personaName?: LocalizedText;
 }

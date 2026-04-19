@@ -11,6 +11,7 @@ interface Props {
   players: SessionPlayerWithPlayer[];
   onClose: () => void;
   durationMs?: number;
+  personaName?: { vi: string; en: string };
 }
 
 const PALETTES = [
@@ -21,7 +22,7 @@ const PALETTES = [
   "from-sky-500 via-blue-600 to-indigo-700",
 ];
 
-export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: Props) {
+export function HighlightsStory({ items, players, onClose, durationMs = 6000, personaName }: Props) {
   const { locale } = useI18n();
   const [index, setIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -38,7 +39,9 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000 }: 
   const palette = PALETTES[index % PALETTES.length];
   const title = current ? current.title[locale] ?? current.title.en : "";
   const body = current ? current.body[locale] ?? current.body.en : "";
-  const stepLabel = locale === "vi" ? "MC kể chuyện" : "MC's take";
+  const stepLabel = personaName
+    ? (personaName[locale] ?? personaName.en)
+    : (locale === "vi" ? "MC kể chuyện" : "MC's take");
 
   useEffect(() => { setMounted(true); }, []);
 

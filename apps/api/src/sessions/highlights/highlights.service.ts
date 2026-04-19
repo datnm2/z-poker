@@ -12,6 +12,7 @@ import {
 import { AiService } from "../../ai/ai.service";
 import { SessionsEventsService } from "../sessions.events";
 import type { SessionHighlights } from "./highlights.types";
+import { selectPersonaByDate, type McPersona } from "./personas";
 
 interface PlayerContext {
   playerId: string;
@@ -88,11 +89,13 @@ export class HighlightsService {
       if (!session) return;
 
       const targetCount = Math.max(2, Math.min(6, Math.ceil(contexts.length / 2)));
+      const persona = selectPersonaByDate(session.playedDate);
       const prompt = this.buildPrompt(
         session.buyIn,
         session.playedDate,
         contexts,
         targetCount,
+        persona,
       );
       const raw = await this.ai.generateJson<{
         items: SessionHighlights["items"];
@@ -102,6 +105,8 @@ export class HighlightsService {
         generatedAt: new Date().toISOString(),
         model: this.ai.getDefaultModel(),
         items: (raw.items ?? []).slice(0, targetCount),
+        personaId: persona.id,
+        personaName: persona.displayName,
       };
 
       await this.sessions.update({ id: sessionId }, { highlights });
@@ -189,9 +194,11 @@ export class HighlightsService {
     playedDate: string,
     contexts: PlayerContext[],
     targetCount: number,
+    persona: McPersona,
   ): string {
     const playersJson = JSON.stringify(contexts, null, 2);
-    return `Mày là MC sòng bài văn phòng, mồm mép lanh như lái xe ôm công nghệ, chuyên đá đểu đồng nghiệp sau mỗi session poker giờ nghỉ trưa. Vibe: cà khịa dí dỏm, troll vừa đủ đau, KHÔNG tục, KHÔNG động chạm ngoại hình/giới tính/gia đình. Tưởng tượng mày đang lên sóng stream, phải làm cho anh em cười lăn nhưng thua vẫn thấy vui.
+    const toneBlock = persona.toneExamples.map((t) => `- "${t}"`).join("\n");
+    return `${persona.voiceIntro}
 
 Session hôm nay (${playedDate}), buy-in ${buyIn} chip/người, ${contexts.length} người chơi. Dưới đây là data session này + lịch sử 10 session gần nhất của từng người chơi (history có thể rỗng nếu người đó mới chơi lần đầu).
 
@@ -206,10 +213,7 @@ Nhiệm vụ: viết ĐÚNG ${targetCount} highlight troll nhất của ngày. M
 - LẦN ĐẦU RA TRẬN (history rỗng hoặc null): angle riêng → "Lính mới nhập môn" / "Tân binh chào sân" / "Khai xuân bàn poker". Nếu thắng: "newbie mà đánh như lão làng". Nếu thua: "học phí ngày đầu, từ từ lên tay". TUYỆT ĐỐI không bịa streak/lịch sử cho người mới.
 
 Tone examples (bắt chước vibe này):
-- "thắng 4 thua 1 rồi đó, coi chừng tối nay vợ bắt rửa chén"
-- "chip đi không hẹn ngày về, ELO rơi như giá xăng lên"
-- "3 trận liền nạp chip cho anh em, tuần sau đổi chiến thuật đi ông"
-- "đang phong độ đỉnh cao bỗng hôm nay về mo, Zeus ngủ quên"
+${toneBlock}
 
 Output — SONG NGỮ (BẮT BUỘC):
 - ĐÚNG ${targetCount} items
