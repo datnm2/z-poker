@@ -54,7 +54,7 @@ export function PlayerProfile({
   }, [fetchProfile]);
 
   if (loading || !player) {
-    return <Loading />;
+    return <Loading fullscreen />;
   }
 
   const wins = sessions.filter(

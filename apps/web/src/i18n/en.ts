@@ -292,4 +292,7 @@ export const en = {
   "footer.poweredBy": "Powered by",
   "footer.brand": "Dat Light Solution",
   "footer.visitSite": "Visit dat09vn.com",
+
+  // Loading
+  "loading.quote": "Patience is the key",
 } as const;

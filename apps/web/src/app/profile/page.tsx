@@ -16,7 +16,7 @@ function ProfileContent() {
   const [saving, setSaving] = useState(false);
 
   if (!player) {
-    return <Loading />;
+    return <Loading fullscreen />;
   }
 
   const startEdit = () => {

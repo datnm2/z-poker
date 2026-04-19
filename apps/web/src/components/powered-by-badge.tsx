@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/providers/i18n-provider";
+import { useLoading } from "@/providers/loading-provider";
 
 type Size = "sm" | "md";
 type Variant = "default" | "onDark";
@@ -44,6 +45,9 @@ interface Props {
 
 export function PoweredByBadge({ size = "md", variant = "default", hideLabel = false, className = "" }: Props) {
   const { t } = useI18n();
+  const { isLoading } = useLoading();
+
+  if (isLoading) return null;
 
   const sizing =
     size === "sm"

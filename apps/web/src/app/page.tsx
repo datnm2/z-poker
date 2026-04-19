@@ -103,7 +103,7 @@ function LeaderboardContent() {
   };
 
   if (authLoading || loading) {
-    return <Loading />;
+    return <Loading fullscreen />;
   }
 
   if (!isLoggedIn) {

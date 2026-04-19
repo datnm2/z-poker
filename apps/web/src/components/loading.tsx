@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import type { CSSProperties } from "react";
+import { useLoading } from "@/providers/loading-provider";
+import { useI18n } from "@/providers/i18n-provider";
 
 type LoadingProps = {
   size?: "sm" | "md" | "lg";
   fullscreen?: boolean;
   className?: string;
+  /**
+   * "global" (default) participates in the app-wide loading registry —
+   * hides attribution UI (e.g. PoweredByBadge). Use "local" for small
+   * inline/partial loaders that shouldn't affect the whole app.
+   */
+  scope?: "global" | "local";
 };
 
 const SIZE: Record<NonNullable<LoadingProps["size"]>, string> = {
@@ -107,13 +115,15 @@ function SkeletonBackdrop() {
   );
 }
 
-export function Loading({ size = "md", fullscreen, className = "" }: LoadingProps) {
+export function Loading({ size = "md", fullscreen, className = "", scope = "global" }: LoadingProps) {
+  const { begin, end } = useLoading();
+  const { t } = useI18n();
+  const id = useId();
+
   useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-debugger
-      debugger;
-    }
-  }, []);
+    begin(id, scope);
+    return () => end(id);
+  }, [begin, end, id, scope]);
 
   if (size === "sm") {
     return (
@@ -132,9 +142,14 @@ export function Loading({ size = "md", fullscreen, className = "" }: LoadingProp
       <div className="relative min-h-screen overflow-hidden">
         <SkeletonBackdrop />
         <div
-          className={`pointer-events-none absolute inset-0 flex items-center justify-center ${className}`}
+          className={`pointer-events-none absolute inset-0 flex items-center justify-center px-6 ${className}`}
         >
-          <CardOrbit variant="full" />
+          <div className="flex flex-col items-center gap-5 rounded-3xl border border-card-border/60 bg-background/70 px-8 py-8 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] backdrop-blur-md">
+            <CardOrbit variant="full" />
+            <p className="max-w-[14rem] text-center text-[13px] font-medium italic tracking-wide text-muted animate-pulse">
+              &ldquo;{t("loading.quote")}&rdquo;
+            </p>
+          </div>
         </div>
       </div>
     );

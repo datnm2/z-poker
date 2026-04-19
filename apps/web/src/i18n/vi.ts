@@ -291,4 +291,7 @@ export const vi = {
   "footer.poweredBy": "Phát triển bởi",
   "footer.brand": "Dat Light Solution",
   "footer.visitSite": "Ghé thăm dat09vn.com",
+
+  // Loading
+  "loading.quote": "Kiên nhẫn là chìa khoá",
 } as const;

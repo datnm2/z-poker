@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AuthProvider } from "@/providers/auth-provider";
 import { I18nProvider } from "@/providers/i18n-provider";
+import { LoadingProvider } from "@/providers/loading-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { AppTopBar } from "@/components/app-top-bar";
 import { PoweredByBadge } from "@/components/powered-by-badge";
@@ -129,13 +130,15 @@ export default function RootLayout({
         <ClerkProvider>
           <ThemeProvider>
             <I18nProvider>
-              <AuthProvider>
-                <AppTopBar />
-                <main className="flex flex-1 flex-col">{children}</main>
-                <footer className="flex justify-center pb-24 pt-6">
-                  <PoweredByBadge />
-                </footer>
-              </AuthProvider>
+              <LoadingProvider>
+                <AuthProvider>
+                  <AppTopBar />
+                  <main className="flex flex-1 flex-col">{children}</main>
+                  <footer className="flex justify-center pb-24 pt-6">
+                    <PoweredByBadge />
+                  </footer>
+                </AuthProvider>
+              </LoadingProvider>
             </I18nProvider>
           </ThemeProvider>
         </ClerkProvider>

@@ -6,6 +6,6 @@ import { Loading } from "@/components/loading";
 
 export default function Home() {
   const { isLoggedIn, isLoading } = useAuth();
-  if (isLoading) return <Loading />;
+  if (isLoading) return <Loading fullscreen />;
   return <LandingContent variant={isLoggedIn ? "authed" : "public"} />;
 }

@@ -88,8 +88,8 @@ export default function SessionsHistoryPage() {
     return () => io.disconnect();
   }, [loadMore]);
 
-  if (authLoading) {
-    return <Loading />;
+  if (authLoading || !initialized) {
+    return <Loading fullscreen />;
   }
 
   return (
