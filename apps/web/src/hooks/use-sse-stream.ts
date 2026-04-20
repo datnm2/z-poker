@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useAuth as useClerkAuth } from "@clerk/nextjs";
-import { streamUrl } from "@/lib/api";
+import { streamUrl, fetchSseTicket } from "@/lib/api";
 import type { SessionEvent } from "@/types/events";
 
 type Handler<T extends SessionEvent["type"]> = (
@@ -39,10 +39,10 @@ export function useSseStream({ path, handlers, onResync, enabled = true }: Optio
 
     const connect = async () => {
       if (cancelled) return;
-      const token = await getToken();
-      if (cancelled || !token) return;
+      const ticket = await fetchSseTicket(() => getToken());
+      if (cancelled || !ticket) return;
 
-      es = new EventSource(streamUrl(path, token));
+      es = new EventSource(streamUrl(path, ticket));
 
       for (const type of Object.keys(handlersRef.current) as SessionEvent["type"][]) {
         es.addEventListener(type, (ev) => {

@@ -58,8 +58,23 @@ export function createApiClient(getToken: TokenGetter) {
 
 export type ApiClient = ReturnType<typeof createApiClient>;
 
-export function streamUrl(path: string, token: string): string {
+export function streamUrl(path: string, ticket: string): string {
   const url = new URL(`${API_URL}${path}`);
-  url.searchParams.set("token", token);
+  url.searchParams.set("ticket", ticket);
   return url.toString();
+}
+
+export async function fetchSseTicket(
+  getToken: TokenGetter,
+): Promise<string | null> {
+  const token = await getToken();
+  if (!token) return null;
+  const res = await fetch(`${API_URL}/auth/sse-ticket`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  const body = (await res.json()) as { ticket: string };
+  return body.ticket;
 }

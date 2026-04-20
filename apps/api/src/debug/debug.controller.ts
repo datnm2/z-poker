@@ -31,7 +31,7 @@ export class DebugController {
   @ApiOperation({
     summary: "List all cache entries (keys + ttl + size)",
     description:
-      "Auth: Bearer debug token, or ?token=, or X-Debug-Token header. Default token: zpoker-debug-2026 (override via DEBUG_TOKEN env).",
+      "Auth: Bearer debug token, or ?token=, or X-Debug-Token header. Requires DEBUG_TOKEN env; 404 if unset in production.",
   })
   @ApiQuery({ name: "prefix", required: false })
   async listCache(@Query("prefix") prefix?: string) {

@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -100,6 +101,8 @@ function sessionToDto(s: Session): SessionDto {
 
 @Injectable()
 export class SessionsService {
+  private readonly logger = new Logger(SessionsService.name);
+
   constructor(
     @InjectRepository(Session)
     private readonly sessions: Repository<Session>,
@@ -537,12 +540,30 @@ export class SessionsService {
       throw new ForbiddenException("Can only edit your own chips");
     }
 
+    const prevChips = sp.chipsEnd;
     const result = await this.sessionPlayers.update(
       { id: sessionPlayerId, sessionId },
       { chipsEnd },
     );
     if (!result.affected) {
       throw new NotFoundException("Session player not found");
+    }
+
+    // Audit: creator editing someone else's chips is allowed but flagged for review.
+    if (isCreator && !isSelf) {
+      this.logger.log(
+        JSON.stringify({
+          event: "chips.edited_by_creator",
+          sessionId,
+          sessionPlayerId,
+          targetPlayerId: sp.playerId,
+          actorId: user.userId,
+          domain: session.domain,
+          prevChipsEnd: prevChips,
+          nextChipsEnd: chipsEnd,
+          at: new Date().toISOString(),
+        }),
+      );
     }
     this.events.publish({
       type: "session.chips_updated",

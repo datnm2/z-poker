@@ -8,11 +8,13 @@ import {
   Query,
   Sse,
 } from "@nestjs/common";
+import { Throttle, SkipThrottle } from "@nestjs/throttler";
 import {
   IsBoolean,
   IsInt,
   IsOptional,
   IsString,
+  Max,
   Min,
 } from "class-validator";
 import { Observable } from "rxjs";
@@ -23,6 +25,7 @@ import { CurrentUser, type AuthedUser } from "../auth/current-user.decorator";
 class CreateSessionDto {
   @IsInt()
   @Min(1)
+  @Max(1_000_000)
   buyIn!: number;
 
   @IsOptional()
@@ -91,6 +94,7 @@ export class SessionsController {
   }
 
   @Post()
+  @Throttle({ write: { limit: 1, ttl: 60_000 } })
   async create(
     @CurrentUser() user: AuthedUser,
     @Body() body: CreateSessionDto,
@@ -101,6 +105,7 @@ export class SessionsController {
   // Domain-wide SSE: all events for sessions in the caller's email domain.
   // MUST be declared before @Get(":id") so Nest doesn't match :id="stream".
   @Sse("stream")
+  @SkipThrottle()
   streamDomain(@CurrentUser() user: AuthedUser): Observable<SseMessage> {
     return this.events.streamForDomain(user.domain);
   }
@@ -111,6 +116,7 @@ export class SessionsController {
   }
 
   @Post(":id/players")
+  @Throttle({ write: { limit: 30, ttl: 60_000 } })
   async addPlayer(
     @CurrentUser() user: AuthedUser,
     @Param("id") id: string,
@@ -120,6 +126,7 @@ export class SessionsController {
   }
 
   @Patch(":id/players/:spId")
+  @Throttle({ write: { limit: 60, ttl: 60_000 } })
   async updateChips(
     @CurrentUser() user: AuthedUser,
     @Param("id") id: string,
@@ -136,11 +143,13 @@ export class SessionsController {
   }
 
   @Post(":id/lock")
+  @Throttle({ write: { limit: 10, ttl: 60_000 } })
   async lock(@CurrentUser() user: AuthedUser, @Param("id") id: string) {
     return this.sessionsService.lock(id, user);
   }
 
   @Sse(":id/stream")
+  @SkipThrottle()
   stream(@Param("id") id: string): Observable<SseMessage> {
     return this.events.streamFor(id);
   }

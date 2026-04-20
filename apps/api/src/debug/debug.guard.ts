@@ -2,17 +2,28 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+  Logger,
+  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
-
-const DEFAULT_DEBUG_TOKEN = "zpoker-debug-2026";
+import { timingSafeEqual } from "crypto";
 
 @Injectable()
 export class DebugGuard implements CanActivate {
-  private readonly token: string =
-    process.env.DEBUG_TOKEN ?? DEFAULT_DEBUG_TOKEN;
+  private readonly logger = new Logger(DebugGuard.name);
+  private readonly token: string | undefined = process.env.DEBUG_TOKEN;
+  private readonly disabled: boolean =
+    process.env.NODE_ENV === "production" && !process.env.DEBUG_TOKEN;
 
   canActivate(context: ExecutionContext): boolean {
+    if (this.disabled) {
+      throw new NotFoundException();
+    }
+    if (!this.token) {
+      this.logger.warn("DEBUG_TOKEN not set — debug endpoints disabled");
+      throw new NotFoundException();
+    }
+
     const req = context.switchToHttp().getRequest();
     const authHeader: string | undefined = req.headers?.authorization;
     const bearer = authHeader?.startsWith("Bearer ")
@@ -26,9 +37,16 @@ export class DebugGuard implements CanActivate {
       typeof req.query?.token === "string" ? req.query.token : undefined;
     const provided = bearer ?? headerToken ?? queryToken;
 
-    if (!provided || provided !== this.token) {
+    if (!provided || !safeEqual(provided, this.token)) {
       throw new UnauthorizedException("Invalid debug token");
     }
     return true;
   }
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
 }

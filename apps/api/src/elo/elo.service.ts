@@ -18,9 +18,14 @@ export class EloService {
    */
   async calculateAndLock(sessionId: string): Promise<EloResult[]> {
     return this.dataSource.transaction(async (tx) => {
-      const session = await tx.getRepository(Session).findOne({
-        where: { id: sessionId },
-      });
+      // SELECT ... FOR UPDATE on the session row so concurrent /lock requests
+      // serialize; only the first tx sees isLocked=false and writes ELO.
+      const session = await tx
+        .getRepository(Session)
+        .createQueryBuilder("s")
+        .setLock("pessimistic_write")
+        .where("s.id = :id", { id: sessionId })
+        .getOne();
       if (!session) throw new NotFoundException("Session not found");
       if (session.isLocked) {
         throw new BadRequestException("Session is already locked");
@@ -84,7 +89,12 @@ export class EloService {
         [playerIds, eloBefores, eloAfters, sessionId],
       );
 
-      // Batch update player ELO + games_played in one query
+      // Lock player rows in id-sorted order first to avoid deadlocks when two
+      // concurrent session locks touch overlapping players. Then batch update.
+      await tx.query(
+        `SELECT id FROM players WHERE id = ANY($1::text[]) ORDER BY id FOR UPDATE`,
+        [playerIds],
+      );
       await tx.query(
         `UPDATE players p
          SET elo = p.elo + v.change, games_played = games_played + 1

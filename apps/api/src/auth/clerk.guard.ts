@@ -10,6 +10,7 @@ import { Reflector } from "@nestjs/core";
 import { createClerkClient, verifyToken } from "@clerk/backend";
 import type { AuthedUser } from "./current-user.decorator";
 import { IS_PUBLIC_KEY } from "./public.decorator";
+import { SseTicketService } from "./sse-ticket.service";
 
 interface CachedUser {
   email: string;
@@ -30,6 +31,7 @@ export class ClerkGuard implements CanActivate {
   constructor(
     private readonly config: ConfigService,
     private readonly reflector: Reflector,
+    private readonly tickets: SseTicketService,
   ) {
     this.secretKey = this.config.getOrThrow<string>("CLERK_SECRET_KEY");
     this.clerk = createClerkClient({ secretKey: this.secretKey });
@@ -44,30 +46,37 @@ export class ClerkGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
 
-    // Accept token via Authorization header OR ?token= query param (for EventSource/SSE)
+    // SSE path: single-use ticket via ?ticket= (can't set headers on EventSource).
+    // Ticket is opaque random string, no JWT in URL/logs.
+    const queryTicket: string | undefined =
+      typeof request.query?.ticket === "string"
+        ? request.query.ticket
+        : undefined;
+    if (queryTicket) {
+      const user = this.tickets.consume(queryTicket);
+      if (!user) throw new UnauthorizedException("Invalid or expired ticket");
+      request.user = user;
+      return true;
+    }
+
     const authHeader: string | undefined = request.headers?.authorization;
     const bearer = authHeader?.startsWith("Bearer ")
       ? authHeader.slice("Bearer ".length)
       : undefined;
-    const queryToken: string | undefined =
-      typeof request.query?.token === "string" ? request.query.token : undefined;
-    const token = bearer ?? queryToken;
 
-    if (!token) {
+    if (!bearer) {
       throw new UnauthorizedException("Missing bearer token");
     }
 
     let userId: string;
     try {
-      const payload = await verifyToken(token, { secretKey: this.secretKey });
+      const payload = await verifyToken(bearer, { secretKey: this.secretKey });
       userId = payload.sub;
     } catch (err) {
-      this.logger.warn(`Token verification failed: ${(err as Error).message}`);
+      this.logger.warn(`Token verification failed: ${(err as Error).name}`);
       throw new UnauthorizedException("Invalid token");
     }
 
-    // Fetch user so we have email — Clerk JWTs don't carry email by default.
-    // Cache result for 5 min to avoid an external API call on every request.
     const now = Date.now();
     let cached = this.userCache.get(userId);
     if (!cached || cached.expiresAt <= now) {
@@ -85,7 +94,12 @@ export class ClerkGuard implements CanActivate {
       this.userCache.set(userId, cached);
     }
 
-    const authedUser: AuthedUser = { userId, email: cached.email, domain: cached.domain, avatarUrl: cached.avatarUrl };
+    const authedUser: AuthedUser = {
+      userId,
+      email: cached.email,
+      domain: cached.domain,
+      avatarUrl: cached.avatarUrl,
+    };
     request.user = authedUser;
     return true;
   }
