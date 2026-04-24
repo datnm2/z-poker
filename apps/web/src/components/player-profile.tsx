@@ -5,10 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { Loading } from "@/components/loading";
-import { ErrorScreen } from "@/components/error-screen";
 import type { Player } from "@/types/database";
 import { getEloTier, getDivisionInfo } from "@/lib/ranks";
-import { PullToRefresh } from "./pull-to-refresh";
 
 interface SessionRecord {
   id: string;
@@ -40,43 +38,23 @@ export function PlayerProfile({
   const [player, setPlayer] = useState<PlayerWithRank | null>(null);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<unknown>(null);
 
   const fetchProfile = useCallback(async () => {
-    try {
-      setError(null);
-      const [p, history] = await Promise.all([
-        api.get<PlayerWithRank>(`/players/${playerId}`),
-        api.get<SessionRecord[]>(`/players/${playerId}/history?limit=20`),
-      ]);
-      setPlayer(p);
-      setSessions(history);
-    } catch (e) {
-      setError(e);
-    } finally {
-      setLoading(false);
-    }
+    const [p, history] = await Promise.all([
+      api.get<PlayerWithRank>(`/players/${playerId}`),
+      api.get<SessionRecord[]>(`/players/${playerId}/history?limit=20`),
+    ]);
+    setPlayer(p);
+    setSessions(history);
+    setLoading(false);
   }, [playerId, api]);
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-  if (loading) {
+  if (loading || !player) {
     return <Loading fullscreen />;
-  }
-
-  if (error || !player) {
-    return (
-      <ErrorScreen
-        error={error}
-        onRetry={() => {
-          setLoading(true);
-          fetchProfile();
-        }}
-        fullscreen
-      />
-    );
   }
 
   const wins = sessions.filter(
@@ -103,7 +81,6 @@ export function PlayerProfile({
   const tierStars = divInfo.stars > 0 ? "★".repeat(divInfo.stars) + "☆".repeat(3 - divInfo.stars) : null;
 
   return (
-    <PullToRefresh onRefresh={fetchProfile}>
     <div>
       {/* Player info */}
       <div className="text-center">
@@ -405,6 +382,5 @@ export function PlayerProfile({
         </div>
       )}
     </div>
-    </PullToRefresh>
   );
 }

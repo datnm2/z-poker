@@ -1,23 +1,4 @@
-const ENV_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3006";
-
-// Resolve API URL at call time.
-// In dev, if the page is opened on a LAN IP (e.g. phone accessing http://192.168.x.x:3030),
-// rewrite `localhost` in the env URL to the current hostname so the browser can reach
-// the API on the same machine. No env edits needed when LAN IP changes.
-function getApiUrl(): string {
-  if (typeof window === "undefined") return ENV_API_URL;
-  try {
-    const parsed = new URL(ENV_API_URL);
-    const host = window.location.hostname;
-    const isLocalEnv = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
-    const isLanBrowser = host !== "localhost" && host !== "127.0.0.1" && !host.endsWith(".vercel.app");
-    if (isLocalEnv && isLanBrowser) {
-      parsed.hostname = host;
-      return parsed.toString().replace(/\/$/, "");
-    }
-  } catch {}
-  return ENV_API_URL;
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3006";
 
 type TokenGetter = () => Promise<string | null>;
 
@@ -42,7 +23,7 @@ export function createApiClient(getToken: TokenGetter) {
     if (body !== undefined) headers["Content-Type"] = "application/json";
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    const res = await fetch(`${getApiUrl()}${path}`, {
+    const res = await fetch(`${API_URL}${path}`, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -78,7 +59,7 @@ export function createApiClient(getToken: TokenGetter) {
 export type ApiClient = ReturnType<typeof createApiClient>;
 
 export function streamUrl(path: string, ticket: string): string {
-  const url = new URL(`${getApiUrl()}${path}`);
+  const url = new URL(`${API_URL}${path}`);
   url.searchParams.set("ticket", ticket);
   return url.toString();
 }
@@ -88,7 +69,7 @@ export async function fetchSseTicket(
 ): Promise<string | null> {
   const token = await getToken();
   if (!token) return null;
-  const res = await fetch(`${getApiUrl()}/auth/sse-ticket`, {
+  const res = await fetch(`${API_URL}/auth/sse-ticket`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",

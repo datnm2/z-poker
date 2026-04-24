@@ -6,11 +6,6 @@ export const en = {
   save: "Save",
   close: "Close",
 
-  // Pull-to-refresh
-  "ptr.pull": "Pull to refresh",
-  "ptr.release": "Release to refresh",
-  "ptr.refreshing": "Refreshing...",
-
   // Login
   "login.tagline": "Office Poker Elo Tracker",
   "login.signInGoogle": "Sign in with Google",
@@ -302,10 +297,4 @@ export const en = {
 
   // Loading
   "loading.quote": "Patience is the key",
-
-  // Errors
-  "error.title": "Something went wrong",
-  "error.rateLimited": "Too many requests. Please wait a moment and try again.",
-  "error.generic": "Couldn't load this page. Check your connection and retry.",
-  "error.retry": "Retry",
 } as const;

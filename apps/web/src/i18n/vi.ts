@@ -6,11 +6,6 @@ export const vi = {
   save: "Lưu",
   close: "Đóng",
 
-  // Pull-to-refresh
-  "ptr.pull": "Kéo xuống để làm mới",
-  "ptr.release": "Thả để làm mới",
-  "ptr.refreshing": "Đang làm mới...",
-
   // Login
   "login.tagline": "Theo dõi Elo Poker Văn phòng",
   "login.signInGoogle": "Đăng nhập với Google",
@@ -301,10 +296,4 @@ export const vi = {
 
   // Loading
   "loading.quote": "Kiên nhẫn là chìa khoá",
-
-  // Errors
-  "error.title": "Có lỗi xảy ra",
-  "error.rateLimited": "Bạn thao tác hơi nhanh. Chờ vài giây rồi thử lại nhé.",
-  "error.generic": "Không tải được trang. Kiểm tra kết nối và thử lại.",
-  "error.retry": "Thử lại",
 } as const;

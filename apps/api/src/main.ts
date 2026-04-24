@@ -10,20 +10,8 @@ async function bootstrap() {
 
   const webOrigin = config.get<string>("WEB_ORIGIN") ?? "http://localhost:3030";
   const allowedOrigins = webOrigin.split(",").map((o) => o.trim());
-  const isDev = (config.get<string>("NODE_ENV") ?? "development") !== "production";
-  // Dev: allow localhost + any LAN IP (10.x, 172.16-31.x, 192.168.x) on any port
-  //      so the web app can be accessed from a phone via Mac's LAN IP without
-  //      editing WEB_ORIGIN every time the IP changes.
-  // Prod: strict whitelist from WEB_ORIGIN.
-  const lanHostRegex =
-    /^https?:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$/;
   app.enableCors({
-    origin: (origin, cb) => {
-      if (!origin) return cb(null, true);
-      if (allowedOrigins.includes(origin)) return cb(null, true);
-      if (isDev && lanHostRegex.test(origin)) return cb(null, true);
-      return cb(new Error(`Origin not allowed: ${origin}`));
-    },
+    origin: allowedOrigins,
     credentials: true,
   });
 

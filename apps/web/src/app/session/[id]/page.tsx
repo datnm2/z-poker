@@ -8,11 +8,9 @@ import { useI18n } from "@/providers/i18n-provider";
 import { AuthGuard } from "@/components/auth-guard";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
-import { ErrorScreen } from "@/components/error-screen";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Session, Player, SessionPlayer, SessionHighlights } from "@/types/database";
 import { HighlightsStory } from "@/components/highlights-story";
-import { PullToRefresh } from "@/components/pull-to-refresh";
 import type { TranslationKey } from "@/i18n/translations";
 import { getSessionTitle, getEloTier, getDivisionInfo } from "@/lib/ranks";
 
@@ -209,7 +207,6 @@ function SessionContent() {
   const [confirmedSpIds, setConfirmedSpIds] = useState<Set<string>>(new Set());
   const [reEditingSpIds, setReEditingSpIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<unknown>(null);
   const [locking, setLocking] = useState(false);
   const [lockError, setLockError] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
@@ -218,39 +215,33 @@ function SessionContent() {
   const fetchSession = useCallback(async () => {
     if (inFlightRef.current) return inFlightRef.current;
     const p = (async () => {
-      try {
-        setLoadError(null);
-        const detail = await api.get<SessionDetail>(`/sessions/${id}`);
-        setSession(detail.session);
-        if (!prevLockedRef.current && detail.session.isLocked) {
-          setJustLocked(true);
-        }
-        prevLockedRef.current = detail.session.isLocked;
-        setPlayers(detail.players);
-        setHighlights(detail.highlights);
-        setLocalChips((prev) => {
-          const next = { ...prev };
-          for (const row of detail.players) {
-            if (row.id !== focusedSpId.current) {
-              next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
-            } else if (!(row.id in next)) {
-              next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
-            }
-          }
-          return next;
-        });
-        setConfirmedSpIds((prev) => {
-          const next = new Set(prev);
-          for (const row of detail.players) {
-            if (row.chipsEnd != null && row.id !== focusedSpId.current) next.add(row.id);
-          }
-          return next;
-        });
-      } catch (e) {
-        setLoadError(e);
-      } finally {
-        setLoading(false);
+      const detail = await api.get<SessionDetail>(`/sessions/${id}`);
+      setSession(detail.session);
+      if (!prevLockedRef.current && detail.session.isLocked) {
+        setJustLocked(true);
       }
+      prevLockedRef.current = detail.session.isLocked;
+      setPlayers(detail.players);
+      setHighlights(detail.highlights);
+      setLocalChips((prev) => {
+        const next = { ...prev };
+        for (const row of detail.players) {
+          if (row.id !== focusedSpId.current) {
+            next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
+          } else if (!(row.id in next)) {
+            next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
+          }
+        }
+        return next;
+      });
+      setConfirmedSpIds((prev) => {
+        const next = new Set(prev);
+        for (const row of detail.players) {
+          if (row.chipsEnd != null && row.id !== focusedSpId.current) next.add(row.id);
+        }
+        return next;
+      });
+      setLoading(false);
     })();
     inFlightRef.current = p;
     try {
@@ -396,21 +387,8 @@ function SessionContent() {
     setTimeout(() => setRegenerating(false), 15_000);
   };
 
-  if (loading) {
+  if (loading || !session) {
     return <Loading fullscreen />;
-  }
-
-  if (loadError || !session) {
-    return (
-      <ErrorScreen
-        error={loadError}
-        onRetry={() => {
-          setLoading(true);
-          fetchSession();
-        }}
-        fullscreen
-      />
-    );
   }
 
   const isCreator = session.createdBy === me?.id;
@@ -451,7 +429,6 @@ function SessionContent() {
     myRow != null && confirmedSpIds.has(myRow.id) && !reEditingSpIds.has(myRow.id);
 
   return (
-    <PullToRefresh onRefresh={fetchSession}>
     <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
       {/* Header */}
       <div className="flex items-center gap-3">
@@ -900,7 +877,6 @@ function SessionContent() {
 
       <BottomNav />
     </div>
-    </PullToRefresh>
   );
 }
 
