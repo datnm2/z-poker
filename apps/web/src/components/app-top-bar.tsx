@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { useAuth } from "@/providers/auth-provider";
 
 export function AppTopBar() {
+  const { isLoggedIn } = useAuth();
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-center justify-between px-3 pt-3 sm:px-4 sm:pt-4">
       {/* Logo */}
       <Link
-        href="/home"
+        href={isLoggedIn ? "/home" : "/"}
         aria-label="Z-Poker home"
         className="pointer-events-auto flex items-center gap-1.5 transition-transform duration-150 active:scale-[0.97]"
       >

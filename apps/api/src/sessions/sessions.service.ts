@@ -409,6 +409,17 @@ export class SessionsService {
     return fresh;
   }
 
+  async getDetailPublic(sessionId: string): Promise<SessionDetailDto> {
+    const key = CacheKeys.sessionDetail(sessionId);
+    const hit = await this.cache.get<SessionDetailDto>(key);
+    if (hit !== undefined) return hit;
+    const session = await this.sessions.findOne({ where: { id: sessionId } });
+    if (!session) throw new NotFoundException("Session not found");
+    const fresh = await this.loadDetail(sessionId, session.domain);
+    await this.cache.set(key, fresh, DEFAULT_TTL_MS);
+    return fresh;
+  }
+
   private async loadDetail(
     sessionId: string,
     domain: string,

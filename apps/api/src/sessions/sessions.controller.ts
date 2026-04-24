@@ -21,6 +21,7 @@ import { Observable } from "rxjs";
 import { SessionsService } from "./sessions.service";
 import { SessionsEventsService, type SseMessage } from "./sessions.events";
 import { CurrentUser, type AuthedUser } from "../auth/current-user.decorator";
+import { Public } from "../auth/public.decorator";
 
 class CreateSessionDto {
   @IsInt()
@@ -111,8 +112,9 @@ export class SessionsController {
   }
 
   @Get(":id")
-  async get(@CurrentUser() user: AuthedUser, @Param("id") id: string) {
-    return this.sessionsService.getDetail(id, user.domain);
+  @Public()
+  async get(@Param("id") id: string) {
+    return this.sessionsService.getDetailPublic(id);
   }
 
   @Post(":id/players")

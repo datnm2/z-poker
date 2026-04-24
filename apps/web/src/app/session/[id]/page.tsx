@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
-import { AuthGuard } from "@/components/auth-guard";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
@@ -331,7 +330,7 @@ function SessionContent() {
     path: id ? `/sessions/${id}/stream` : null,
     handlers: sseHandlers,
     onResync: fetchSession,
-    enabled: !!id,
+    enabled: !!id && !!me,
   });
 
   const joinSession = async () => {
@@ -881,9 +880,5 @@ function SessionContent() {
 }
 
 export default function SessionPage() {
-  return (
-    <AuthGuard>
-      <SessionContent />
-    </AuthGuard>
-  );
+  return <SessionContent />;
 }
