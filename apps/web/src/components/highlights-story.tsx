@@ -22,7 +22,7 @@ const PALETTES = [
   "from-sky-500 via-blue-600 to-indigo-700",
 ];
 
-export function HighlightsStory({ items, players, onClose, durationMs = 6000, personaName }: Props) {
+export function HighlightsStory({ items, players, onClose, durationMs = 10000, personaName }: Props) {
   const { locale } = useI18n();
   const [index, setIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -150,16 +150,22 @@ export function HighlightsStory({ items, players, onClose, durationMs = 6000, pe
 
         {/* Progress bars */}
         <div className="absolute inset-x-0 top-0 z-20 flex gap-1 px-3 pt-3">
-          {items.map((it, i) => (
-            <div key={`${it.playerId}-${i}`} className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
-              <div
-                className="h-full bg-white transition-[width] duration-75"
-                style={{
-                  width: i < index ? "100%" : i === index ? `${progress * 100}%` : "0%",
-                }}
-              />
-            </div>
-          ))}
+          {items.map((it, i) => {
+            const scale = i < index ? 1 : i === index ? progress : 0;
+            return (
+              <div key={`${it.playerId}-${i}`} className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+                <div
+                  className="h-full w-full origin-left bg-white will-change-transform"
+                  style={{
+                    transform: `scaleX(${scale})`,
+                    WebkitTransform: `scaleX(${scale})`,
+                    transition: "transform 75ms linear",
+                    WebkitTransition: "-webkit-transform 75ms linear",
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Header row: logo + step label + close */}
