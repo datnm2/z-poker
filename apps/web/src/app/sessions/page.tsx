@@ -6,6 +6,8 @@ import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
+import { ErrorScreen } from "@/components/error-screen";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 
 interface HistoryItem {
   id: string;
@@ -48,6 +50,7 @@ export default function SessionsHistoryPage() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [error, setError] = useState<unknown>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
 
@@ -58,16 +61,32 @@ export default function SessionsHistoryPage() {
     const params = new URLSearchParams({ limit: "10" });
     if (cursor) params.set("cursor", cursor);
     try {
+      setError(null);
       const json = await api.get<HistoryPage>(`/sessions/history?${params.toString()}`);
       setItems((prev) => [...prev, ...json.data]);
       setCursor(json.nextCursor);
       setHasMore(json.hasMore);
+    } catch (e) {
+      setError(e);
     } finally {
       setLoading(false);
       setInitialized(true);
       loadingRef.current = false;
     }
   }, [api, cursor, hasMore]);
+
+  const refreshFromTop = useCallback(async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    try {
+      const json = await api.get<HistoryPage>("/sessions/history?limit=10");
+      setItems(json.data);
+      setCursor(json.nextCursor);
+      setHasMore(json.hasMore);
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [api]);
 
   useEffect(() => {
     if (!authLoading && isLoggedIn && !initialized && !loadingRef.current) {
@@ -88,11 +107,25 @@ export default function SessionsHistoryPage() {
     return () => io.disconnect();
   }, [loadMore]);
 
-  if (authLoading || !initialized) {
+  if (authLoading || (!initialized && !error)) {
     return <Loading fullscreen />;
   }
 
+  if (error && items.length === 0) {
+    return (
+      <ErrorScreen
+        error={error}
+        onRetry={() => {
+          setInitialized(false);
+          loadMore();
+        }}
+        fullscreen
+      />
+    );
+  }
+
   return (
+    <PullToRefresh onRefresh={refreshFromTop}>
     <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
       <div className="mb-4 flex items-center gap-3 pr-24">
         <Link
@@ -194,5 +227,6 @@ export default function SessionsHistoryPage() {
 
       <BottomNav />
     </div>
+    </PullToRefresh>
   );
 }

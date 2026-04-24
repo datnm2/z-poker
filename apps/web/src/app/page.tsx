@@ -7,10 +7,12 @@ import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
+import { ErrorScreen } from "@/components/error-screen";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Player, Session } from "@/types/database";
 import { getEloTier, getDivisionInfo, ELO_TIERS } from "@/lib/ranks";
 import { LandingContent } from "@/components/landing-content";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 
 interface ActiveSession extends Session {
   creator: { id: string; name: string } | null;
@@ -26,21 +28,28 @@ function LeaderboardContent() {
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
   const [totalSessions, setTotalSessions] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<unknown>(null);
   const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [buyInInput, setBuyInInput] = useState("100");
   const buyIn = parseInt(buyInInput, 10);
 
   const fetchData = useCallback(async () => {
-    const [p, s, stats] = await Promise.all([
-      api.get<Player[]>("/players"),
-      api.get<ActiveSession[]>("/sessions?active=true"),
-      api.get<{ totalSessions: number }>("/sessions/stats"),
-    ]);
-    setPlayers(p);
-    setActiveSessions(s);
-    setTotalSessions(stats.totalSessions);
-    setLoading(false);
+    try {
+      setError(null);
+      const [p, s, stats] = await Promise.all([
+        api.get<Player[]>("/players"),
+        api.get<ActiveSession[]>("/sessions?active=true"),
+        api.get<{ totalSessions: number }>("/sessions/stats"),
+      ]);
+      setPlayers(p);
+      setActiveSessions(s);
+      setTotalSessions(stats.totalSessions);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
   }, [api]);
 
   useEffect(() => {
@@ -110,6 +119,19 @@ function LeaderboardContent() {
     return <LandingContent variant="public" />;
   }
 
+  if (error) {
+    return (
+      <ErrorScreen
+        error={error}
+        onRetry={() => {
+          setLoading(true);
+          fetchData();
+        }}
+        fullscreen
+      />
+    );
+  }
+
 
   // Top 3 — breathing hairline border + rare diagonal corner glint (jewelry-like).
   const RANK_BADGES = [
@@ -152,6 +174,7 @@ function LeaderboardContent() {
   ];
 
   return (
+    <PullToRefresh onRefresh={fetchData}>
     <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
       {/* Domain HQ hero */}
       <section className="relative overflow-hidden rounded-2xl border border-card-border bg-card p-4">
@@ -502,6 +525,7 @@ function LeaderboardContent() {
 
       <BottomNav />
     </div>
+    </PullToRefresh>
   );
 }
 
