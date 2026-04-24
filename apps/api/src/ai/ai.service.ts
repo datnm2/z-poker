@@ -41,7 +41,7 @@ export class AiService implements OnModuleInit {
 
   async generateText(prompt: string, opts?: GenerateOptions): Promise<string> {
     const model = this.getModel(opts);
-    const result = await model.generateContent(prompt);
+    const result = await this.withRetry(() => model.generateContent(prompt));
     return result.response.text();
   }
 
@@ -54,8 +54,34 @@ export class AiService implements OnModuleInit {
         responseSchema: opts.schema,
       },
     });
-    const result = await model.generateContent(prompt);
+    const result = await this.withRetry(() => model.generateContent(prompt));
     const text = result.response.text();
     return JSON.parse(text) as T;
+  }
+
+  // Gemini preview models return 503 ("high demand") fairly often; the server
+  // usually recovers within seconds. 429 and 5xx are also worth retrying.
+  private async withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+    let lastErr: unknown;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        lastErr = err;
+        if (!this.isRetryable(err) || attempt === maxAttempts - 1) throw err;
+        const base = 1000 * 2 ** attempt;
+        const delay = base * (0.7 + Math.random() * 0.6);
+        this.logger.warn(
+          `AI call failed (attempt ${attempt + 1}/${maxAttempts}), retrying in ${Math.round(delay)}ms: ${(err as Error).message}`,
+        );
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+    throw lastErr;
+  }
+
+  private isRetryable(err: unknown): boolean {
+    const msg = (err as Error)?.message ?? "";
+    return /\b(429|500|502|503|504)\b/.test(msg) || /high demand|overloaded|unavailable|ECONNRESET|ETIMEDOUT/i.test(msg);
   }
 }

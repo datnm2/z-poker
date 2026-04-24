@@ -42,6 +42,10 @@ import { SlowQueryLogger } from "./common/slow-query.logger";
       { name: "default", ttl: 60_000, limit: 120 },
       { name: "write", ttl: 60_000, limit: 20 },
       { name: "ai", ttl: 60_000, limit: 5 },
+      // sse-ticket is single-use and SSE reconnects can burn many per minute
+      // during network flaps or dev hot-reload. Kept separate from `write`
+      // because it's not a state-changing mutation.
+      { name: "sse", ttl: 60_000, limit: 120 },
     ]),
     AuthModule,
     SessionsEventsModule,

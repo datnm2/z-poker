@@ -148,6 +148,16 @@ export class SessionsController {
     return this.sessionsService.lock(id, user);
   }
 
+  @Post(":id/highlights/regenerate")
+  @Throttle({ write: { limit: 5, ttl: 60_000 } })
+  async regenerateHighlights(
+    @CurrentUser() user: AuthedUser,
+    @Param("id") id: string,
+  ) {
+    await this.sessionsService.regenerateHighlights(id, user);
+    return { ok: true };
+  }
+
   @Sse(":id/stream")
   @SkipThrottle()
   stream(@Param("id") id: string): Observable<SseMessage> {

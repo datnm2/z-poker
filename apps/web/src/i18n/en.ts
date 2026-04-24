@@ -122,6 +122,7 @@ export const en = {
   "session.highlights.loading": "Reading the historical data...",
   "session.highlights.loadingHint": "Cooking up the drama, give it a sec",
   "session.highlights.hostedBy": "By",
+  "session.highlights.regenerate": "Retry",
 
   // Profile
   "profile.editName": "Edit name",

@@ -1,4 +1,4 @@
-import type { Session } from "./database";
+import type { Session, SessionHighlights } from "./database";
 
 // Mirrors apps/api/src/sessions/sessions.events.ts SessionEvent union.
 // Keep in sync when you add new event types.
@@ -52,4 +52,10 @@ export type SessionEvent =
       domain: string;
       sessionId: string;
       results: EloResult[];
+    }
+  | {
+      type: "session.highlights_ready";
+      domain: string;
+      sessionId: string;
+      highlights: SessionHighlights;
     };

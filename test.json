@@ -1,0 +1,37 @@
+{
+    "items": [
+        {
+            "body": {
+                "en": "That 3-game heater just hit a brick wall. Losing 95 chips and 37 Elo is the universe's way of saying your subscription to winning has expired. Time to sacrifice some more chips to the poker gods.",
+                "vi": "Đang hưng phấn với chuỗi 3 trận thắng liên tiếp bỗng gặp hạn Thái Bạch, quét sạch 95 chip và 37 Elo trong một nốt nhạc. Mệnh này dù có 'heart' nhưng hôm nay 'ice' hơi lạnh, vận khí đang bay bỗng đứt phanh."
+            },
+            "emoji": "📉",
+            "title": {
+                "en": "Winning streak iced by cosmic karma",
+                "vi": "Cung tài bạch đứt xích, đang bay rớt đài"
+            },
+            "playerId": "user_3CCGIKCGU5DGDLMCklpf5JI6SiF",
+            "playerName": "iceheart"
+        },
+        {
+            "body": {
+                "en": "The charity era is officially over. Pocketing 95 chips and bouncing back with +38 Elo means you finally remembered how the buttons work. A solid comeback from the depths of the loser's bracket.",
+                "vi": "Sau chuỗi ngày đen như tiền đồ chị Dậu, mệnh chủ đã lật ngược thế cờ hốt trọn 95 chip, Elo hồi sinh 38 điểm. Cung tài bạch hôm nay rực rỡ, thoát kiếp nhà tài trợ kim cương để lên làm ông chủ bàn chơi."
+            },
+            "emoji": "🌕",
+            "title": {
+                "en": "From chip donor to table shark",
+                "vi": "Vận đổi sao dời, cá con hoá cá mập"
+            },
+            "playerId": "user_3CTbp1IWveMEapLBlrgqAYTn8iD",
+            "playerName": "mr.bum2791991"
+        }
+    ],
+    "model": "gemini-3-flash-preview",
+    "personaId": "thay-tu-vi",
+    "generatedAt": "2026-04-19T04:18:59.335Z",
+    "personaName": {
+        "en": "The Fortune-Teller",
+        "vi": "Thầy Tử Vi"
+    }
+}

@@ -121,6 +121,7 @@ export const vi = {
   "session.highlights.loading": "Đang đọc dữ liệu lịch sử...",
   "session.highlights.loadingHint": "Đang tổng hợp drama, chờ tí nhé",
   "session.highlights.hostedBy": "Bởi",
+  "session.highlights.regenerate": "Tạo lại",
   "session.joinHype": "Nhảy vào đi — Elo của bạn đang chờ. Chứng minh ai là số 1.",
 
   // Profile

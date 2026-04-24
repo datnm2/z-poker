@@ -22,6 +22,8 @@ import {
   DEFAULT_TTL_MS,
   type CacheAdapter,
 } from "../cache/cache-adapter.interface";
+import { CacheInvalidationService } from "../cache/cache-invalidation.service";
+import type { SessionEvent } from "./sessions.events";
 
 export interface SessionDto {
   id: string;
@@ -114,7 +116,16 @@ export class SessionsService {
     private readonly events: SessionsEventsService,
     private readonly highlights: HighlightsService,
     @Inject(CACHE_ADAPTER) private readonly cache: CacheAdapter,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) {}
+
+  // Invalidate the cache before publishing, so the next read after the HTTP
+  // response is guaranteed to miss. The event subscriber still runs as a
+  // safety net but mutations can't rely on it finishing before the client refetches.
+  private async emit(event: SessionEvent): Promise<void> {
+    await this.cacheInvalidation.invalidateForEvent(event);
+    this.events.publish(event);
+  }
 
   async countLockedForDomain(domain: string): Promise<number> {
     const key = CacheKeys.sessionsStats(domain);
@@ -360,7 +371,7 @@ export class SessionsService {
       creator: creator ? { id: creator.id, name: creator.name } : null,
       playerIds: [],
     };
-    this.events.publish({
+    await this.emit({
       type: "session.created",
       domain: saved.domain,
       sessionId: saved.id,
@@ -509,7 +520,7 @@ export class SessionsService {
       updatedAt: saved.updatedAt.toISOString(),
       player: { id: target.id, name: target.name, elo: target.elo, avatarUrl: target.avatarUrl },
     };
-    this.events.publish({
+    await this.emit({
       type: "session.player_joined",
       domain: session.domain,
       sessionId,
@@ -565,7 +576,7 @@ export class SessionsService {
         }),
       );
     }
-    this.events.publish({
+    await this.emit({
       type: "session.chips_updated",
       domain: session.domain,
       sessionId,
@@ -584,7 +595,7 @@ export class SessionsService {
       throw new ForbiddenException("Only the session creator can lock");
     }
     const results = await this.elo.calculateAndLock(sessionId);
-    this.events.publish({
+    await this.emit({
       type: "session.locked",
       domain: session.domain,
       sessionId,
@@ -592,5 +603,19 @@ export class SessionsService {
     });
     void this.highlights.generateForSession(sessionId, session.domain);
     return { results };
+  }
+
+  async regenerateHighlights(
+    sessionId: string,
+    user: AuthedUser,
+  ): Promise<void> {
+    const session = await this.loadSessionForDomain(sessionId, user.domain);
+    if (session.createdBy !== user.userId) {
+      throw new ForbiddenException("Only the session creator can regenerate");
+    }
+    if (!session.isLocked) {
+      throw new BadRequestException("Session is not locked yet");
+    }
+    void this.highlights.generateForSession(sessionId, session.domain);
   }
 }

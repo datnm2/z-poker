@@ -16,6 +16,6 @@ const adapterProvider: Provider = {
 @Global()
 @Module({
   providers: [adapterProvider, CacheInvalidationService],
-  exports: [CACHE_ADAPTER],
+  exports: [CACHE_ADAPTER, CacheInvalidationService],
 })
 export class CacheModule {}

@@ -25,9 +25,14 @@ export function useSseStream({ path, handlers, onResync, enabled = true }: Optio
   const { getToken } = useClerkAuth();
   const handlersRef = useRef(handlers);
   const onResyncRef = useRef(onResync);
+  // Clerk's getToken identity changes on every render. Keeping it in the effect
+  // deps would tear down + reopen the EventSource on every parent render, which
+  // mints a new single-use ticket each time and quickly hits the rate limit.
+  const getTokenRef = useRef(getToken);
 
   handlersRef.current = handlers;
   onResyncRef.current = onResync;
+  getTokenRef.current = getToken;
 
   useEffect(() => {
     if (!enabled || !path) return;
@@ -36,11 +41,26 @@ export function useSseStream({ path, handlers, onResync, enabled = true }: Optio
     let es: EventSource | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let attempt = 0;
+    let hasEverOpened = false;
+
+    const scheduleRetry = () => {
+      // Jittered backoff: 0.5s, 1s, 2s, 4s, max 8s.
+      const base = Math.min(500 * 2 ** attempt, 8000);
+      const delay = base * (0.7 + Math.random() * 0.6);
+      attempt += 1;
+      reconnectTimer = setTimeout(connect, delay);
+    };
 
     const connect = async () => {
       if (cancelled) return;
-      const ticket = await fetchSseTicket(() => getToken());
-      if (cancelled || !ticket) return;
+      const ticket = await fetchSseTicket(() => getTokenRef.current());
+      if (cancelled) return;
+      if (!ticket) {
+        // Ticket fetch failed (e.g. 429, transient network). Back off and retry
+        // instead of bailing silently — otherwise one failure kills SSE forever.
+        scheduleRetry();
+        return;
+      }
 
       es = new EventSource(streamUrl(path, ticket));
 
@@ -59,27 +79,34 @@ export function useSseStream({ path, handlers, onResync, enabled = true }: Optio
 
       es.onopen = () => {
         attempt = 0;
+        hasEverOpened = true;
       };
 
       es.onerror = () => {
         if (cancelled) return;
         es?.close();
         es = null;
-        onResyncRef.current?.();
-        // Jittered backoff: 0.5s, 1s, 2s, 4s, max 8s. Jitter ±30% to avoid thundering herd.
-        const base = Math.min(500 * 2 ** attempt, 8000);
-        const delay = base * (0.7 + Math.random() * 0.6);
-        attempt += 1;
-        reconnectTimer = setTimeout(connect, delay);
+        // Only resync on structural outages (3+ failed attempts ≈ 3.5s of downtime).
+        // Transient blips auto-recover via EventSource reconnect; refetching then
+        // just creates a stampede across N clients for no gain.
+        if (hasEverOpened && attempt >= 3) {
+          onResyncRef.current?.();
+        }
+        scheduleRetry();
       };
     };
 
-    connect();
+    // Delay the initial connect so React StrictMode's synthetic
+    // mount-unmount-mount cycle in dev doesn't burn two single-use tickets
+    // per mount. The unmount cleanup runs first and flips `cancelled`, so the
+    // first mount's connect() bails before issuing a ticket.
+    const initialTimer = setTimeout(connect, 50);
 
     return () => {
       cancelled = true;
+      clearTimeout(initialTimer);
       if (reconnectTimer) clearTimeout(reconnectTimer);
       es?.close();
     };
-  }, [path, enabled, getToken]);
+  }, [path, enabled]);
 }

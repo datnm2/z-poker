@@ -35,6 +35,13 @@ export class CacheInvalidationService implements OnModuleInit, OnModuleDestroy {
     this.sub?.unsubscribe();
   }
 
+  // Mutations call this directly before publishing, so the next read after
+  // the HTTP response is guaranteed to miss the cache. The subscriber above
+  // still runs as an idempotent safety net.
+  async invalidateForEvent(event: SessionEvent): Promise<void> {
+    await this.handle(event);
+  }
+
   private async handle(event: SessionEvent): Promise<void> {
     switch (event.type) {
       case "session.created": {

@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Observable, Subject, filter, finalize, map, merge, share, interval } from "rxjs";
 import type { SessionPlayerDto, SessionWithCreatorDto } from "./sessions.service";
 import type { EloResult } from "../elo/elo.service";
+import type { SessionHighlights } from "./highlights/highlights.types";
 
 export type SessionEvent =
   | {
@@ -34,6 +35,7 @@ export type SessionEvent =
       type: "session.highlights_ready";
       domain: string;
       sessionId: string;
+      highlights: SessionHighlights;
     };
 
 export interface SseMessage {

@@ -8,7 +8,10 @@ export class AuthController {
   constructor(private readonly tickets: SseTicketService) {}
 
   @Post("sse-ticket")
-  @Throttle({ write: { limit: 30, ttl: 60_000 } })
+  // Tickets are single-use, so every SSE (re)connect mints one. Uses its
+  // own `sse` bucket so it doesn't eat into the `write` budget that real
+  // mutations (addPlayer / updateChips / lock) share per user.
+  @Throttle({ sse: { limit: 120, ttl: 60_000 } })
   issueTicket(@CurrentUser() user: AuthedUser) {
     return { ticket: this.tickets.issue(user), expiresIn: 60 };
   }

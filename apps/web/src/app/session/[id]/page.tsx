@@ -209,62 +209,51 @@ function SessionContent() {
   const [loading, setLoading] = useState(true);
   const [locking, setLocking] = useState(false);
   const [lockError, setLockError] = useState<string | null>(null);
+  const [regenerating, setRegenerating] = useState(false);
 
+  const inFlightRef = useRef<Promise<void> | null>(null);
   const fetchSession = useCallback(async () => {
-    const detail = await api.get<SessionDetail>(`/sessions/${id}`);
-    setSession(detail.session);
-    if (!prevLockedRef.current && detail.session.isLocked) {
-      setJustLocked(true);
-    }
-    prevLockedRef.current = detail.session.isLocked;
-    setPlayers(detail.players);
-    setHighlights(detail.highlights);
-    setLocalChips((prev) => {
-      const next = { ...prev };
-      for (const row of detail.players) {
-        if (row.id !== focusedSpId.current) {
-          next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
-        } else if (!(row.id in next)) {
-          next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
+    if (inFlightRef.current) return inFlightRef.current;
+    const p = (async () => {
+      const detail = await api.get<SessionDetail>(`/sessions/${id}`);
+      setSession(detail.session);
+      if (!prevLockedRef.current && detail.session.isLocked) {
+        setJustLocked(true);
+      }
+      prevLockedRef.current = detail.session.isLocked;
+      setPlayers(detail.players);
+      setHighlights(detail.highlights);
+      setLocalChips((prev) => {
+        const next = { ...prev };
+        for (const row of detail.players) {
+          if (row.id !== focusedSpId.current) {
+            next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
+          } else if (!(row.id in next)) {
+            next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
+          }
         }
-      }
-      return next;
-    });
-    setConfirmedSpIds((prev) => {
-      const next = new Set(prev);
-      for (const row of detail.players) {
-        if (row.chipsEnd != null && row.id !== focusedSpId.current) next.add(row.id);
-      }
-      return next;
-    });
-    setLoading(false);
+        return next;
+      });
+      setConfirmedSpIds((prev) => {
+        const next = new Set(prev);
+        for (const row of detail.players) {
+          if (row.chipsEnd != null && row.id !== focusedSpId.current) next.add(row.id);
+        }
+        return next;
+      });
+      setLoading(false);
+    })();
+    inFlightRef.current = p;
+    try {
+      await p;
+    } finally {
+      inFlightRef.current = null;
+    }
   }, [id, api]);
 
   useEffect(() => {
     fetchSession();
   }, [fetchSession]);
-
-  // Poll for highlights after lock (AI is async on backend)
-  useEffect(() => {
-    if (!session?.isLocked || highlights) return;
-    let attempts = 0;
-    const maxAttempts = 20;
-    const interval = setInterval(async () => {
-      attempts += 1;
-      try {
-        const detail = await api.get<SessionDetail>(`/sessions/${id}`);
-        if (detail.highlights) {
-          setHighlights(detail.highlights);
-          clearInterval(interval);
-        } else if (attempts >= maxAttempts) {
-          clearInterval(interval);
-        }
-      } catch {
-        clearInterval(interval);
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [session?.isLocked, highlights, id, api]);
 
   // Auto-show story once per (session, user) when highlights arrive
   useEffect(() => {
@@ -331,6 +320,9 @@ function SessionContent() {
           }),
         );
       },
+      "session.highlights_ready": (data) => {
+        setHighlights(data.highlights);
+      },
     }),
     [me],
   );
@@ -345,6 +337,9 @@ function SessionContent() {
   const joinSession = async () => {
     if (!session || !me) return;
     await api.post(`/sessions/${session.id}/players`, { self: true });
+    // The joiner's own SSE connection may have been opened after the server
+    // published session.player_joined, so they'd miss their own join event.
+    // Other tabs get the SSE patch; this tab needs a refetch to see itself.
     fetchSession();
   };
 
@@ -375,7 +370,21 @@ function SessionContent() {
       alert(e instanceof Error ? e.message : "Failed to lock session");
     }
     setLocking(false);
-    fetchSession();
+  };
+
+  const regenerateHighlights = async () => {
+    if (!session || regenerating) return;
+    setRegenerating(true);
+    try {
+      await api.post(`/sessions/${session.id}/highlights/regenerate`);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to regenerate");
+      setRegenerating(false);
+      return;
+    }
+    // Stay in loading state until session.highlights_ready SSE event arrives;
+    // that handler calls setHighlights() which flips the banner.
+    setTimeout(() => setRegenerating(false), 15_000);
   };
 
   if (loading || !session) {
@@ -618,7 +627,17 @@ function SessionContent() {
                 <p className="text-sm font-semibold text-foreground">{t("session.highlights.loading")}</p>
                 <p className="text-xs text-muted">{t("session.highlights.loadingHint")}</p>
               </div>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-transparent" />
+              {isCreator ? (
+                <button
+                  onClick={regenerateHighlights}
+                  disabled={regenerating}
+                  className="min-h-9 rounded-lg bg-fuchsia-500/20 px-3 text-xs font-semibold text-fuchsia-300 transition active:scale-95 active:bg-fuchsia-500/30 disabled:opacity-50"
+                >
+                  {regenerating ? "..." : t("session.highlights.regenerate")}
+                </button>
+              ) : (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-transparent" />
+              )}
             </div>
           )}
         </>

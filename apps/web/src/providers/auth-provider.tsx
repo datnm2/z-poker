@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -38,9 +39,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { user } = useUser();
   const clerk = useClerk();
 
+  // Clerk's getToken identity changes on every render, which would invalidate
+  // every consumer that memoizes on it (including `api` below + useSseStream).
+  // Pin it through a ref so downstream memos stay stable for the session.
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
+  const getTokenStable = useCallback(async () => {
+    if (!clerkLoaded) return null;
+    return getTokenRef.current();
+  }, [clerkLoaded]);
+
   const api = useMemo(
-    () => createApiClient(async () => (clerkLoaded ? await getToken() : null)),
-    [clerkLoaded, getToken],
+    () => createApiClient(getTokenStable),
+    [getTokenStable],
   );
 
   const [player, setPlayer] = useState<Player | null>(null);
