@@ -12,7 +12,7 @@ import { ApiError } from "@/lib/api";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Session, Player, SessionPlayer, SessionHighlights } from "@/types/database";
 import { HighlightsStory } from "@/components/highlights-story";
-import type { TranslationKey } from "@/i18n/translations";
+import type { TFunction } from "@/providers/i18n-provider";
 import { getSessionTitle, getEloTier, getDivisionInfo } from "@/lib/ranks";
 
 interface PlayerRow extends SessionPlayer {
@@ -60,7 +60,7 @@ function EloDisplay({
   after: number | null;
   streakBonus?: number | null;
   delay?: number;
-  t: (key: TranslationKey) => string;
+  t: TFunction;
 }) {
   const [revealed, setRevealed] = useState(false);
   const animatedElo = useCountUp(revealed && after != null ? after : before, 800);
@@ -121,7 +121,7 @@ const HYPE_KEYS = [
   "session.hype4", "session.hype5", "session.hype6",
 ] as const;
 
-function WaitingBanner({ t }: { t: (key: TranslationKey) => string }) {
+function WaitingBanner({ t }: { t: TFunction }) {
   const [idx, setIdx] = useState(() => Math.floor(Math.random() * HYPE_KEYS.length));
   const [fade, setFade] = useState(true);
 

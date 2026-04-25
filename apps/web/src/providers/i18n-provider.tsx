@@ -13,10 +13,16 @@ import {
   type TranslationKey,
 } from "@/i18n/translations";
 
+type TranslationValue<K extends TranslationKey> = (typeof translations)["en"][K];
+
+export type TFunction = <K extends TranslationKey>(
+  key: K,
+) => TranslationValue<K> extends string ? string : TranslationValue<K>;
+
 interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: TranslationKey) => string;
+  t: TFunction;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -55,9 +61,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(STORAGE_KEY, next); } catch {}
   };
 
-  const t = (key: TranslationKey): string => {
-    return translations[locale][key] ?? translations.en[key] ?? key;
-  };
+  const t = (<K extends TranslationKey>(key: K) => {
+    return (translations[locale][key] ?? translations.en[key] ?? key) as never;
+  }) as I18nContextValue["t"];
 
   return (
     <I18nContext.Provider value={{ locale, setLocale, t }}>
