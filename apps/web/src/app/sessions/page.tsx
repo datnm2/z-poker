@@ -6,6 +6,8 @@ import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
+import { ErrorState } from "@/components/error-state";
+import { ApiError } from "@/lib/api";
 
 interface HistoryItem {
   id: string;
@@ -48,6 +50,7 @@ export default function SessionsHistoryPage() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [error, setError] = useState<{ message: string; status?: number } | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
 
@@ -55,6 +58,7 @@ export default function SessionsHistoryPage() {
     if (loadingRef.current || !hasMore) return;
     loadingRef.current = true;
     setLoading(true);
+    setError(null);
     const params = new URLSearchParams({ limit: "10" });
     if (cursor) params.set("cursor", cursor);
     try {
@@ -62,6 +66,10 @@ export default function SessionsHistoryPage() {
       setItems((prev) => [...prev, ...json.data]);
       setCursor(json.nextCursor);
       setHasMore(json.hasMore);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof ApiError ? err.status : undefined;
+      setError({ message, status });
     } finally {
       setLoading(false);
       setInitialized(true);
@@ -77,7 +85,7 @@ export default function SessionsHistoryPage() {
 
   useEffect(() => {
     const el = sentinelRef.current;
-    if (!el) return;
+    if (!el || error) return;
     const io = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) loadMore();
@@ -86,10 +94,21 @@ export default function SessionsHistoryPage() {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [loadMore]);
+  }, [loadMore, error]);
 
   if (authLoading || !initialized) {
     return <Loading fullscreen />;
+  }
+
+  if (error && items.length === 0) {
+    return (
+      <ErrorState
+        fullscreen
+        message={error.message}
+        status={error.status}
+        onRetry={loadMore}
+      />
+    );
   }
 
   return (
@@ -189,6 +208,17 @@ export default function SessionsHistoryPage() {
       {loading && (
         <div className="py-3 text-center text-xs text-muted">
           {t("sessions.history.loading")}
+        </div>
+      )}
+      {error && items.length > 0 && (
+        <div className="flex flex-col items-center gap-2 py-4">
+          <p className="text-xs text-muted">{error.message}</p>
+          <button
+            onClick={loadMore}
+            className="min-h-11 rounded-xl border border-card-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all duration-150 active:scale-[0.97]"
+          >
+            {t("error.retry")}
+          </button>
         </div>
       )}
 

@@ -1,12 +1,17 @@
-import { computeEloChanges, K } from "./elo.math";
+import {
+  computeEloChanges,
+  K,
+  STREAK_BONUS_PER_STEP,
+  STREAK_THRESHOLD,
+} from "./elo.math";
 
 describe("computeEloChanges", () => {
   it("keeps changes near zero-sum when everyone has equal Elo", () => {
     const result = computeEloChanges(
       [
-        { playerId: "a", chipsEnd: 1500, elo: 1200 },
-        { playerId: "b", chipsEnd: 1000, elo: 1200 },
-        { playerId: "c", chipsEnd: 500, elo: 1200 },
+        { playerId: "a", chipsEnd: 1500, elo: 1200, currentStreak: 0 },
+        { playerId: "b", chipsEnd: 1000, elo: 1200, currentStreak: 0 },
+        { playerId: "c", chipsEnd: 500, elo: 1200, currentStreak: 0 },
       ],
       1000,
     );
@@ -22,8 +27,8 @@ describe("computeEloChanges", () => {
   it("caps max change near ±K for equal-Elo two-player blowout", () => {
     const result = computeEloChanges(
       [
-        { playerId: "a", chipsEnd: 2000, elo: 1200 },
-        { playerId: "b", chipsEnd: 0, elo: 1200 },
+        { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 0 },
+        { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 0 },
       ],
       1000,
     );
@@ -35,8 +40,8 @@ describe("computeEloChanges", () => {
   it("penalizes the favorite for losing to the underdog", () => {
     const result = computeEloChanges(
       [
-        { playerId: "fav", chipsEnd: 500, elo: 1600 },
-        { playerId: "dog", chipsEnd: 1500, elo: 1000 },
+        { playerId: "fav", chipsEnd: 500, elo: 1600, currentStreak: 0 },
+        { playerId: "dog", chipsEnd: 1500, elo: 1000, currentStreak: 0 },
       ],
       1000,
     );
@@ -52,13 +57,13 @@ describe("computeEloChanges", () => {
     // Reproduces the screenshot case: 7 players, host has high Elo but only +10 chips.
     const result = computeEloChanges(
       [
-        { playerId: "p1", chipsEnd: 210, elo: 1188 },
-        { playerId: "p2", chipsEnd: 195, elo: 1200 },
-        { playerId: "p3", chipsEnd: 135, elo: 1197 },
-        { playerId: "host", chipsEnd: 110, elo: 1220 },
-        { playerId: "p5", chipsEnd: 50, elo: 1197 },
-        { playerId: "p6", chipsEnd: 0, elo: 1200 },
-        { playerId: "p7", chipsEnd: 0, elo: 1191 },
+        { playerId: "p1", chipsEnd: 210, elo: 1188, currentStreak: 0 },
+        { playerId: "p2", chipsEnd: 195, elo: 1200, currentStreak: 0 },
+        { playerId: "p3", chipsEnd: 135, elo: 1197, currentStreak: 0 },
+        { playerId: "host", chipsEnd: 110, elo: 1220, currentStreak: 0 },
+        { playerId: "p5", chipsEnd: 50, elo: 1197, currentStreak: 0 },
+        { playerId: "p6", chipsEnd: 0, elo: 1200, currentStreak: 0 },
+        { playerId: "p7", chipsEnd: 0, elo: 1191, currentStreak: 0 },
       ],
       100,
     );
@@ -72,22 +77,20 @@ describe("computeEloChanges", () => {
     expect(host.change).toBeGreaterThanOrEqual(1);
   });
 
-  it("produces non-negative drift on zero-sum-chip games (mild inflation)", () => {
-    // Skewed chips that sum to buyIn × N. Drift should be small but >= 0.
+  it("keeps drift small on zero-sum-chip games (rounding noise only)", () => {
     const scenarios: number[][] = [
       [240, 130, 110, 60, 40, 20],
       [235, 145, 105, 65, 30, 20],
-      [400, 250, 150, 100, 60, 40, 0], // 7 players, sum = 1000 = 100 × 10? No: needs buyIn 1000/7
     ];
-    // Use first two (6-player, buyIn 100 → 600 total).
-    for (const chips of scenarios.slice(0, 2)) {
+    for (const chips of scenarios) {
       const result = computeEloChanges(
-        chips.map((c, idx) => ({ playerId: `p${idx}`, chipsEnd: c, elo: 1200 })),
+        chips.map((c, idx) => ({ playerId: `p${idx}`, chipsEnd: c, elo: 1200, currentStreak: 0 })),
         100,
       );
       const drift = result.reduce((acc, r) => acc + r.change, 0);
-      expect(drift).toBeGreaterThanOrEqual(0);
-      expect(drift).toBeLessThanOrEqual(6);
+      // Drift bounded by rounding noise + winner-floor / loser-cap clamping,
+      // not by structural inflation bias.
+      expect(Math.abs(drift)).toBeLessThanOrEqual(6);
     }
   });
 
@@ -97,7 +100,7 @@ describe("computeEloChanges", () => {
     const rows = counts.map((N) => {
       const chips = [buyIn * N, ...Array(N - 1).fill(0)];
       const result = computeEloChanges(
-        chips.map((c, i) => ({ playerId: `p${i}`, chipsEnd: c, elo: 1200 })),
+        chips.map((c, i) => ({ playerId: `p${i}`, chipsEnd: c, elo: 1200, currentStreak: 0 })),
         buyIn,
       );
       const winner = result[0];
@@ -118,10 +121,108 @@ describe("computeEloChanges", () => {
       };
     });
     console.table(rows);
-    expect(rows.every((r) => r.drift >= 0)).toBe(true);
+    // Drift bounded by rounding noise, no longer biased positive.
+    expect(rows.every((r) => Math.abs(r.drift) <= K)).toBe(true);
   });
 
-  it("never produces deflation across many randomized chip distributions", () => {
+  describe("streak bonus", () => {
+    it("does not apply bonus below threshold (streak < 3)", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 1 },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: -1 },
+        ],
+        1000,
+      );
+      expect(result[0].streakAfter).toBe(2);
+      expect(result[0].streakBonus).toBe(0);
+      expect(result[1].streakAfter).toBe(-2);
+      expect(result[1].streakBonus).toBe(0);
+    });
+
+    it("applies +bonus when win streak reaches threshold", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 2 },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      expect(result[0].streakAfter).toBe(3);
+      expect(result[0].streakBonus).toBe(STREAK_THRESHOLD * STREAK_BONUS_PER_STEP);
+      expect(result[0].change).toBe(35 + 6);
+      expect(result[1].streakAfter).toBe(-1);
+      expect(result[1].streakBonus).toBe(0);
+    });
+
+    it("applies -bonus when loss streak reaches threshold", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 0 },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: -2 },
+        ],
+        1000,
+      );
+      expect(result[1].streakAfter).toBe(-3);
+      expect(result[1].streakBonus).toBe(-STREAK_THRESHOLD * STREAK_BONUS_PER_STEP);
+      expect(result[1].change).toBe(-35 - 6);
+    });
+
+    it("scales bonus with longer streaks", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 4 },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      expect(result[0].streakAfter).toBe(5);
+      expect(result[0].streakBonus).toBe(10);
+      expect(result[0].change).toBe(35 + 10);
+    });
+
+    it("flips streak sign when result reverses", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 0, elo: 1200, currentStreak: 5 },
+          { playerId: "b", chipsEnd: 2000, elo: 1200, currentStreak: -4 },
+        ],
+        1000,
+      );
+      expect(result[0].streakAfter).toBe(-1);
+      expect(result[0].streakBonus).toBe(0);
+      expect(result[1].streakAfter).toBe(1);
+      expect(result[1].streakBonus).toBe(0);
+    });
+
+    it("resets streak to 0 when player ties (chipsEnd === buyIn)", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 1500, elo: 1200, currentStreak: 5 },
+          { playerId: "b", chipsEnd: 1000, elo: 1200, currentStreak: 3 },
+          { playerId: "c", chipsEnd: 500, elo: 1200, currentStreak: -3 },
+        ],
+        1000,
+      );
+      const tied = result.find((r) => r.playerId === "b")!;
+      expect(tied.streakAfter).toBe(0);
+      expect(tied.streakBonus).toBe(0);
+    });
+
+    it("returns streakBefore reflecting input streak", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 7 },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: -2 },
+        ],
+        1000,
+      );
+      expect(result[0].streakBefore).toBe(7);
+      expect(result[1].streakBefore).toBe(-2);
+    });
+  });
+
+  it("keeps drift bounded across many randomized chip distributions", () => {
     // Generate random zero-sum chip distributions, assert drift >= 0 every time.
     const N = 6;
     const buyIn = 100;
@@ -138,14 +239,14 @@ describe("computeEloChanges", () => {
       }
       chips.push(total - prev);
       const result = computeEloChanges(
-        chips.map((c, idx) => ({ playerId: `p${idx}`, chipsEnd: c, elo: 1200 })),
+        chips.map((c, idx) => ({ playerId: `p${idx}`, chipsEnd: c, elo: 1200, currentStreak: 0 })),
         buyIn,
       );
       const drift = result.reduce((acc, r) => acc + r.change, 0);
-      expect(drift).toBeGreaterThanOrEqual(0);
+      expect(Math.abs(drift)).toBeLessThan(K);
       totalDrift += drift;
     }
-    // Average drift should be small (< K/N typically).
-    expect(totalDrift / games).toBeLessThan(K);
+    // No structural bias either way; mean drift small in magnitude.
+    expect(Math.abs(totalDrift / games)).toBeLessThan(K);
   });
 });

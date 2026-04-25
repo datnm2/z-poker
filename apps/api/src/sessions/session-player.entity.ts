@@ -30,6 +30,9 @@ export class SessionPlayer {
   @Column({ name: "elo_after", type: "int", nullable: true })
   eloAfter!: number | null;
 
+  @Column({ name: "streak_bonus", type: "int", nullable: true })
+  streakBonus!: number | null;
+
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
   updatedAt!: Date;
 }

@@ -34,7 +34,7 @@ export class PlayersController {
   }
 
   @Patch("me")
-  @Throttle({ write: { limit: 10, ttl: 60_000 } })
+  @Throttle({ write: { limit: 20, ttl: 60_000 } })
   async updateMe(@CurrentUser() user: AuthedUser, @Body() body: UpdateMeDto) {
     return this.players.updateMe(user, body.name);
   }

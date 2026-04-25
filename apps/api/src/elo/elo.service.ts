@@ -38,10 +38,20 @@ export class EloService {
         .select([
           'sp.player_id AS "playerId"',
           'sp.chips_end AS "chipsEnd"',
+          'sp.updated_at AS "updatedAt"',
           'p.elo AS "elo"',
+          'p.current_streak AS "currentStreak"',
         ])
         .where("sp.session_id = :sessionId", { sessionId })
-        .getRawMany<{ playerId: string; chipsEnd: number | null; elo: number }>();
+        .orderBy("sp.chips_end", "DESC", "NULLS LAST")
+        .addOrderBy("sp.updated_at", "ASC")
+        .getRawMany<{
+          playerId: string;
+          chipsEnd: number | null;
+          updatedAt: Date;
+          elo: number;
+          currentStreak: number;
+        }>();
 
       const numPlayers = rows.length;
       if (numPlayers < 2) {
@@ -67,6 +77,7 @@ export class EloService {
           playerId: r.playerId,
           chipsEnd: r.chipsEnd as number,
           elo: Number(r.elo),
+          currentStreak: Number(r.currentStreak ?? 0),
         })),
         buyIn,
       );
@@ -76,17 +87,20 @@ export class EloService {
       const eloBefores = results.map((r) => r.eloBefore);
       const eloAfters = results.map((r) => r.eloAfter);
       const changes = results.map((r) => r.change);
+      const streakAfters = results.map((r) => r.streakAfter);
+      const streakBonuses = results.map((r) => r.streakBonus);
 
       await tx.query(
         `UPDATE session_players sp
-         SET elo_before = v.elo_before, elo_after = v.elo_after
+         SET elo_before = v.elo_before, elo_after = v.elo_after, streak_bonus = v.streak_bonus
          FROM (
            SELECT unnest($1::text[]) AS player_id,
                   unnest($2::int[]) AS elo_before,
-                  unnest($3::int[]) AS elo_after
+                  unnest($3::int[]) AS elo_after,
+                  unnest($4::int[]) AS streak_bonus
          ) v
-         WHERE sp.session_id = $4 AND sp.player_id = v.player_id`,
-        [playerIds, eloBefores, eloAfters, sessionId],
+         WHERE sp.session_id = $5 AND sp.player_id = v.player_id`,
+        [playerIds, eloBefores, eloAfters, streakBonuses, sessionId],
       );
 
       // Lock player rows in id-sorted order first to avoid deadlocks when two
@@ -97,13 +111,16 @@ export class EloService {
       );
       await tx.query(
         `UPDATE players p
-         SET elo = p.elo + v.change, games_played = games_played + 1
+         SET elo = p.elo + v.change,
+             games_played = games_played + 1,
+             current_streak = v.streak_after
          FROM (
            SELECT unnest($1::text[]) AS id,
-                  unnest($2::int[]) AS change
+                  unnest($2::int[]) AS change,
+                  unnest($3::int[]) AS streak_after
          ) v
          WHERE p.id = v.id`,
-        [playerIds, changes],
+        [playerIds, changes, streakAfters],
       );
 
       await tx

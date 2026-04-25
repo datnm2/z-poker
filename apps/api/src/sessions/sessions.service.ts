@@ -48,6 +48,7 @@ export interface SessionPlayerDto {
   chipsEnd: number | null;
   eloBefore: number | null;
   eloAfter: number | null;
+  streakBonus: number | null;
   updatedAt: string;
   player: { id: string; name: string; elo: number; avatarUrl: string | null };
 }
@@ -435,6 +436,7 @@ export class SessionsService {
         'sp.chips_end AS "chipsEnd"',
         'sp.elo_before AS "eloBefore"',
         'sp.elo_after AS "eloAfter"',
+        'sp.streak_bonus AS "streakBonus"',
         'sp.updated_at AS "updatedAt"',
         'p.id AS "pId"',
         'p.name AS "pName"',
@@ -451,6 +453,7 @@ export class SessionsService {
         chipsEnd: number | null;
         eloBefore: number | null;
         eloAfter: number | null;
+        streakBonus: number | null;
         updatedAt: Date;
         pId: string;
         pName: string;
@@ -467,6 +470,7 @@ export class SessionsService {
         chipsEnd: r.chipsEnd,
         eloBefore: r.eloBefore,
         eloAfter: r.eloAfter,
+        streakBonus: r.streakBonus,
         updatedAt: r.updatedAt.toISOString(),
         player: { id: r.pId, name: r.pName, elo: Number(r.pElo), avatarUrl: r.pAvatarUrl },
       })),
@@ -518,6 +522,7 @@ export class SessionsService {
       eloBefore: target.elo,
       chipsEnd: null,
       eloAfter: null,
+      streakBonus: null,
     });
     const saved = await this.sessionPlayers.save(sp);
 
@@ -528,6 +533,7 @@ export class SessionsService {
       chipsEnd: saved.chipsEnd,
       eloBefore: saved.eloBefore,
       eloAfter: saved.eloAfter,
+      streakBonus: saved.streakBonus,
       updatedAt: saved.updatedAt.toISOString(),
       player: { id: target.id, name: target.name, elo: target.elo, avatarUrl: target.avatarUrl },
     };

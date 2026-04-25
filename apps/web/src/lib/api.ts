@@ -23,12 +23,25 @@ export function createApiClient(getToken: TokenGetter) {
     if (body !== undefined) headers["Content-Type"] = "application/json";
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    const res = await fetch(`${API_URL}${path}`, {
-      method,
-      headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-      cache: "no-store",
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20_000);
+    let res: Response;
+    try {
+      res = await fetch(`${API_URL}${path}`, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        cache: "no-store",
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        throw new ApiError("Request timed out", 0, null);
+      }
+      throw new ApiError((err as Error).message || "Network error", 0, null);
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!res.ok) {
       let parsed: unknown;

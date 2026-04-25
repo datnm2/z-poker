@@ -13,7 +13,7 @@ import { AiService } from "../../ai/ai.service";
 import { SessionsEventsService } from "../sessions.events";
 import { CacheInvalidationService } from "../../cache/cache-invalidation.service";
 import type { SessionHighlights } from "./highlights.types";
-import { selectPersonaByDate, type McPersona } from "./personas";
+import { selectPersonaRandom, type McPersona } from "./personas";
 
 interface PlayerContext {
   playerId: string;
@@ -91,7 +91,7 @@ export class HighlightsService {
       if (!session) return;
 
       const targetCount = Math.max(2, Math.min(6, Math.ceil(contexts.length / 2)));
-      const persona = selectPersonaByDate(session.playedDate);
+      const persona = selectPersonaRandom();
       const prompt = this.buildPrompt(
         session.buyIn,
         session.playedDate,

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { Loading } from "@/components/loading";
+import { ErrorState } from "@/components/error-state";
+import { ApiError } from "@/lib/api";
 import type { Player } from "@/types/database";
 import { getEloTier, getDivisionInfo } from "@/lib/ranks";
 
@@ -38,23 +40,46 @@ export function PlayerProfile({
   const [player, setPlayer] = useState<PlayerWithRank | null>(null);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<{ message: string; status?: number } | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    const [p, history] = await Promise.all([
-      api.get<PlayerWithRank>(`/players/${playerId}`),
-      api.get<SessionRecord[]>(`/players/${playerId}/history?limit=20`),
-    ]);
-    setPlayer(p);
-    setSessions(history);
-    setLoading(false);
+    setError(null);
+    try {
+      const [p, history] = await Promise.all([
+        api.get<PlayerWithRank>(`/players/${playerId}`),
+        api.get<SessionRecord[]>(`/players/${playerId}/history?limit=20`),
+      ]);
+      setPlayer(p);
+      setSessions(history);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof ApiError ? err.status : undefined;
+      setError({ message, status });
+    } finally {
+      setLoading(false);
+    }
   }, [playerId, api]);
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-  if (loading || !player) {
+  if (loading) {
     return <Loading fullscreen />;
+  }
+
+  if (error || !player) {
+    return (
+      <ErrorState
+        fullscreen
+        message={error?.message}
+        status={error?.status}
+        onRetry={() => {
+          setLoading(true);
+          fetchProfile();
+        }}
+      />
+    );
   }
 
   const wins = sessions.filter(
@@ -314,12 +339,26 @@ export function PlayerProfile({
                 else outcome = { icon: "📉", labelKey: "profile.resultLose", color: "text-orange-400" };
               }
 
-              // Tier change
+              // Tier / division change
               const tierChanged =
                 s.eloBefore != null && s.eloAfter != null &&
                 getEloTier(s.eloBefore).key !== getEloTier(s.eloAfter).key;
               const newTier = s.eloAfter != null ? getEloTier(s.eloAfter) : null;
               const isRankUp = s.eloBefore != null && s.eloAfter != null && s.eloAfter > s.eloBefore;
+
+              // Division change within the same tier (sao tăng/giảm)
+              let divisionChange: { up: boolean; toStars: number; tier: ReturnType<typeof getEloTier> } | null = null;
+              if (!tierChanged && s.eloBefore != null && s.eloAfter != null) {
+                const beforeDiv = getDivisionInfo(s.eloBefore);
+                const afterDiv = getDivisionInfo(s.eloAfter);
+                if (beforeDiv.stars > 0 && afterDiv.stars > 0 && beforeDiv.stars !== afterDiv.stars) {
+                  divisionChange = {
+                    up: afterDiv.stars > beforeDiv.stars,
+                    toStars: afterDiv.stars,
+                    tier: getEloTier(s.eloAfter),
+                  };
+                }
+              }
 
               return (
                 <Link
@@ -341,7 +380,7 @@ export function PlayerProfile({
                       {" · "}
                       {t("session.chips")}: {s.chipsEnd ?? "-"}
                     </div>
-                    {(outcome || tierChanged) && (
+                    {(outcome || tierChanged || divisionChange) && (
                       <div className="mt-1 flex flex-wrap items-center gap-1.5">
                         {outcome && (
                           <span className={`text-[10px] font-semibold ${outcome.color}`}>
@@ -351,6 +390,15 @@ export function PlayerProfile({
                         {tierChanged && newTier && (
                           <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${newTier.bgClass} ${newTier.colorClass}`}>
                             {isRankUp ? "⬆" : "⬇"} {newTier.icon} {t(newTier.key)}
+                          </span>
+                        )}
+                        {!tierChanged && divisionChange && (
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${divisionChange.tier.bgClass} ${divisionChange.tier.colorClass}`}>
+                            {divisionChange.up ? "⬆" : "⬇"}{" "}
+                            <span className={divisionChange.tier.colorClass}>
+                              {"★".repeat(divisionChange.toStars)}
+                            </span>
+                            <span className="opacity-25">{"★".repeat(3 - divisionChange.toStars)}</span>
                           </span>
                         )}
                       </div>

@@ -27,6 +27,9 @@ export class Player {
   @Column({ name: "games_played", type: "int", default: 0 })
   gamesPlayed!: number;
 
+  @Column({ name: "current_streak", type: "int", default: 0 })
+  currentStreak!: number;
+
   @Column({ name: "avatar_url", type: "text", nullable: true })
   avatarUrl!: string | null;
 

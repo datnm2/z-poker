@@ -5,6 +5,12 @@ export const vi = {
   cancel: "Hủy",
   save: "Lưu",
   close: "Đóng",
+  "error.loadFailed": "Tải dữ liệu thất bại",
+  "error.loadFailedHint": "Kiểm tra mạng rồi thử lại nhé.",
+  "error.retry": "Thử lại",
+  "error.unauthorized": "Phiên đăng nhập đã hết hạn",
+  "error.unauthorizedHint": "Vui lòng đăng nhập lại để tiếp tục.",
+  "error.goToLogin": "Đăng nhập lại",
 
   // Login
   "login.tagline": "Theo dõi Elo Poker Văn phòng",
@@ -111,6 +117,8 @@ export const vi = {
   "session.results": "Kết quả",
   "session.rankedUp": "Lên hạng",
   "session.rankedDown": "Xuống hạng",
+  "session.streakIncluded.win": "đã gồm {bonus} thưởng chuỗi thắng",
+  "session.streakIncluded.loss": "đã gồm {bonus} phạt chuỗi thua",
   "session.rank": "Xếp hạng",
   "session.dealer": "Dealer",
   "session.dealerHint": "Hoặc đứng Dealer — bạn vẫn sửa chip & khóa phiên mà không cần tham gia",

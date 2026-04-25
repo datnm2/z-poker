@@ -10,6 +10,8 @@ import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Player, Session } from "@/types/database";
 import { getEloTier, getDivisionInfo, ELO_TIERS } from "@/lib/ranks";
 import { LandingContent } from "@/components/landing-content";
+import { ErrorState } from "@/components/error-state";
+import { ApiError } from "@/lib/api";
 import "./linear.css";
 
 interface ActiveSession extends Session {
@@ -26,21 +28,30 @@ function LinearLeaderboard() {
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
   const [totalSessions, setTotalSessions] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<{ message: string; status?: number } | null>(null);
   const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [buyInInput, setBuyInInput] = useState("100");
   const buyIn = parseInt(buyInInput, 10);
 
   const fetchData = useCallback(async () => {
-    const [p, s, stats] = await Promise.all([
-      api.get<Player[]>("/players"),
-      api.get<ActiveSession[]>("/sessions?active=true"),
-      api.get<{ totalSessions: number }>("/sessions/stats"),
-    ]);
-    setPlayers(p);
-    setActiveSessions(s);
-    setTotalSessions(stats.totalSessions);
-    setLoading(false);
+    setError(null);
+    try {
+      const [p, s, stats] = await Promise.all([
+        api.get<Player[]>("/players"),
+        api.get<ActiveSession[]>("/sessions?active=true"),
+        api.get<{ totalSessions: number }>("/sessions/stats"),
+      ]);
+      setPlayers(p);
+      setActiveSessions(s);
+      setTotalSessions(stats.totalSessions);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof ApiError ? err.status : undefined;
+      setError({ message, status });
+    } finally {
+      setLoading(false);
+    }
   }, [api]);
 
   useEffect(() => {
@@ -107,6 +118,20 @@ function LinearLeaderboard() {
 
   if (!isLoggedIn) {
     return <LandingContent variant="public" />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        fullscreen
+        message={error.message}
+        status={error.status}
+        onRetry={() => {
+          setLoading(true);
+          fetchData();
+        }}
+      />
+    );
   }
 
   return (

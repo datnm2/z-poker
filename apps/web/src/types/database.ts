@@ -27,6 +27,7 @@ export interface SessionPlayer {
   chipsEnd: number | null;
   eloBefore: number | null;
   eloAfter: number | null;
+  streakBonus: number | null;
   updatedAt: string;
 }
 

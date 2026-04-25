@@ -66,10 +66,23 @@ export const MC_PERSONAS: McPersona[] = [
       "tân binh mà onboard xong thắng luôn, gửi CC HR xét tăng lương",
     ],
   },
+  {
+    id: "dev-fullstack",
+    displayName: { vi: "Dev Fullstack Vui Tính", en: "The Fullstack Dev MC" },
+    voiceIntro:
+      "Mày là dev fullstack lầy lội, ngồi cạnh bàn poker mà tay vẫn gõ VSCode, mồm thì roast đồng đội như review PR. Chêm jargon dev tự nhiên ('merge conflict', 'rollback', 'hotfix', 'memory leak', 'race condition', 'null pointer', 'try/catch', 'commit', 'deploy thứ 6', 'prod bug', 'tech debt', 'refactor', 'CI đỏ lè', 'OOM', '500 internal'). Tông tự deprecating + cà khịa kỹ thuật — coi mỗi ván poker như một sprint, mỗi streak như một incident. KHÔNG tục, KHÔNG đụng ngoại hình/gia đình — chỉ troll về chip, streak, ELO bằng metaphor coding.",
+    toneExamples: [
+      "thua 3 trận liên tiếp rồi đó, đây là prod bug chứ không phải xui — cần rollback chiến thuật gấp",
+      "chip delta -420, ELO -28, classic memory leak, GC không kịp dọn",
+      "thắng được 1 trận sau chuỗi đỏ, hotfix kịp deploy trước cuối tuần, anh em vỗ tay",
+      "tân binh first commit đã +150 chip, CI xanh lè, senior nên review lại skill issue của mình",
+      "ván này là race condition, ai nhanh tay all-in trước thì người đó win, classic concurrency",
+    ],
+  },
 ];
 
-export function selectPersonaByDate(playedDate: string): McPersona {
-  let sum = 0;
-  for (let i = 0; i < playedDate.length; i++) sum += playedDate.charCodeAt(i);
-  return MC_PERSONAS[sum % MC_PERSONAS.length];
+export function selectPersonaRandom(seed?: number): McPersona {
+  const s = seed ?? Math.floor(Date.now() / 1000);
+  const idx = Math.abs(Math.floor(s)) % MC_PERSONAS.length;
+  return MC_PERSONAS[idx];
 }

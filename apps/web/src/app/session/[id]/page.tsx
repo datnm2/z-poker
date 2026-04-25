@@ -7,6 +7,8 @@ import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
+import { ErrorState } from "@/components/error-state";
+import { ApiError } from "@/lib/api";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Session, Player, SessionPlayer, SessionHighlights } from "@/types/database";
 import { HighlightsStory } from "@/components/highlights-story";
@@ -47,7 +49,19 @@ function useCountUp(to: number | null, duration = 900) {
   return display;
 }
 
-function EloDisplay({ before, after, delay = 0 }: { before: number; after: number | null; delay?: number }) {
+function EloDisplay({
+  before,
+  after,
+  streakBonus,
+  delay = 0,
+  t,
+}: {
+  before: number;
+  after: number | null;
+  streakBonus?: number | null;
+  delay?: number;
+  t: (key: TranslationKey) => string;
+}) {
   const [revealed, setRevealed] = useState(false);
   const animatedElo = useCountUp(revealed && after != null ? after : before, 800);
 
@@ -58,25 +72,42 @@ function EloDisplay({ before, after, delay = 0 }: { before: number; after: numbe
   }, [after, delay]);
 
   const delta = after != null ? after - before : null;
+  const showStreak = streakBonus != null && Math.abs(streakBonus) >= 6;
+  const streakLabel = showStreak
+    ? t(streakBonus! > 0 ? "session.streakIncluded.win" : "session.streakIncluded.loss")
+        .replace(
+          "{bonus}",
+          `${streakBonus! > 0 ? "🔥 +" : "❄️ "}${streakBonus}`,
+        )
+    : null;
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-muted">Elo</span>
-      <span
-        className={`font-mono font-bold tabular-nums transition-colors duration-300 ${
-          revealed && delta != null
-            ? delta >= 0 ? "text-green-400" : "text-red-400"
-            : "text-foreground"
-        }`}
-      >
-        {animatedElo ?? before}
-      </span>
-      {revealed && delta != null && (
+    <div className="flex flex-col">
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted">Elo</span>
         <span
-          className={`text-xs font-bold ${delta >= 0 ? "animate-elo-up text-green-400" : "animate-elo-down text-red-400"}`}
-          style={{ animationDelay: `${delay + 100}ms`, opacity: 0 }}
+          className={`font-mono font-bold tabular-nums transition-colors duration-300 ${
+            revealed && delta != null
+              ? delta >= 0 ? "text-green-400" : "text-red-400"
+              : "text-foreground"
+          }`}
         >
-          {delta >= 0 ? "+" : ""}{delta}
+          {animatedElo ?? before}
+        </span>
+        {revealed && delta != null && (
+          <span
+            className={`text-xs font-bold ${delta >= 0 ? "animate-elo-up text-green-400" : "animate-elo-down text-red-400"}`}
+            style={{ animationDelay: `${delay + 100}ms`, opacity: 0 }}
+          >
+            {delta >= 0 ? "+" : ""}{delta}
+          </span>
+        )}
+      </div>
+      {revealed && streakLabel && (
+        <span
+          className={`mt-0.5 text-[10px] italic ${streakBonus! > 0 ? "text-orange-300/80" : "text-blue-300/80"}`}
+        >
+          {streakLabel}
         </span>
       )}
     </div>
@@ -206,6 +237,7 @@ function SessionContent() {
   const [confirmedSpIds, setConfirmedSpIds] = useState<Set<string>>(new Set());
   const [reEditingSpIds, setReEditingSpIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<{ message: string; status?: number } | null>(null);
   const [locking, setLocking] = useState(false);
   const [lockError, setLockError] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
@@ -214,33 +246,41 @@ function SessionContent() {
   const fetchSession = useCallback(async () => {
     if (inFlightRef.current) return inFlightRef.current;
     const p = (async () => {
-      const detail = await api.get<SessionDetail>(`/sessions/${id}`);
-      setSession(detail.session);
-      if (!prevLockedRef.current && detail.session.isLocked) {
-        setJustLocked(true);
-      }
-      prevLockedRef.current = detail.session.isLocked;
-      setPlayers(detail.players);
-      setHighlights(detail.highlights);
-      setLocalChips((prev) => {
-        const next = { ...prev };
-        for (const row of detail.players) {
-          if (row.id !== focusedSpId.current) {
-            next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
-          } else if (!(row.id in next)) {
-            next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
+      try {
+        const detail = await api.get<SessionDetail>(`/sessions/${id}`);
+        setLoadError(null);
+        setSession(detail.session);
+        if (!prevLockedRef.current && detail.session.isLocked) {
+          setJustLocked(true);
+        }
+        prevLockedRef.current = detail.session.isLocked;
+        setPlayers(detail.players);
+        setHighlights(detail.highlights);
+        setLocalChips((prev) => {
+          const next = { ...prev };
+          for (const row of detail.players) {
+            if (row.id !== focusedSpId.current) {
+              next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
+            } else if (!(row.id in next)) {
+              next[row.id] = row.chipsEnd != null ? String(row.chipsEnd) : "";
+            }
           }
-        }
-        return next;
-      });
-      setConfirmedSpIds((prev) => {
-        const next = new Set(prev);
-        for (const row of detail.players) {
-          if (row.chipsEnd != null && row.id !== focusedSpId.current) next.add(row.id);
-        }
-        return next;
-      });
-      setLoading(false);
+          return next;
+        });
+        setConfirmedSpIds((prev) => {
+          const next = new Set(prev);
+          for (const row of detail.players) {
+            if (row.chipsEnd != null && row.id !== focusedSpId.current) next.add(row.id);
+          }
+          return next;
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const status = err instanceof ApiError ? err.status : undefined;
+        setLoadError({ message, status });
+      } finally {
+        setLoading(false);
+      }
     })();
     inFlightRef.current = p;
     try {
@@ -315,7 +355,7 @@ function SessionContent() {
           prev.map((p) => {
             const r = byId.get(p.playerId);
             if (!r) return p;
-            return { ...p, eloBefore: r.eloBefore, eloAfter: r.eloAfter };
+            return { ...p, eloBefore: r.eloBefore, eloAfter: r.eloAfter, streakBonus: r.streakBonus };
           }),
         );
       },
@@ -386,8 +426,22 @@ function SessionContent() {
     setTimeout(() => setRegenerating(false), 15_000);
   };
 
-  if (loading || !session) {
+  if (loading) {
     return <Loading fullscreen />;
+  }
+
+  if (loadError || !session) {
+    return (
+      <ErrorState
+        fullscreen
+        message={loadError?.message}
+        status={loadError?.status}
+        onRetry={() => {
+          setLoading(true);
+          fetchSession();
+        }}
+      />
+    );
   }
 
   const isCreator = session.createdBy === me?.id;
@@ -726,7 +780,7 @@ function SessionContent() {
                       </div>
                     );
                   })()}
-                  <EloDisplay before={sp.eloBefore ?? sp.player.elo} after={sp.eloAfter} delay={animDelay + 400} />
+                  <EloDisplay before={sp.eloBefore ?? sp.player.elo} after={sp.eloAfter} streakBonus={sp.streakBonus} delay={animDelay + 400} t={t} />
                   {!session.isLocked && (() => {
                     const tier = getEloTier(sp.player.elo);
                     return (
@@ -744,20 +798,13 @@ function SessionContent() {
                     const stars = divInfo.stars > 0 ? "★".repeat(divInfo.stars) + "☆".repeat(3 - divInfo.stars) : null;
                     return (
                       <>
-                        {tierChanged && (
-                          <div
-                            className={`mt-0.5 text-xs font-semibold ${afterTier.colorClass} animate-pop-in`}
-                            style={justLocked ? { animationDelay: `${animDelay + 600}ms`, opacity: 0, animationFillMode: "forwards" } : undefined}
-                          >
-                            {isRankUp ? "⬆" : "⬇"} {t(isRankUp ? "session.rankedUp" : "session.rankedDown")} {afterTier.icon} {t(afterTier.key)}
-                          </div>
-                        )}
                         <div
                           className={`mt-1 flex flex-col gap-1 ${justLocked ? "animate-slide-in" : ""}`}
                           style={justLocked ? { animationDelay: `${animDelay + 800}ms`, opacity: 0, animationFillMode: "forwards" } : undefined}
                         >
                           <div className="flex items-center gap-2">
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${afterTier.bgClass} ${afterTier.colorClass}`}>
+                              {tierChanged && <span className="mr-0.5">{isRankUp ? "⬆" : "⬇"}</span>}
                               {afterTier.icon} {t(afterTier.key)}
                               {stars && (
                                 <span className="ml-1 tracking-tight">
@@ -766,6 +813,11 @@ function SessionContent() {
                                 </span>
                               )}
                             </span>
+                            {tierChanged && (
+                              <span className={`text-[10px] font-semibold ${afterTier.colorClass}`}>
+                                {t(isRankUp ? "session.rankedUp" : "session.rankedDown")}
+                              </span>
+                            )}
                           </div>
                           {divInfo.eloToNext !== null && (
                             <div className="relative h-1.5 w-full rounded-full bg-slate-700">

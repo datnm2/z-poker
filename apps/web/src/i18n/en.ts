@@ -5,6 +5,12 @@ export const en = {
   cancel: "Cancel",
   save: "Save",
   close: "Close",
+  "error.loadFailed": "Couldn't load data",
+  "error.loadFailedHint": "Check your connection and try again.",
+  "error.retry": "Try again",
+  "error.unauthorized": "Your session has expired",
+  "error.unauthorizedHint": "Please sign in again to continue.",
+  "error.goToLogin": "Sign in again",
 
   // Login
   "login.tagline": "Office Poker Elo Tracker",
@@ -111,6 +117,8 @@ export const en = {
   "session.results": "Results",
   "session.rankedUp": "Ranked up to",
   "session.rankedDown": "Dropped to",
+  "session.streakIncluded.win": "incl. {bonus} win streak bonus",
+  "session.streakIncluded.loss": "incl. {bonus} cold streak penalty",
   "session.rank": "Rank",
   "session.dealer": "Dealer",
   "session.dealerHint": "Or stay as Dealer — you can edit chips & lock without joining",

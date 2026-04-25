@@ -8,6 +8,9 @@ export interface EloResult {
   eloBefore: number;
   eloAfter: number;
   change: number;
+  streakBefore: number;
+  streakAfter: number;
+  streakBonus: number;
 }
 
 export interface SessionWithCreator extends Session {
@@ -22,6 +25,7 @@ export interface SessionPlayerWithPlayer {
   chipsEnd: number | null;
   eloBefore: number | null;
   eloAfter: number | null;
+  streakBonus: number | null;
   updatedAt: string;
   player: { id: string; name: string; elo: number; avatarUrl: string | null };
 }
