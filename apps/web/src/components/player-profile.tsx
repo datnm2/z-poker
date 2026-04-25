@@ -117,7 +117,7 @@ export function PlayerProfile({
           )}
         </div>
         <h1 className="mt-3 text-xl font-bold">{player.name}</h1>
-        <div className={`mt-1 inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-sm font-semibold ${tier.bgClass} ${tier.colorClass}`}>
+        <div className={`mt-1 inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-sm font-semibold ${tier.bgClass} ${tier.colorClass} ${tier.key === "rank.godlike" ? "rank-godlike-glow" : ""}`}>
           <span>{tier.icon}</span>
           <span>{t(tier.key)}</span>
           {tierStars && (
@@ -388,12 +388,12 @@ export function PlayerProfile({
                           </span>
                         )}
                         {tierChanged && newTier && (
-                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${newTier.bgClass} ${newTier.colorClass}`}>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${newTier.bgClass} ${newTier.colorClass} ${newTier.key === "rank.godlike" ? "rank-godlike-glow" : ""}`}>
                             {isRankUp ? "⬆" : "⬇"} {newTier.icon} {t(newTier.key)}
                           </span>
                         )}
                         {!tierChanged && divisionChange && (
-                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${divisionChange.tier.bgClass} ${divisionChange.tier.colorClass}`}>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${divisionChange.tier.bgClass} ${divisionChange.tier.colorClass} ${divisionChange.tier.key === "rank.godlike" ? "rank-godlike-glow" : ""}`}>
                             {divisionChange.up ? "⬆" : "⬇"}{" "}
                             <span className={divisionChange.tier.colorClass}>
                               {"★".repeat(divisionChange.toStars)}

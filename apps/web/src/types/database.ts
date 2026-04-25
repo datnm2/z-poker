@@ -1,3 +1,5 @@
+export type GameResult = "W" | "L" | "T";
+
 export interface Player {
   id: string;
   email: string;
@@ -5,6 +7,8 @@ export interface Player {
   domain: string;
   elo: number;
   gamesPlayed: number;
+  currentStreak: number;
+  lastResults: GameResult[]; // last 5, newest first
   avatarUrl: string | null;
   createdAt: string;
 }

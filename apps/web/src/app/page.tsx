@@ -8,8 +8,8 @@ import { useI18n } from "@/providers/i18n-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
-import type { Player, Session } from "@/types/database";
-import { getEloTier, getDivisionInfo, ELO_TIERS } from "@/lib/ranks";
+import type { GameResult, Player, Session } from "@/types/database";
+import { getEloTier, getDivisionInfo, getStreakStyle, ELO_TIERS } from "@/lib/ranks";
 import { LandingContent } from "@/components/landing-content";
 import { ErrorState } from "@/components/error-state";
 import { ApiError } from "@/lib/api";
@@ -19,7 +19,10 @@ interface ActiveSession extends Session {
   playerIds: string[];
 }
 
-type LeaderboardPlayer = Pick<Player, "id" | "name" | "elo" | "gamesPlayed" | "avatarUrl">;
+type LeaderboardPlayer = Pick<
+  Player,
+  "id" | "name" | "elo" | "gamesPlayed" | "avatarUrl" | "currentStreak" | "lastResults"
+>;
 
 function LeaderboardContent() {
   const { player, api, isLoggedIn, isLoading: authLoading } = useAuth();
@@ -85,12 +88,21 @@ function LeaderboardContent() {
       },
       "session.locked": (data) => {
         setActiveSessions((prev) => prev.filter((s) => s.id !== data.sessionId));
-        // Patch ELO locally from payload instead of refetching /players.
-        const byId = new Map(data.results.map((r) => [r.playerId, r.eloAfter]));
+        // Patch ELO + streak + form locally from payload instead of refetching /players.
+        const byId = new Map(data.results.map((r) => [r.playerId, r]));
         setPlayers((prev) => {
           const next = prev.map((p) => {
-            const nextElo = byId.get(p.id);
-            return nextElo != null ? { ...p, elo: nextElo, gamesPlayed: p.gamesPlayed + 1 } : p;
+            const r = byId.get(p.id);
+            if (!r) return p;
+            const result: GameResult =
+              r.eloAfter > r.eloBefore ? "W" : r.eloAfter < r.eloBefore ? "L" : "T";
+            return {
+              ...p,
+              elo: r.eloAfter,
+              gamesPlayed: p.gamesPlayed + 1,
+              currentStreak: r.streakAfter,
+              lastResults: [result, ...p.lastResults].slice(0, 5),
+            };
           });
           return [...next].sort((a, b) => b.elo - a.elo);
         });
@@ -208,7 +220,7 @@ function LeaderboardContent() {
           </div>
 
           {/* Stats row — one panel, two halves. Right half is tappable. */}
-          <div className="mt-4 flex items-stretch overflow-hidden rounded-xl border border-card-border bg-background/40">
+          <div className="mt-4 flex items-stretch overflow-hidden rounded-xl border border-accent/25 bg-background/40 shadow-[0_0_24px_-12px_var(--accent)]">
             <div className="flex flex-1 flex-col items-start justify-center px-4 py-3">
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-black tabular-nums text-foreground">
@@ -374,7 +386,19 @@ function LeaderboardContent() {
       )}
 
       {/* Player Rankings */}
-      <div className="mt-6 space-y-2">
+      <div className="mt-6">
+        <div className="mb-2 flex items-center justify-between px-3 text-[10px] font-medium uppercase tracking-wider text-muted/60">
+          <span>{t("leaderboard.colPlayer")}</span>
+          <span
+            className="inline-flex items-center gap-1"
+            title={t("leaderboard.eloTooltip")}
+            aria-label={t("leaderboard.eloTooltip")}
+          >
+            {t("leaderboard.colElo")}
+            <span aria-hidden className="text-[9px]">ℹ️</span>
+          </span>
+        </div>
+        <div className="space-y-2">
         {players.map((p, i) => {
           const tier = getEloTier(p.elo);
           const badge = RANK_BADGES[i];
@@ -434,6 +458,7 @@ function LeaderboardContent() {
               {(() => {
                 const divInfo = getDivisionInfo(p.elo);
                 const stars = divInfo.stars > 0 ? "★".repeat(divInfo.stars) + "☆".repeat(3 - divInfo.stars) : null;
+                const streak = getStreakStyle(p.currentStreak);
                 return (
                   <div className="relative flex flex-1 min-w-0 flex-col gap-1">
                     <div className="flex items-center justify-between gap-2">
@@ -455,7 +480,7 @@ function LeaderboardContent() {
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5">
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${tier.bgClass} ${tier.colorClass}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${tier.bgClass} ${tier.colorClass} ${tier.key === "rank.godlike" ? "rank-godlike-glow" : ""}`}>
                           {tier.icon} {t(tier.key)}
                           {stars && (
                             <span className="ml-1 tracking-tight">
@@ -467,6 +492,31 @@ function LeaderboardContent() {
                         <span className="text-[10px] text-muted">
                           {p.gamesPlayed} {p.gamesPlayed === 1 ? t("leaderboard.game") : t("leaderboard.games")}
                         </span>
+                        {p.lastResults.length > 0 && (
+                          <span
+                            className="flex items-center gap-0.5"
+                            aria-label={`${t("leaderboard.recentForm")}: ${p.lastResults.join("")}`}
+                            title={`${t("leaderboard.recentForm")}: ${p.lastResults.join("")}${streak ? ` · ${t(streak.isHot ? "leaderboard.streakHot" : "leaderboard.streakCold")}` : ""}`}
+                          >
+                            {p.lastResults.slice(0, 5).map((r, idx) => (
+                              <span
+                                key={idx}
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  r === "W"
+                                    ? "bg-emerald-400"
+                                    : r === "L"
+                                      ? "bg-red-400/70"
+                                      : "bg-slate-500"
+                                }`}
+                              />
+                            ))}
+                            {streak && (
+                              <span className="ml-0.5 text-[11px] leading-none">
+                                {streak.isHot ? "🔥" : "🧊"}
+                              </span>
+                            )}
+                          </span>
+                        )}
                       </div>
                       {divInfo.eloToNext !== null && (
                         <span className="flex-shrink-0 text-[10px] text-muted/60">
@@ -487,6 +537,7 @@ function LeaderboardContent() {
                             width: tier.hasDivisions
                               ? `${(divInfo.stars - 1) * 33.33 + divInfo.progressPct * 0.3333}%`
                               : `${divInfo.progressPct}%`,
+                            boxShadow: `0 0 8px -2px var(--accent)`,
                           }}
                         />
                         {/* Division markers */}
@@ -504,26 +555,42 @@ function LeaderboardContent() {
             </Link>
           );
         })}
+        </div>
       </div>
 
-      {/* Rank legend */}
-      {players.length > 0 && (
-        <div className="mt-5 rounded-xl border border-card-border bg-card/50 p-3">
-          <p className="mb-2 text-xs font-semibold text-muted">{t("guide.elo.tiers.title")}</p>
-          <div className="flex flex-col gap-1.5">
-            {ELO_TIERS.map((tier) => (
-              <div key={tier.key} className="flex items-center justify-between">
-                <span className={`text-[11px] font-semibold ${tier.colorClass}`}>
-                  {tier.icon} {t(tier.key)}
-                </span>
-                <span className="text-[10px] text-muted">
-                  {tier.minElo === -Infinity ? `< ${tier.maxElo}` : tier.maxElo === Infinity ? `${tier.minElo}+` : `${tier.minElo} – ${tier.maxElo - 1}`}
-                </span>
-              </div>
-            ))}
+      {/* Rank legend (ladder with population counts) */}
+      {players.length > 0 && (() => {
+        const tierCounts = new Map<string, number>();
+        for (const pl of players) {
+          const k = getEloTier(pl.elo).key;
+          tierCounts.set(k, (tierCounts.get(k) ?? 0) + 1);
+        }
+        return (
+          <div className="mt-5 rounded-xl border border-card-border bg-card/50 p-3">
+            <p className="mb-2 text-xs font-semibold text-muted">{t("guide.elo.tiers.title")}</p>
+            <div className="flex flex-col gap-1.5">
+              {ELO_TIERS.map((tier) => {
+                const count = tierCounts.get(tier.key) ?? 0;
+                return (
+                  <div key={tier.key} className="flex items-center justify-between gap-2">
+                    <span className={`flex items-center gap-1.5 text-[11px] font-semibold ${tier.colorClass}`}>
+                      <span>{tier.icon} {t(tier.key)}</span>
+                      {count > 0 && (
+                        <span className={`rounded-full ${tier.bgClass} px-1.5 py-0.5 text-[9px] font-black tabular-nums`}>
+                          {count}
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[10px] text-muted">
+                      {tier.minElo === -Infinity ? `< ${tier.maxElo}` : tier.maxElo === Infinity ? `${tier.minElo}+` : `${tier.minElo} – ${tier.maxElo - 1}`}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <BottomNav />
     </div>

@@ -236,24 +236,24 @@ input[type="number"] {
 
 .card-orbit--full {
   width: min(72vw, 420px);
-  --orbit-radius: clamp(60px, 14vw, 120px);
-  --pcard-size: clamp(64px, 14vw, 112px);
+  --orbit-radius: clamp(30px, 7vw, 60px);
+  --pcard-size: clamp(32px, 7vw, 56px);
 }
-.card-orbit--full .pcard { font-size: clamp(28px, 6vw, 52px); }
+.card-orbit--full .pcard { font-size: clamp(14px, 3vw, 26px); }
 
 .card-orbit--lg {
-  width: 8rem;
-  --orbit-radius: 36px;
-  --pcard-size: 40px;
+  width: 4rem;
+  --orbit-radius: 18px;
+  --pcard-size: 20px;
 }
-.card-orbit--lg .pcard { font-size: 20px; }
+.card-orbit--lg .pcard { font-size: 10px; }
 
 .card-orbit--md {
-  width: 5.5rem;
-  --orbit-radius: 24px;
-  --pcard-size: 28px;
+  width: 2.75rem;
+  --orbit-radius: 12px;
+  --pcard-size: 14px;
 }
-.card-orbit--md .pcard { font-size: 14px; }
+.card-orbit--md .pcard { font-size: 7px; }
 
 @keyframes orbit-path {
   0%   { transform: translate(0, calc(-1 * var(--orbit-radius, 60px))); }
@@ -391,6 +391,15 @@ input[type="number"] {
   animation: rank-glint var(--rank-glint-speed, 7s) ease-out infinite;
 }
 
+/* Challenger rank glow — purple neon aura */
+@keyframes godlike-glow {
+  0%, 100% { box-shadow: 0 0 8px -2px rgba(192, 132, 252, 0.6), 0 0 4px 0 rgba(168, 85, 247, 0.4); }
+  50%      { box-shadow: 0 0 14px -1px rgba(192, 132, 252, 0.8), 0 0 8px 1px rgba(168, 85, 247, 0.6); }
+}
+.rank-godlike-glow {
+  animation: godlike-glow 2.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card-orbit-ring,
   .pcard,
@@ -399,7 +408,8 @@ input[type="number"] {
   .animate-shimmer-text,
   .animate-badge-sheen,
   .animate-rank-border-breathe,
-  .animate-rank-glint {
+  .animate-rank-glint,
+  .rank-godlike-glow {
     animation: none !important;
   }
   .animate-chip-spin { animation: none; }

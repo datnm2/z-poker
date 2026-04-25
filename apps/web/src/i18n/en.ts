@@ -74,6 +74,13 @@ export const en = {
   "leaderboard.game": "game played",
   "leaderboard.signInPrompt": "Sign in to see the leaderboard and join sessions.",
   "leaderboard.signInBtn": "Sign in",
+  "leaderboard.streakHot": "Hot Streak",
+  "leaderboard.streakCold": "Tilting Hard",
+  "leaderboard.recentForm": "Recent form",
+  "leaderboard.tierCount": "%d players",
+  "leaderboard.colPlayer": "Player",
+  "leaderboard.colElo": "Elo",
+  "leaderboard.eloTooltip": "Elo rating — gain or lose points each session based on chip results",
 
   // Session
   "session.title": "Session",
@@ -304,5 +311,26 @@ export const en = {
   "footer.visitSite": "Visit dat09vn.com",
 
   // Loading
-  "loading.quote": "Patience is the key",
+  "loading.tips": [
+    "Patience is the key — wait for good cards and good position",
+    "Folding often isn't weakness, it's protecting your stack",
+    "Later position = more advantage — you see more before deciding",
+    "Observing how opponents play matters more than your cards",
+    "Bluff needs a believable story — it won't work every time",
+    "Good bankroll management keeps you in the game tomorrow",
+    "Play tight when learning — only enter pots with good hands",
+    "Sometimes even AA needs to fold if you know you're beaten",
+    "Good position beats good cards — many pots won by position",
+    "Don't try to win back losses emotionally — take a break when tilting",
+    "Small ball poker reduces risk while still gathering information",
+    "Aggression gets rewarded, passivity gets punished",
+    "Pot odds are math, not feelings — learn poker math",
+    "Choosing an easy table matters as much as your skill",
+    "Folding pre-flop is fine — save chips for better spots",
+    "When you're out of the pot, watch how others play",
+    "How opponents bet tells more than what they say",
+    "3-bet light only works when you have good position",
+    "Thin value betting earns more than scared check/calling",
+    "Too much slowplay = letting opponents catch cheap cards",
+  ],
 } as const;

@@ -17,9 +17,9 @@ export const ELO_TIERS: EloTier[] = [
   {
     key: "rank.godlike",
     icon: "👑",
-    colorClass: "text-violet-400",
-    bgClass: "bg-violet-400/20",
-    fillClass: "bg-violet-400",
+    colorClass: "text-purple-400",
+    bgClass: "bg-purple-400/20",
+    fillClass: "bg-purple-400",
     minElo: 1600,
     maxElo: Infinity,
     hasDivisions: false,
@@ -27,9 +27,9 @@ export const ELO_TIERS: EloTier[] = [
   {
     key: "rank.predator",
     icon: "🦈",
-    colorClass: "text-blue-400",
-    bgClass: "bg-blue-400/15",
-    fillClass: "bg-blue-400",
+    colorClass: "text-red-600",
+    bgClass: "bg-red-600/15",
+    fillClass: "bg-red-600",
     minElo: 1450,
     maxElo: 1600,
     hasDivisions: true,
@@ -37,9 +37,9 @@ export const ELO_TIERS: EloTier[] = [
   {
     key: "rank.veteran",
     icon: "💰",
-    colorClass: "text-emerald-400",
-    bgClass: "bg-emerald-400/15",
-    fillClass: "bg-emerald-400",
+    colorClass: "text-amber-400",
+    bgClass: "bg-amber-400/15",
+    fillClass: "bg-amber-400",
     minElo: 1300,
     maxElo: 1450,
     hasDivisions: true,
@@ -47,9 +47,9 @@ export const ELO_TIERS: EloTier[] = [
   {
     key: "rank.novice",
     icon: "🎯",
-    colorClass: "text-yellow-400",
-    bgClass: "bg-yellow-400/15",
-    fillClass: "bg-yellow-400",
+    colorClass: "text-sky-400",
+    bgClass: "bg-sky-400/15",
+    fillClass: "bg-sky-400",
     minElo: 1150,
     maxElo: 1300,
     hasDivisions: true,
@@ -57,9 +57,9 @@ export const ELO_TIERS: EloTier[] = [
   {
     key: "rank.rookie",
     icon: "🃏",
-    colorClass: "text-orange-400",
-    bgClass: "bg-orange-400/15",
-    fillClass: "bg-orange-400",
+    colorClass: "text-emerald-400",
+    bgClass: "bg-emerald-400/15",
+    fillClass: "bg-emerald-400",
     minElo: 1000,
     maxElo: 1150,
     hasDivisions: true,
@@ -67,9 +67,9 @@ export const ELO_TIERS: EloTier[] = [
   {
     key: "rank.fish",
     icon: "🐟",
-    colorClass: "text-zinc-400",
-    bgClass: "bg-zinc-400/15",
-    fillClass: "bg-zinc-400",
+    colorClass: "text-slate-400",
+    bgClass: "bg-slate-400/15",
+    fillClass: "bg-slate-400",
     minElo: -Infinity,
     maxElo: 1000,
     hasDivisions: false,
@@ -125,6 +125,45 @@ export function getDivisionInfo(elo: number): DivisionInfo {
     nextTierKey: isRankUp ? (nextTier?.key ?? null) : null,
     isRankUp,
   };
+}
+
+export interface StreakStyle {
+  label: string; // series of W or L characters
+  classes: string;
+  isHot: boolean;
+}
+
+export function getStreakStyle(streak: number): StreakStyle | null {
+  const cap = 5;
+  if (streak >= 3) {
+    return {
+      label: "W".repeat(Math.min(streak, cap)),
+      classes: "border-amber-400/50 bg-amber-400/15 text-amber-300 tracking-[0.2em]",
+      isHot: true,
+    };
+  }
+  if (streak === 2) {
+    return {
+      label: "WW",
+      classes: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300 tracking-[0.2em]",
+      isHot: true,
+    };
+  }
+  if (streak <= -3) {
+    return {
+      label: "L".repeat(Math.min(Math.abs(streak), cap)),
+      classes: "border-red-400/50 bg-red-400/15 text-red-300 tracking-[0.2em]",
+      isHot: false,
+    };
+  }
+  if (streak === -2) {
+    return {
+      label: "LL",
+      classes: "border-red-400/30 bg-red-400/10 text-red-400 tracking-[0.2em]",
+      isHot: false,
+    };
+  }
+  return null;
 }
 
 export interface SessionTitle {

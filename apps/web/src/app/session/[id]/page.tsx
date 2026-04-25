@@ -803,7 +803,7 @@ function SessionContent() {
                           style={justLocked ? { animationDelay: `${animDelay + 800}ms`, opacity: 0, animationFillMode: "forwards" } : undefined}
                         >
                           <div className="flex items-center gap-2">
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${afterTier.bgClass} ${afterTier.colorClass}`}>
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${afterTier.bgClass} ${afterTier.colorClass} ${afterTier.key === "rank.godlike" ? "rank-godlike-glow" : ""}`}>
                               {tierChanged && <span className="mr-0.5">{isRankUp ? "⬆" : "⬇"}</span>}
                               {afterTier.icon} {t(afterTier.key)}
                               {stars && (

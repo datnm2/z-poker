@@ -12,6 +12,8 @@ import {
   type CacheAdapter,
 } from "../cache/cache-adapter.interface";
 
+export type GameResult = "W" | "L" | "T";
+
 export interface PlayerDto {
   id: string;
   email: string;
@@ -19,6 +21,8 @@ export interface PlayerDto {
   domain: string;
   elo: number;
   gamesPlayed: number;
+  currentStreak: number;
+  lastResults: GameResult[]; // last 5 locked-session results, newest first
   avatarUrl: string | null;
   createdAt: string;
 }
@@ -42,7 +46,7 @@ export interface PlayerHistoryEntryDto {
   };
 }
 
-function toDto(p: Player): PlayerDto {
+function toDto(p: Player, lastResults: GameResult[] = []): PlayerDto {
   return {
     id: p.id,
     email: p.email,
@@ -50,6 +54,8 @@ function toDto(p: Player): PlayerDto {
     domain: p.domain,
     elo: p.elo,
     gamesPlayed: p.gamesPlayed,
+    currentStreak: p.currentStreak,
+    lastResults,
     avatarUrl: p.avatarUrl,
     createdAt: p.createdAt.toISOString(),
   };
@@ -105,9 +111,45 @@ export class PlayersService {
       order: { elo: "DESC" },
       take: 200,
     });
-    const fresh = rows.map(toDto);
+    const lastResultsByPlayer = await this.loadLastResults(rows.map((r) => r.id), domain);
+    const fresh = rows.map((r) => toDto(r, lastResultsByPlayer.get(r.id) ?? []));
     await this.cache.set(key, fresh, DEFAULT_TTL_MS);
     return fresh;
+  }
+
+  private async loadLastResults(
+    playerIds: string[],
+    domain: string,
+    perPlayer = 5,
+  ): Promise<Map<string, GameResult[]>> {
+    const out = new Map<string, GameResult[]>();
+    if (!playerIds.length) return out;
+    const rows = await this.sessionPlayers
+      .createQueryBuilder("sp")
+      .innerJoin(Session, "s", "s.id = sp.session_id")
+      .select([
+        'sp.player_id AS "playerId"',
+        'sp.chips_end AS "chipsEnd"',
+        's.buy_in AS "buyIn"',
+        's.locked_at AS "lockedAt"',
+      ])
+      .where("sp.player_id IN (:...ids)", { ids: playerIds })
+      .andWhere("s.domain = :domain", { domain })
+      .andWhere("s.is_locked = true")
+      .andWhere("sp.chips_end IS NOT NULL")
+      .orderBy("s.locked_at", "DESC")
+      .getRawMany<{ playerId: string; chipsEnd: number; buyIn: number; lockedAt: Date }>();
+
+    for (const r of rows) {
+      const list = out.get(r.playerId) ?? [];
+      if (list.length >= perPlayer) continue;
+      const chipsEnd = Number(r.chipsEnd);
+      const buyIn = Number(r.buyIn);
+      const result: GameResult = chipsEnd > buyIn ? "W" : chipsEnd < buyIn ? "L" : "T";
+      list.push(result);
+      out.set(r.playerId, list);
+    }
+    return out;
   }
 
   async getByIdForDomain(id: string, domain: string): Promise<PlayerWithRankDto> {

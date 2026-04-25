@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 import type { CSSProperties } from "react";
 import { useLoading } from "@/providers/loading-provider";
 import { useI18n } from "@/providers/i18n-provider";
@@ -119,11 +119,17 @@ export function Loading({ size = "md", fullscreen, className = "", scope = "glob
   const { begin, end } = useLoading();
   const { t } = useI18n();
   const id = useId();
+  const [tipIndex, setTipIndex] = useState(0); // Start with 0 for SSR consistency
 
   useEffect(() => {
     begin(id, scope);
     return () => end(id);
   }, [begin, end, id, scope]);
+
+  useEffect(() => {
+    // Randomize tip index after hydration (client-only)
+    setTipIndex(Math.floor(Math.random() * 20));
+  }, []);
 
   if (size === "sm") {
     return (
@@ -138,6 +144,9 @@ export function Loading({ size = "md", fullscreen, className = "", scope = "glob
   }
 
   if (fullscreen) {
+    const tips = t("loading.tips") as unknown as string[];
+    const tip = tips[tipIndex % tips.length];
+    
     return (
       <div className="relative min-h-screen overflow-hidden">
         <SkeletonBackdrop />
@@ -147,7 +156,7 @@ export function Loading({ size = "md", fullscreen, className = "", scope = "glob
           <div className="flex flex-col items-center gap-5 rounded-3xl border border-card-border/60 bg-background/70 px-8 py-8 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] backdrop-blur-md">
             <CardOrbit variant="full" />
             <p className="max-w-[14rem] text-center text-[13px] font-medium italic tracking-wide text-muted animate-pulse">
-              &ldquo;{t("loading.quote")}&rdquo;
+              &ldquo;{tip}&rdquo;
             </p>
           </div>
         </div>
