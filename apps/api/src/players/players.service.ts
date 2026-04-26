@@ -99,6 +99,7 @@ export class PlayersService {
     await this.players.update({ id: user.userId }, { name });
     const updated = await this.players.findOne({ where: { id: user.userId } });
     if (!updated) throw new NotFoundException("Player not found");
+    await this.cache.del(CacheKeys.profile(user.domain, user.userId));
     return toDto(updated);
   }
 
