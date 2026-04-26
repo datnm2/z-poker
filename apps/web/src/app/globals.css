@@ -361,6 +361,27 @@ input[type="number"] {
   animation-delay: 1.2s;
 }
 
+/* Progress bar shimmer — light streak running across an active bar */
+@keyframes bar-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+.animate-bar-shimmer {
+  animation: bar-shimmer 2.4s ease-in-out infinite;
+}
+
+/* Progress bar entrance — width fills from 0 to target on mount */
+@keyframes bar-fill {
+  from { width: 0%; }
+  to   { width: var(--bar-target, 0%); }
+}
+
+.animate-bar-fill {
+  animation: bar-fill 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  width: 0%;
+}
+
 /* Subtle breathing border for top-3 — hairline that softly brightens */
 @keyframes rank-border-breathe {
   0%, 100% {

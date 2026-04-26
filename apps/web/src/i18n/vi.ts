@@ -42,8 +42,8 @@ export const vi = {
   "landing.previewDemo": "Demo — đăng nhập để xem nhóm thật",
   "landing.tiersTitle": "6 hạng. Bạn đang ở đâu?",
   "landing.howTitle": "Cách hoạt động",
-  "landing.how1": "Tạo phiên trưa & đặt buy-in",
-  "landing.how2": "Hết giờ? Nhập chip còn, xong thôi",
+  "landing.how1": "Dealer tạo phiên chơi & đặt buy-in",
+  "landing.how2": "Hết giờ? Dealer hoặc mỗi người chơi tự nhập chip còn lại",
   "landing.how3": "Khoá phiên → Elo cộng dồn dài hạn",
   "landing.footerCta": "Sẵn sàng leo rank?",
   "landing.funPill": "🎉 Chơi vui — không tiền thật",
@@ -277,6 +277,8 @@ export const vi = {
   "guide.elo.tiers.title": "Bảng hạng",
   "rank.division": "Hạng",
   "rank.eloToNext": "đến bậc tiếp",
+  "rank.toNextRank": "cần {n} elo để lên hạng",
+  "rank.toNextDiv": "cần {n} elo để lên {stars}",
 
   // Elo Tiers
   "rank.godlike": "Thần Bài - Vua Trò Chơi",

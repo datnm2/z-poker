@@ -8,7 +8,7 @@ import { Loading } from "@/components/loading";
 import { ErrorState } from "@/components/error-state";
 import { ApiError } from "@/lib/api";
 import type { Player } from "@/types/database";
-import { getEloTier, getDivisionInfo } from "@/lib/ranks";
+import { getEloTier, getDivisionInfo, ELO_TIERS } from "@/lib/ranks";
 
 interface SessionRecord {
   id: string;
@@ -133,36 +133,61 @@ export function PlayerProfile({
       </div>
 
       {/* Rank progress card */}
-      {divInfo.eloToNext !== null && (
-        <div className="mt-4 rounded-xl border border-card-border bg-card p-3">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-muted">{t("profile.rankProgress")}</span>
-            <span className="text-xs text-muted/80">
-              {divInfo.nextTierKey ? (
-                <>↑ {divInfo.eloToNext} → {t(divInfo.nextTierKey)}</>
-              ) : (
-                <>↑ {divInfo.eloToNext} {t("rank.eloToNext")}</>
+      {divInfo.eloToNext !== null && (() => {
+        const fillPct = tier.hasDivisions
+          ? (divInfo.stars - 1) * 33.33 + divInfo.progressPct * 0.3333
+          : divInfo.progressPct;
+        const nextTier = divInfo.nextTierKey
+          ? ELO_TIERS.find((tt) => tt.key === divInfo.nextTierKey)
+          : null;
+        const targetStars = "★".repeat(Math.min(3, divInfo.stars + 1));
+        const labelText = nextTier
+          ? t("rank.toNextRank").replace("{n}", String(divInfo.eloToNext))
+          : t("rank.toNextDiv")
+              .replace("{n}", String(divInfo.eloToNext))
+              .replace("{stars}", targetStars);
+        return (
+          <div className="mt-4 rounded-xl border border-card-border bg-card p-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-muted">{t("profile.rankProgress")}</span>
+            </div>
+            <div className="relative h-7 w-full overflow-hidden rounded-md bg-slate-800/80 ring-1 ring-inset ring-white/5">
+              <div
+                className={`absolute inset-y-0 left-0 rounded-md ${tier.fillClass} animate-bar-fill`}
+                style={{
+                  ["--bar-target" as string]: `${fillPct}%`,
+                  boxShadow: `0 0 8px -2px var(--accent)`,
+                }}
+              >
+                <div
+                  className="absolute inset-y-0 -inset-x-4 animate-bar-shimmer pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%)",
+                  }}
+                />
+              </div>
+              {tier.hasDivisions && (
+                <>
+                  <div className="absolute inset-y-0 w-[2px] bg-black/40" style={{ left: "33.33%" }} />
+                  <div className="absolute inset-y-0 w-[2px] bg-black/40" style={{ left: "66.66%" }} />
+                </>
               )}
-            </span>
+              <span className="absolute inset-y-0 left-2 flex items-center pr-[100px] text-[11px] font-semibold leading-none text-white/95 truncate drop-shadow">
+                {labelText}
+              </span>
+              {nextTier && (
+                <span
+                  className={`absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded bg-black/45 px-1.5 py-[3px] text-[11px] font-bold leading-none ${nextTier.colorClass}`}
+                >
+                  <span>{nextTier.icon}</span>
+                  <span className="max-w-[80px] truncate">{t(nextTier.key)}</span>
+                </span>
+              )}
+            </div>
           </div>
-          <div className="relative h-2 w-full rounded-full bg-slate-700">
-            <div
-              className={`absolute inset-y-0 left-0 rounded-full ${tier.fillClass}`}
-              style={{
-                width: tier.hasDivisions
-                  ? `${(divInfo.stars - 1) * 33.33 + divInfo.progressPct * 0.3333}%`
-                  : `${divInfo.progressPct}%`,
-              }}
-            />
-            {tier.hasDivisions && (
-              <>
-                <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "33.33%" }} />
-                <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "66.66%" }} />
-              </>
-            )}
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Stats */}
       <div className="mt-6 grid grid-cols-3 gap-3">

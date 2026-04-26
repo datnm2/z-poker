@@ -518,37 +518,53 @@ function LeaderboardContent() {
                           </span>
                         )}
                       </div>
-                      {divInfo.eloToNext !== null && (
-                        <span className="flex-shrink-0 text-[10px] text-muted/60">
-                          {divInfo.nextTierKey ? (
-                            <>↑ {divInfo.eloToNext} → {t(divInfo.nextTierKey)}</>
-                          ) : (
-                            <>↑ {divInfo.eloToNext} {t("rank.eloToNext")}</>
-                          )}
-                        </span>
-                      )}
                     </div>
-                    {divInfo.eloToNext !== null && (
-                      <div className="relative h-2 w-full rounded-full bg-slate-700">
-                        {/* Fill: offset by completed divisions + progress within current div */}
-                        <div
-                          className={`absolute inset-y-0 left-0 rounded-full ${tier.fillClass}`}
-                          style={{
-                            width: tier.hasDivisions
-                              ? `${(divInfo.stars - 1) * 33.33 + divInfo.progressPct * 0.3333}%`
-                              : `${divInfo.progressPct}%`,
-                            boxShadow: `0 0 8px -2px var(--accent)`,
-                          }}
-                        />
-                        {/* Division markers */}
-                        {tier.hasDivisions && (
-                          <>
-                            <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "33.33%" }} />
-                            <div className="absolute inset-y-0 w-[2px] bg-black/50" style={{ left: "66.66%" }} />
-                          </>
-                        )}
-                      </div>
-                    )}
+                    {divInfo.eloToNext !== null && (() => {
+                      const fillPct = tier.hasDivisions
+                        ? (divInfo.stars - 1) * 33.33 + divInfo.progressPct * 0.3333
+                        : divInfo.progressPct;
+                      const nextTier = divInfo.nextTierKey
+                        ? ELO_TIERS.find((tt) => tt.key === divInfo.nextTierKey)
+                        : null;
+                      const targetStars = "★".repeat(Math.min(3, divInfo.stars + 1));
+                      const labelText = nextTier
+                        ? t("rank.toNextRank").replace("{n}", String(divInfo.eloToNext))
+                        : t("rank.toNextDiv")
+                            .replace("{n}", String(divInfo.eloToNext))
+                            .replace("{stars}", targetStars);
+                      return (
+                        <div className="relative h-6 w-full overflow-hidden rounded-md bg-slate-800/80 ring-1 ring-inset ring-white/5">
+                          {/* Fill */}
+                          <div
+                            className={`absolute inset-y-0 left-0 rounded-md ${tier.fillClass} animate-bar-fill`}
+                            style={{
+                              ["--bar-target" as string]: `${fillPct}%`,
+                              boxShadow: `0 0 8px -2px var(--accent)`,
+                            }}
+                          />
+                          {/* Division markers */}
+                          {tier.hasDivisions && (
+                            <>
+                              <div className="absolute inset-y-0 w-[2px] bg-black/40" style={{ left: "33.33%" }} />
+                              <div className="absolute inset-y-0 w-[2px] bg-black/40" style={{ left: "66.66%" }} />
+                            </>
+                          )}
+                          {/* Label: "còn N elo tới" — left-aligned with safe right padding so it never overlaps the next-tier badge */}
+                          <span className="absolute inset-y-0 left-2 flex items-center pr-[88px] text-[10px] font-semibold leading-none text-white/95 truncate drop-shadow">
+                            {labelText}
+                          </span>
+                          {/* Next tier — always pinned to far right of the bar */}
+                          {nextTier && (
+                            <span
+                              className={`absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded bg-black/45 px-1.5 py-[2px] text-[10px] font-bold leading-none ${nextTier.colorClass}`}
+                            >
+                              <span>{nextTier.icon}</span>
+                              <span className="max-w-[72px] truncate">{t(nextTier.key)}</span>
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })()}
