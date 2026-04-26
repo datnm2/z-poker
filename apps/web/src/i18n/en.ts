@@ -78,6 +78,7 @@ export const en = {
   "leaderboard.streakCold": "Tilting Hard",
   "leaderboard.recentForm": "Recent form",
   "leaderboard.tierCount": "%d players",
+  "leaderboard.tierEmpty": "not yet appeared",
   "leaderboard.colPlayer": "Player",
   "leaderboard.colElo": "Elo",
   "leaderboard.eloTooltip": "Elo rating — gain or lose points each session based on chip results",

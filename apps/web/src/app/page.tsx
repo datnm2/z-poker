@@ -591,9 +591,13 @@ function LeaderboardContent() {
                   <div key={tier.key} className="flex items-center justify-between gap-2">
                     <span className={`flex items-center gap-1.5 text-[11px] font-semibold ${tier.colorClass}`}>
                       <span>{tier.icon} {t(tier.key)}</span>
-                      {count > 0 && (
+                      {count > 0 ? (
                         <span className={`rounded-full ${tier.bgClass} px-1.5 py-0.5 text-[9px] font-black tabular-nums`}>
                           {count}
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-dashed border-muted/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted/60">
+                          {t("leaderboard.tierEmpty")}
                         </span>
                       )}
                     </span>
