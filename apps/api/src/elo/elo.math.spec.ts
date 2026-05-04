@@ -253,6 +253,119 @@ describe("computeEloChanges", () => {
       expect(result[0].streakBefore).toBe(7);
       expect(result[1].streakBefore).toBe(-2);
     });
+
+    it("strips bonus when a long win streak ties (no residual streak credit)", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 1500, elo: 1200, currentStreak: 6 },
+          { playerId: "b", chipsEnd: 1000, elo: 1200, currentStreak: 6 },
+          { playerId: "c", chipsEnd: 500, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      const tied = result.find((r) => r.playerId === "b")!;
+      expect(tied.streakAfter).toBe(0);
+      expect(tied.streakBonus).toBe(0);
+      expect(tied.change).toBe(0);
+    });
+
+    it("strips bonus when a long loss streak ties", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 1500, elo: 1200, currentStreak: 0 },
+          { playerId: "b", chipsEnd: 1000, elo: 1200, currentStreak: -8 },
+          { playerId: "c", chipsEnd: 500, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      const tied = result.find((r) => r.playerId === "b")!;
+      expect(tied.streakAfter).toBe(0);
+      expect(tied.streakBonus).toBe(0);
+      expect(tied.change).toBe(0);
+    });
+
+    it("breaks a long loss streak: win after -7 → streak becomes +1, no bonus", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: -7 },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      expect(result[0].streakAfter).toBe(1);
+      expect(result[0].streakBonus).toBe(0);
+      // No residual loss-streak penalty leaks in.
+      expect(result[0].change).toBe(35 + WINNER_FLAT_BONUS);
+    });
+
+    it("breaks a long win streak: loss after +7 → streak becomes -1, no bonus", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 0 },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 7 },
+        ],
+        1000,
+      );
+      expect(result[1].streakAfter).toBe(-1);
+      expect(result[1].streakBonus).toBe(0);
+      // No residual win-streak credit leaks in. K_LOSS=50 → raw -25.
+      expect(result[1].change).toBe(-25);
+    });
+
+    it("starts a fresh win streak from a tie (currentStreak=0 → +1)", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 0 },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      expect(result[0].streakAfter).toBe(1);
+      expect(result[0].streakBonus).toBe(0);
+      expect(result[1].streakAfter).toBe(-1);
+      expect(result[1].streakBonus).toBe(0);
+    });
+
+    it("does not award streak bonus on the first game that breaks the opposite streak", () => {
+      // Even if the previous run was deep (-5), the very first win after it
+      // is still streak=+1 → no bonus. Bonus only resumes once +3 is hit again.
+      const trail = [-5, +1, +2];
+      let currentStreak = trail[0];
+      // Win at currentStreak=-5: should give +1, no bonus.
+      let result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      expect(result[0].streakAfter).toBe(trail[1]);
+      expect(result[0].streakBonus).toBe(0);
+
+      // Next win at currentStreak=+1 → +2, still no bonus.
+      currentStreak = result[0].streakAfter;
+      result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      expect(result[0].streakAfter).toBe(trail[2]);
+      expect(result[0].streakBonus).toBe(0);
+
+      // Third win → +3, bonus kicks in for the first time.
+      currentStreak = result[0].streakAfter;
+      result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      expect(result[0].streakAfter).toBe(3);
+      expect(result[0].streakBonus).toBe(STREAK_THRESHOLD * WIN_STREAK_BONUS_PER_STEP);
+    });
   });
 
   it("inflates ELO over many randomized chip distributions (drift > 0 by design)", () => {
