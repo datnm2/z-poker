@@ -79,6 +79,7 @@ const sections: Section[] = [
       { titleKey: "guide.elo.howWorks.title", bodyKey: "guide.elo.howWorks.body" },
       { titleKey: "guide.elo.kfactor.title", bodyKey: "guide.elo.kfactor.body" },
       { titleKey: "guide.elo.formula.title", bodyKey: "guide.elo.formula.body" },
+      { titleKey: "guide.elo.streak.title", bodyKey: "guide.elo.streak.body" },
       { titleKey: "guide.elo.example.title", bodyKey: "guide.elo.example.body" },
     ],
   },

@@ -211,16 +211,19 @@ export const vi = {
     "Mọi người chơi mới bắt đầu với 1200 Elo. Đây là mức cơ sở — mọi người được coi là ngang nhau cho đến khi chơi.",
   "guide.elo.howWorks.title": "Cách điểm thay đổi",
   "guide.elo.howWorks.body":
-    "Sau mỗi phiên, Z-Poker so sánh Elo hiện tại của bạn với Elo trung bình của tất cả mọi người trong bàn. Thành tích của bạn được đo bằng độ lệch giữa số chip cuối cùng và số chip buy-in. Kết thúc trên buy-in là kết quả tích cực, dưới buy-in là tiêu cực — chip lệch càng nhiều thì điểm thay đổi càng lớn.",
-  "guide.elo.kfactor.title": "Hệ số K",
+    "Sau mỗi phiên, Z-Poker so sánh Elo hiện tại của bạn với Elo trung bình cả bàn. Thành tích đo bằng độ lệch giữa chip cuối và buy-in. Kết thúc trên buy-in là tích cực, dưới buy-in là tiêu cực. Người thắng chip luôn được tối thiểu +5 Elo (gồm sàn +2 và bonus +3) để khen volume — chơi đều thì rank dần leo lên.",
+  "guide.elo.kfactor.title": "Hệ số K (bất đối xứng)",
   "guide.elo.kfactor.body":
-    "Z-Poker dùng K=70, nhân thêm N/2 (N = số người chơi) để bàn đông có swing hợp lý. Bàn 2 người đổi tối đa ±70, bàn 6 người ±210. Thắng một nhóm mạnh được nhiều điểm hơn thắng nhóm yếu. Luôn làm tròn lên (ceil) — giúp Elo hệ thống tăng nhẹ theo thời gian; người thắng chip luôn được tối thiểu +1.",
-  "guide.elo.formula.title": "Công thức",
+    "K=70 cho người thắng chip, K_LOSS=50 cho người thua (giảm ~30% sting để top-rank không bị 'tự kéo phanh' quá mạnh). Cả hai nhân thêm N/2 để bàn đông swing tỉ lệ — bàn 2 người winner đổi tối đa ±70, bàn 6 người ±210. Người thắng còn được +3 flat bonus, dẫn tới ELO cả pool lạm phát nhẹ theo thời gian.",
+  "guide.elo.formula.title": "Công thức đầy đủ",
   "guide.elo.formula.body":
-    "Điểm kỳ vọng: 1 / (1 + 10^((elo_trung_bình − elo_bạn) / 400)), với elo_trung_bình là Elo trung bình của cả bàn. Điểm thực tế: 0.5 + 0.5 × (chip_cuối − buy_in) / (buy_in × (N − 1)), với N là số người chơi. Thay đổi Elo = ceil(K × N/2 × (thực_tế − kỳ_vọng)), tối thiểu +1 nếu có lãi chip.",
-  "guide.elo.example.title": "Ví dụ",
+    "Kỳ vọng: 1 / (1 + 10^((elo_TB − elo_bạn) / 700)). Hằng 700 (nới từ 400 chuẩn Arpad) làm curve phẳng hơn → top-rank vẫn dễ ăn điểm khi thắng cá bé. Thực tế: 0.5 + 0.5 × (chip_cuối − buy_in) / (buy_in × (N − 1)). Raw = round(K × N/2 × (thực_tế − kỳ_vọng)), với K=70 nếu thắng chip, K=50 nếu thua. Người thắng: change = max(raw, 2) + 3. Người thua: change = min(raw, 0). Cộng thêm streak bonus nếu chuỗi thắng/thua đạt 3 trận liên tiếp.",
+  "guide.elo.streak.title": "Bonus chuỗi thắng / thua",
+  "guide.elo.streak.body":
+    "Sau 3 trận liên tiếp cùng kết quả, bonus được cộng vào: chuỗi thắng = streak × 2 (3→+6, 4→+8, 5→+10, vô hạn) → khen người đang nóng máy. Chuỗi thua tăng từng bậc rồi cap tại −5 (3→−3, 4→−4, 5→−5, 6→−5...) — phạt nhưng không xoáy sâu. Hòa (chip = buy-in) reset streak về 0.",
+  "guide.elo.example.title": "Ví dụ thực tế",
   "guide.elo.example.body":
-    "Phiên 3 người, buy-in 100. Elo bạn 1090, trung bình bàn 1195, bạn kết thúc với 300 chip (ăn sạch). Kỳ vọng ≈ 0.354. Thực tế = 0.5 + 0.5 × (200 / 200) = 1.0. Thay đổi = ceil(70 × 1.5 × (1.0 − 0.354)) = +68 điểm.",
+    "Bàn 6 người, buy-in 100. Bạn ELO 1300, bàn TB 1200, kết thúc 180 chip (lãi +80). Kỳ vọng = 1/(1+10^(-100/700)) = 0.582. Thực tế = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.582)) = 0. Vì là winner: max(0, 2) + 3 = +5 Elo. Nếu đang chuỗi thắng 3 trận: +5 + 6 = +11 Elo. Trường hợp upset: ELO 1000 đánh bàn TB 1300, ăn full pot 600 → kỳ vọng 0.272, thực tế 1.0, raw = round(70 × 3 × 0.728) = +153 → +156 Elo (cộng bonus).",
 
   "guide.strategy.title": "Tăng Elo của bạn",
   "guide.strategy.intro":

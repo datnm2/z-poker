@@ -1,8 +1,10 @@
 import {
   computeEloChanges,
   K,
-  STREAK_BONUS_PER_STEP,
+  LOSS_STREAK_BONUS_CAP,
   STREAK_THRESHOLD,
+  WIN_STREAK_BONUS_PER_STEP,
+  WINNER_FLAT_BONUS,
 } from "./elo.math";
 
 describe("computeEloChanges", () => {
@@ -16,15 +18,15 @@ describe("computeEloChanges", () => {
       1000,
     );
     const sum = result.reduce((acc, r) => acc + r.change, 0);
-    // Slight positive drift allowed from ceil/floor + winner floor.
-    expect(sum).toBeGreaterThanOrEqual(0);
-    expect(sum).toBeLessThanOrEqual(3);
+    // Drift = winner formula gain + WINNER_FLAT_BONUS − loser softened loss.
+    // 1 winner × (~13 + 3) − 1 loser × ~9 = ~7 (positive by design).
+    expect(sum).toBeGreaterThan(0);
     expect(result[0].change).toBeGreaterThan(0);
     expect(result[1].change).toBe(0);
     expect(result[2].change).toBeLessThan(0);
   });
 
-  it("caps max change near ±K for equal-Elo two-player blowout", () => {
+  it("caps max change near +K for equal-Elo two-player blowout", () => {
     const result = computeEloChanges(
       [
         { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 0 },
@@ -32,9 +34,10 @@ describe("computeEloChanges", () => {
       ],
       1000,
     );
-    // expected=0.5, actual=1.0 for winner → K*(N/2)*(1.0-0.5) = 70*1*0.5 = 35
-    expect(result[0].change).toBe(35);
-    expect(result[1].change).toBe(-35);
+    // Winner: K*(N/2)*(1.0-0.5) = 70*1*0.5 = 35, plus WINNER_FLAT_BONUS.
+    // Loser: K_LOSS*(N/2)*(0-0.5) = 50*1*(-0.5) = -25 (softened).
+    expect(result[0].change).toBe(35 + WINNER_FLAT_BONUS);
+    expect(result[1].change).toBe(-25);
   });
 
   it("penalizes the favorite for losing to the underdog", () => {
@@ -47,10 +50,9 @@ describe("computeEloChanges", () => {
     );
     expect(result[0].change).toBeLessThan(0);
     expect(result[1].change).toBeGreaterThan(0);
-    // Inflation drift bounded.
+    // Drift positive: dog wins (K=70) + bonus, fav loses softer (K_LOSS=50).
     const sum = result[0].change + result[1].change;
-    expect(sum).toBeGreaterThanOrEqual(0);
-    expect(sum).toBeLessThanOrEqual(2);
+    expect(sum).toBeGreaterThan(WINNER_FLAT_BONUS);
   });
 
   it("never deducts ELO from a player who finished with more chips than buy-in", () => {
@@ -70,11 +72,12 @@ describe("computeEloChanges", () => {
     for (const r of result) {
       const chipsEnd = [210, 195, 135, 110, 50, 0, 0][result.indexOf(r)];
       if (chipsEnd > 100) {
-        expect(r.change).toBeGreaterThanOrEqual(1);
+        // Floor + bonus = 5 minimum for any chip-winner.
+        expect(r.change).toBeGreaterThanOrEqual(5);
       }
     }
     const host = result.find((r) => r.playerId === "host")!;
-    expect(host.change).toBeGreaterThanOrEqual(1);
+    expect(host.change).toBeGreaterThanOrEqual(5);
   });
 
   it("keeps drift small on zero-sum-chip games (rounding noise only)", () => {
@@ -88,9 +91,10 @@ describe("computeEloChanges", () => {
         100,
       );
       const drift = result.reduce((acc, r) => acc + r.change, 0);
-      // Drift bounded by rounding noise + winner-floor / loser-cap clamping,
-      // not by structural inflation bias.
-      expect(Math.abs(drift)).toBeLessThanOrEqual(6);
+      // With asymmetric K (winners 70, losers 50) + winner bonus + floor,
+      // drift is positive but bounded by table size.
+      expect(drift).toBeGreaterThan(0);
+      expect(drift).toBeLessThan(K);
     }
   });
 
@@ -121,8 +125,10 @@ describe("computeEloChanges", () => {
       };
     });
     console.table(rows);
-    // Drift bounded by rounding noise, no longer biased positive.
-    expect(rows.every((r) => Math.abs(r.drift) <= K)).toBe(true);
+    // Drift is positive by design (asymmetric K_LOSS softening + winner bonus);
+    // bounded by ~N × (K - K_LOSS) / 2 in worst-case max-skew.
+    expect(rows.every((r) => r.drift >= 0)).toBe(true);
+    expect(rows.every((r) => r.drift < r.N * K)).toBe(true);
   });
 
   describe("streak bonus", () => {
@@ -149,13 +155,14 @@ describe("computeEloChanges", () => {
         1000,
       );
       expect(result[0].streakAfter).toBe(3);
-      expect(result[0].streakBonus).toBe(STREAK_THRESHOLD * STREAK_BONUS_PER_STEP);
-      expect(result[0].change).toBe(35 + 6);
+      expect(result[0].streakBonus).toBe(STREAK_THRESHOLD * WIN_STREAK_BONUS_PER_STEP);
+      // 35 (raw) + 6 (streak) + WINNER_FLAT_BONUS
+      expect(result[0].change).toBe(35 + 6 + WINNER_FLAT_BONUS);
       expect(result[1].streakAfter).toBe(-1);
       expect(result[1].streakBonus).toBe(0);
     });
 
-    it("applies -bonus when loss streak reaches threshold", () => {
+    it("applies -bonus when loss streak reaches threshold (step 1, capped)", () => {
       const result = computeEloChanges(
         [
           { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 0 },
@@ -164,11 +171,12 @@ describe("computeEloChanges", () => {
         1000,
       );
       expect(result[1].streakAfter).toBe(-3);
-      expect(result[1].streakBonus).toBe(-STREAK_THRESHOLD * STREAK_BONUS_PER_STEP);
-      expect(result[1].change).toBe(-35 - 6);
+      expect(result[1].streakBonus).toBe(-STREAK_THRESHOLD); // step 1, not ×2
+      // K_LOSS=50 → loser raw = -25; minus streak bonus 3.
+      expect(result[1].change).toBe(-25 - 3);
     });
 
-    it("scales bonus with longer streaks", () => {
+    it("scales win-streak bonus linearly with longer streaks (no cap)", () => {
       const result = computeEloChanges(
         [
           { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 4 },
@@ -178,7 +186,32 @@ describe("computeEloChanges", () => {
       );
       expect(result[0].streakAfter).toBe(5);
       expect(result[0].streakBonus).toBe(10);
-      expect(result[0].change).toBe(35 + 10);
+      // 35 (raw winner) + 10 (streak) + WINNER_FLAT_BONUS
+      expect(result[0].change).toBe(35 + 10 + WINNER_FLAT_BONUS);
+    });
+
+    it("caps loss-streak bonus at -LOSS_STREAK_BONUS_CAP for long losing runs", () => {
+      // Walk losing streaks 3..8 and verify bonuses: -3, -4, -5, -5, -5, -5.
+      const expected: Record<number, number> = {
+        [-3]: -3,
+        [-4]: -4,
+        [-5]: -5,
+        [-6]: -LOSS_STREAK_BONUS_CAP,
+        [-7]: -LOSS_STREAK_BONUS_CAP,
+        [-8]: -LOSS_STREAK_BONUS_CAP,
+      };
+      for (const [streakAfterStr, bonus] of Object.entries(expected)) {
+        const streakAfter = Number(streakAfterStr);
+        const result = computeEloChanges(
+          [
+            { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 0 },
+            { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: streakAfter + 1 },
+          ],
+          1000,
+        );
+        expect(result[1].streakAfter).toBe(streakAfter);
+        expect(result[1].streakBonus).toBe(bonus);
+      }
     });
 
     it("flips streak sign when result reverses", () => {
@@ -222,8 +255,9 @@ describe("computeEloChanges", () => {
     });
   });
 
-  it("keeps drift bounded across many randomized chip distributions", () => {
-    // Generate random zero-sum chip distributions, assert drift >= 0 every time.
+  it("inflates ELO over many randomized chip distributions (drift > 0 by design)", () => {
+    // Random zero-sum chip games. Drift should now be positive (winner bonus
+    // injects +WINNER_FLAT_BONUS per chip-winner per game).
     const N = 6;
     const buyIn = 100;
     const total = buyIn * N;
@@ -243,10 +277,12 @@ describe("computeEloChanges", () => {
         buyIn,
       );
       const drift = result.reduce((acc, r) => acc + r.change, 0);
-      expect(Math.abs(drift)).toBeLessThan(K);
+      // Per-game drift bounded by table size + asymmetric K asymmetry.
+      expect(drift).toBeGreaterThan(0);
+      expect(drift).toBeLessThan(K);
       totalDrift += drift;
     }
-    // No structural bias either way; mean drift small in magnitude.
-    expect(Math.abs(totalDrift / games)).toBeLessThan(K);
+    const meanDrift = totalDrift / games;
+    expect(meanDrift).toBeGreaterThan(0);
   });
 });

@@ -15,12 +15,64 @@ Real-time qua **SSE** (`/sessions/stream` domain-wide, `/:id/stream` per session
 Events: `session.created`, `session.player_joined`, `session.chips_updated`, `session.locked`.
 
 ## ELO system (`apps/api/src/elo/elo.math.ts`)
-- **Formula**: `change = round(K × (N/2) × (actual − expected))`
-  - `expected = 1 / (1 + 10^((avgElo − playerElo) / 400))` — 400 = ELO scaling chuẩn của Arpad Elo
+
+Tuned cho pool nhỏ (~20 người, văn phòng) chơi 30 phút/ngày. Mục tiêu: cân bằng skill (ăn ELO cao hơn khi thắng cá lớn) và volume (chơi đều thì leo dần lên), tránh "kẹt 1200 mãi".
+
+- **Core formula**: `raw = round(kFactor × (N/2) × (actual − expected))`
+  - `expected = 1 / (1 + 10^((avgElo − playerElo) / ELO_SCALE))`, **`ELO_SCALE = 700`** (nới từ Arpad chuẩn 400 để curve phẳng hơn → high-ELO không bị nghẹt khi thắng nhỏ)
   - `actual = 0.5 + 0.5 × (chipsEnd − buyIn) / (buyIn × (N − 1))` — linear theo chip
-- **K=70** (giảm từ 100 để bớt swing; chess dùng 10–40 nhưng casual game cần feedback rõ)
-- **Zero-sum**: `sum(chipsEnd) == buyIn × N` enforced at lock
+  - **Asymmetric K**: winner dùng `K=70`, loser dùng `K_LOSS=50` (loss bớt đau ~30% để top player có EV dương khi winrate cao)
+- **Winner rewards** (cộng dồn sau công thức):
+  - `WINNER_RAW_FLOOR = 2`: clamp raw nếu < 2 → win nhỏ vẫn ăn ít nhất +2
+  - `WINNER_FLAT_BONUS = 3`: cộng thêm cho mọi chip-winner (lạm phát nhẹ + reward volume)
+  - → Tối thiểu mỗi win = **+5 ELO**
+- **Streak bonus** (signed, theo `streakAfter` sau game):
+  - Win streak: `streak × 2`, vô hạn (3→+6, 4→+8, 5→+10, …) — reward hot run
+  - Loss streak: step 1, cap tại `LOSS_STREAK_BONUS_CAP = 5` (3→−3, 4→−4, 5→−5, 6→−5, …) — phạt thua liên tiếp nhưng không bị xoáy
+- **Zero-sum chips**: `sum(chipsEnd) == buyIn × N` enforced at lock (chỉ chip, không phải ELO)
 - **Starting ELO**: 1200
+
+### Ví dụ cụ thể (bàn 6 người, buyIn 100, mọi người ELO 1200)
+
+Trận winner ăn full pot 600 chips, 5 losers 0 chip:
+- Winner: actual=1.0, expected=0.5, raw = 70×3×0.5 = **+105**, +bonus 3 → **+108**
+- Mỗi loser: actual=0.4, raw = 50×3×(0.4−0.5) = **−15**
+- Drift cả bàn: 108 − 15×5 = **+33** (lạm phát có chủ ý)
+
+Trận chia chips realistic (180/150/120/80/40/30):
+- Winner +80 chip: actual=0.58, raw=70×3×0.08 = **+17**, +bonus → **+20**
+- Winner +50 chip: actual=0.55, raw=70×3×0.05 = **+10.5**, +bonus → **+14**
+- Winner +20 chip: actual=0.52, raw=70×3×0.02 = **+4.2**, +bonus → **+7**
+- Loser −20 chip: actual=0.48, raw=50×3×−0.02 = **−3**
+- Loser −60 chip: actual=0.44, raw=50×3×−0.06 = **−9**
+- Loser −70 chip: raw = **−10**
+- Drift: 20+14+7 − 3−9−10 = **+19**
+
+Trận top player ELO 1500 vs bàn avg 1200 (chênh +300), thắng nửa pot (chips 200):
+- expected = 1/(1+10^(−300/700)) = 0.728, actual = 0.6
+- raw = 70×3×(0.6−0.728) = **−27** → clamp về `WINNER_RAW_FLOOR=2` → +bonus → **+5**
+- Vẫn ăn ELO mặc dù raw âm (volume reward).
+
+Trận underdog ELO 1000 vs bàn avg 1300 (chênh −300), thắng full pot:
+- expected = 0.272, actual = 1.0
+- raw = 70×3×0.728 = **+153**, +bonus → **+156** (upset payday)
+
+### Dự kiến đường rank của top player
+
+Pool 20 người, ~100 games/5 tháng, top player chơi ~50 trận với winrate ~75%:
+- 1200→1300: ~15 games (EV ~+2/game)
+- 1300→1400: ~20 games (EV ~+1.5/game)
+- 1400→1500: ~50 games (EV ~+0.5/game) — phanh tự nhiên rõ rệt
+- → 50 games đạt ~Kẻ Săn Mồi ★, 100 games đạt ~Kẻ Săn Mồi ★★
+- → Thần Bài (1600) khả thi sau 7–8 tháng chơi đều + streak win dài
+
+### Tuning constants
+
+Tất cả ở đầu `apps/api/src/elo/elo.math.ts`. Khi pool inflate quá nhanh hoặc quá chậm, chỉnh theo thứ tự ưu tiên:
+1. `WINNER_FLAT_BONUS` — tác động trực tiếp tới drift/trận
+2. `K_LOSS` — tăng → loss đau hơn, top player tụt nhanh
+3. `ELO_SCALE` — tăng → curve phẳng hơn, mọi ELO ăn/thua gần nhau
+4. `WINNER_RAW_FLOOR` — chỉ ảnh hưởng top player thắng nhỏ
 
 ## Rank tiers (`apps/web/src/lib/ranks.ts`, names ở `apps/web/src/i18n/vi.ts`)
 | Tier | ELO | Divisions |

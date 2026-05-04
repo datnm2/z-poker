@@ -211,16 +211,19 @@ export const en = {
     "Every new player starts at 1200 Elo. This is the baseline — everyone is considered equal until they play.",
   "guide.elo.howWorks.title": "How ratings change",
   "guide.elo.howWorks.body":
-    "After each session, Z-Poker compares your current Elo against the average Elo of everyone at the table. Your performance is measured by how far your final chip count is from the buy-in. Finishing above buy-in is a positive result, below buy-in is negative — the bigger the chip delta, the bigger the score.",
-  "guide.elo.kfactor.title": "K-factor",
+    "After each session, Z-Poker compares your current Elo against the table average. Performance is measured by chips_end vs buy_in — above buy-in is positive, below is negative. Every chip-winner is guaranteed at least +5 Elo (a +2 raw floor plus a +3 flat bonus) to reward volume — playing regularly slowly lifts your rank.",
+  "guide.elo.kfactor.title": "Asymmetric K-factor",
   "guide.elo.kfactor.body":
-    "Z-Poker uses K=70, scaled by N/2 (N = number of players) so bigger tables produce meaningful swings. A 2-player game swings up to ±70, a 6-player game up to ±210. Beating a stronger group earns more points than beating a weaker one. Rounding is always ceil — the system Elo drifts up slightly over time, and any chip gain earns at least +1.",
-  "guide.elo.formula.title": "The formula",
+    "K=70 for chip-winners, K_LOSS=50 for losers (≈30% softer to stop high-rated players from over-braking themselves). Both scale by N/2 so big tables swing harder — 2-player winner swings up to ±70, 6-player up to ±210. Winners also get a +3 flat bonus on top, so the pool's overall Elo drifts upward over time (mild inflation by design).",
+  "guide.elo.formula.title": "Full formula",
   "guide.elo.formula.body":
-    "Expected score: 1 / (1 + 10^((avg_elo − your_elo) / 400)), where avg_elo is the table's average Elo. Actual score: 0.5 + 0.5 × (chips_end − buy_in) / (buy_in × (N − 1)), where N is the number of players. Rating change: ceil(K × N/2 × (actual − expected)), floored at +1 whenever you gained chips.",
-  "guide.elo.example.title": "Example",
+    "Expected: 1 / (1 + 10^((avg_elo − your_elo) / 700)). The 700 (relaxed from Arpad's 400) flattens the curve so high-rated players still score on small wins. Actual: 0.5 + 0.5 × (chips_end − buy_in) / (buy_in × (N − 1)). Raw = round(K × N/2 × (actual − expected)) — K=70 if you won chips, K=50 if you lost. Winner: change = max(raw, 2) + 3. Loser: change = min(raw, 0). Streak bonus is added once you hit 3 in a row.",
+  "guide.elo.streak.title": "Win/loss streak bonus",
+  "guide.elo.streak.body":
+    "After 3 sessions with the same outcome, a bonus kicks in. Win streak = streak × 2 (3→+6, 4→+8, 5→+10, unbounded) — rewards being on a heater. Loss streak grows step 1 then caps at −5 (3→−3, 4→−4, 5→−5, 6→−5...) — punishes losing slumps without spiraling. A tie (chips = buy-in) resets the streak to 0.",
+  "guide.elo.example.title": "Concrete example",
   "guide.elo.example.body":
-    "3-player session, buy-in 100. Your Elo is 1090, the table average is 1195, and you finish with 300 chips (sweep). Expected ≈ 0.354. Actual = 0.5 + 0.5 × (200 / 200) = 1.0. Change = ceil(70 × 1.5 × (1.0 − 0.354)) = +68 points.",
+    "6-player table, buy-in 100. You're 1300 Elo, table avg 1200, you finish 180 chips (+80). Expected = 1/(1+10^(-100/700)) = 0.582. Actual = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.582)) = 0. As a winner: max(0, 2) + 3 = +5 Elo. On a 3-game win streak: +5 + 6 = +11 Elo. Upset case: 1000 Elo player at avg-1300 table sweeps the full pot (600 chips) → expected 0.272, actual 1.0, raw = round(70 × 3 × 0.728) = +153 → +156 Elo with the bonus.",
 
   "guide.strategy.title": "Level Up Your Elo",
   "guide.strategy.intro":
