@@ -10,7 +10,9 @@ module.exports = {
   apps: [
     {
       name: 'zpoker-backend',
-      script: 'dist/main.js',
+      // Note: dist/src/main.js (not dist/main.js) because tsconfig includes both
+      // src/ and migrations/ at the same level, so TS preserves the src/ subpath.
+      script: 'dist/src/main.js',
       // cwd at apps/api so .env beside it is found by NestJS ConfigModule
       // and TypeORM data-source.ts (which loads ../../.env relative to dist/config).
       cwd: '/var/www/zpoker/apps/api',
