@@ -1,0 +1,40 @@
+name: Deploy API to VPS
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'apps/api/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'ecosystem.config.js'
+      - 'deploy.sh'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch: # allow manual trigger from Actions tab
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false # never cancel an in-flight deploy
+
+jobs:
+  deploy:
+    name: SSH and run deploy.sh
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Add VPS to known_hosts and run deploy
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$VPS_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh -p "$VPS_PORT" -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes \
+            "$VPS_USER@$VPS_HOST" \
+            'cd /var/www/zpoker && ./deploy.sh'

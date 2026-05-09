@@ -41,6 +41,18 @@ git reset --hard "origin/$DEPLOY_BRANCH"
 NEW_COMMIT=$(git rev-parse HEAD)
 log "new commit: $NEW_COMMIT"
 
+# Write version.json (read by main.ts at startup → shown in Swagger description)
+COMMIT_MSG=$(git log -1 --pretty=%s | sed 's/"/\\"/g')
+cat > "$API_DIR/version.json" <<JSON
+{
+  "sha": "$NEW_COMMIT",
+  "shortSha": "$(git rev-parse --short HEAD)",
+  "branch": "$DEPLOY_BRANCH",
+  "message": "$COMMIT_MSG",
+  "deployedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+JSON
+
 # --- 3. Install dependencies (yarn v1 workspaces hoist to root) ---
 log "yarn install --frozen-lockfile"
 yarn install --frozen-lockfile

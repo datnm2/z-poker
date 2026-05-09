@@ -1,8 +1,35 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
+
+type DeployInfo = {
+  sha: string;
+  shortSha: string;
+  branch: string;
+  message: string;
+  deployedAt: string;
+};
+
+function readDeployInfo(): DeployInfo {
+  // version.json is written by deploy.sh on every deploy. In dev it does not
+  // exist, so we fall back to "dev".
+  try {
+    const path = resolve(process.cwd(), "version.json");
+    return JSON.parse(readFileSync(path, "utf8")) as DeployInfo;
+  } catch {
+    return {
+      sha: "dev",
+      shortSha: "dev",
+      branch: "local",
+      message: "(running from source)",
+      deployedAt: new Date().toISOString(),
+    };
+  }
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,10 +52,18 @@ async function bootstrap() {
 
   const port = config.get<number>("PORT") ?? 3031;
 
+  const deploy = readDeployInfo();
+  const swaggerDescription = [
+    "Office Poker ELO Tracker API",
+    "",
+    `**Build**: \`${deploy.shortSha}\` (${deploy.branch})`,
+    `**Deployed**: ${deploy.deployedAt}`,
+    `**Commit**: ${deploy.message}`,
+  ].join("\n");
   const swaggerConfig = new DocumentBuilder()
     .setTitle("Z-Poker API")
-    .setDescription("Office Poker ELO Tracker API")
-    .setVersion("1.0")
+    .setDescription(swaggerDescription)
+    .setVersion(deploy.shortSha)
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
