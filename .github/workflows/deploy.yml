@@ -24,9 +24,11 @@ jobs:
     steps:
       - name: Add VPS to known_hosts and run deploy
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PORT: ${{ secrets.VPS_PORT }}
-          VPS_USER: ${{ secrets.VPS_USER }}
+          # Non-sensitive infra config lives in repo Variables (Settings → Variables),
+          # easier to inspect/edit. The SSH private key MUST stay in Secrets.
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_PORT: ${{ vars.VPS_PORT }}
+          VPS_USER: ${{ vars.VPS_USER }}
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           set -euo pipefail
