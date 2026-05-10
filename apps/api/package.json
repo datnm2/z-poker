@@ -12,7 +12,8 @@
     "migration:generate": "yarn typeorm migration:generate",
     "migration:run": "yarn typeorm migration:run",
     "migration:revert": "yarn typeorm migration:revert",
-    "test": "jest"
+    "test": "jest",
+    "elo:matrix": "ts-node src/elo/elo.matrix.ts"
   },
   "dependencies": {
     "@clerk/backend": "^1.21.0",

@@ -1,6 +1,8 @@
 import {
+  BUST_MIN_PENALTY,
   computeEloChanges,
   K,
+  LOSER_MIN_PENALTY,
   LOSS_STREAK_BONUS_CAP,
   STREAK_THRESHOLD,
   WIN_STREAK_BONUS_PER_STEP,
@@ -365,6 +367,88 @@ describe("computeEloChanges", () => {
       );
       expect(result[0].streakAfter).toBe(3);
       expect(result[0].streakBonus).toBe(STREAK_THRESHOLD * WIN_STREAK_BONUS_PER_STEP);
+    });
+  });
+
+  describe("loser floor", () => {
+    it("guarantees at least LOSER_MIN_PENALTY ELO loss for any chip loss", () => {
+      // Reproduces the production bug: low-Elo player at the table average,
+      // chipsEnd just below buy-in → raw rounds to 0 → was showing +0.
+      // Setup: 11 players, buyIn=100, thanh.truongc-style row at elo 1154.
+      const elos = [1219, 1256, 1165, 1175, 1207, 1239, 1154, 1229, 1145, 1225, 1224];
+      const chips = [370, 245, 165, 135, 90, 60, 20, 15, 0, 0, 0];
+      const result = computeEloChanges(
+        elos.map((elo, idx) => ({
+          playerId: `p${idx}`,
+          chipsEnd: chips[idx],
+          elo,
+          currentStreak: 0,
+        })),
+        100,
+      );
+      // The chip-loser at index 6 (chips=20) was the buggy +0 case.
+      expect(result[6].change).toBeLessThanOrEqual(LOSER_MIN_PENALTY);
+    });
+
+    it("applies LOSER_MIN_PENALTY when raw rounds to 0 for a small loss", () => {
+      // Two-player tied-Elo, chipsEnd=900 (buyIn=1000): raw = K_LOSS*1*(0.45-0.5) = -2.5 → -3.
+      // But edge-case construction: lowest-Elo player with chipsEnd just below buyIn
+      // can have actual ≈ expected → raw rounds to 0.
+      const result = computeEloChanges(
+        [
+          { playerId: "winner", chipsEnd: 1100, elo: 1300, currentStreak: 0 },
+          { playerId: "loser", chipsEnd: 900, elo: 1100, currentStreak: 0 },
+        ],
+        1000,
+      );
+      // Whatever the formula said, a chip-loser must be ≤ -1.
+      expect(result[1].change).toBeLessThanOrEqual(LOSER_MIN_PENALTY);
+    });
+
+    it("does NOT apply loser floor when chipsEnd === buyIn (tie keeps 0)", () => {
+      const result = computeEloChanges(
+        [
+          { playerId: "winner", chipsEnd: 1500, elo: 1200, currentStreak: 0 },
+          { playerId: "tie", chipsEnd: 1000, elo: 1200, currentStreak: 0 },
+          { playerId: "loser", chipsEnd: 500, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      const tied = result.find((r) => r.playerId === "tie")!;
+      expect(tied.change).toBe(0);
+    });
+  });
+
+  describe("bust floor", () => {
+    it("guarantees at least BUST_MIN_PENALTY ELO loss when chipsEnd === 0", () => {
+      // Underdog vs heavy favorites: bust-out raw could round soft, but bust floor pins it.
+      const result = computeEloChanges(
+        [
+          { playerId: "fav1", chipsEnd: 1200, elo: 1500, currentStreak: 0 },
+          { playerId: "fav2", chipsEnd: 800, elo: 1500, currentStreak: 0 },
+          { playerId: "underdog", chipsEnd: 0, elo: 900, currentStreak: 0 },
+        ],
+        500,
+      );
+      const bust = result.find((r) => r.playerId === "underdog")!;
+      expect(bust.change).toBeLessThanOrEqual(BUST_MIN_PENALTY);
+    });
+
+    it("bust floor is stricter than loser floor", () => {
+      // BUST_MIN_PENALTY (-3) ≤ LOSER_MIN_PENALTY (-1) by definition.
+      expect(BUST_MIN_PENALTY).toBeLessThan(LOSER_MIN_PENALTY);
+    });
+
+    it("does not weaken a larger bust loss (formula already worse than -3)", () => {
+      // Equal-Elo blowout: loser raw = -25 (way past -3). Floor must not relax it.
+      const result = computeEloChanges(
+        [
+          { playerId: "a", chipsEnd: 2000, elo: 1200, currentStreak: 0 },
+          { playerId: "b", chipsEnd: 0, elo: 1200, currentStreak: 0 },
+        ],
+        1000,
+      );
+      expect(result[1].change).toBe(-25);
     });
   });
 

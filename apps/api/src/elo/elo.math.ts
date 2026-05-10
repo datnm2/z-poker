@@ -13,7 +13,7 @@ export const K_LOSS = 50;
 // players were getting clamped to +1 on most wins because raw went negative.
 // 700 keeps raw modestly positive on small wins while still letting upsets
 // (low ELO beating high ELO) feel rewarding.
-export const ELO_SCALE = 700;
+export const ELO_SCALE = 1200;
 
 // Flat bonus added to every player who finishes with more chips than buy-in.
 // Drives mild ELO inflation so the pool spreads into higher tiers over time
@@ -25,6 +25,13 @@ export const WINNER_FLAT_BONUS = 3;
 // worth at least WINNER_RAW_FLOOR + WINNER_FLAT_BONUS = 5 ELO, so chip-positive
 // volume is always rewarded — even when the formula would otherwise round to 0.
 export const WINNER_RAW_FLOOR = 2;
+
+// Symmetric floors for chip-losers. A low-ELO player can have actual ≈ expected
+// when they lose modestly, making raw round to 0 — which paints a chip-loser
+// as "+0 ELO" in the UI. Guarantee at least -1 for any chip loss, and at least
+// -3 for a full bust (chips_end = 0).
+export const LOSER_MIN_PENALTY = -1;
+export const BUST_MIN_PENALTY = -3;
 
 // Streak bonus: applied when |nextStreak| >= STREAK_THRESHOLD.
 // Win streak grows unbounded (3→+6, 4→+8, 5→+10, …) to reward hot runs.
@@ -75,6 +82,10 @@ export function computeEloChanges(
     if (isChipWinner && change < WINNER_RAW_FLOOR) change = WINNER_RAW_FLOOR;
     // Losing or tying chips never gains ELO — cap at 0.
     if (!isChipWinner && change > 0) change = 0;
+    // Symmetric to WINNER_RAW_FLOOR: losing chips must cost at least 1 ELO,
+    // and busting out (0 chips) must cost at least 3.
+    if (r.chipsEnd < buyIn && change > LOSER_MIN_PENALTY) change = LOSER_MIN_PENALTY;
+    if (r.chipsEnd === 0 && change > BUST_MIN_PENALTY) change = BUST_MIN_PENALTY;
     // Mild inflation: every chip-winner gets a flat bonus on top of the
     // zero-sum formula, so the pool drifts upward over many games.
     if (isChipWinner) change += WINNER_FLAT_BONUS;

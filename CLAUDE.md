@@ -74,6 +74,16 @@ Tất cả ở đầu `apps/api/src/elo/elo.math.ts`. Khi pool inflate quá nhan
 3. `ELO_SCALE` — tăng → curve phẳng hơn, mọi ELO ăn/thua gần nhau
 4. `WINNER_RAW_FLOOR` — chỉ ảnh hưởng top player thắng nhỏ
 
+**Workflow bắt buộc khi đổi bất kỳ constant nào trong `elo.math.ts`:**
+
+1. Snapshot trước: `yarn workspace api elo:matrix > /tmp/elo-before.txt`
+2. Sửa constants trong `elo.math.ts`
+3. Snapshot sau: `yarn workspace api elo:matrix > /tmp/elo-after.txt`
+4. So sánh: `diff /tmp/elo-before.txt /tmp/elo-after.txt` — kiểm tra impact lên cả 3 bàn (N=6/8/10) trước khi commit
+5. Chạy `yarn workspace api jest elo.math.spec` để đảm bảo tests vẫn pass
+
+Custom params: `SIZES=4,6,9 BUY_IN=200 yarn workspace api elo:matrix` hoặc `GAPS=-100,0,100 CHIPS=-50,0,50 yarn workspace api elo:matrix`.
+
 ## Rank tiers (`apps/web/src/lib/ranks.ts`, names ở `apps/web/src/i18n/vi.ts`)
 | Tier | ELO | Divisions |
 |---|---|---|
