@@ -19,16 +19,17 @@ module.exports = {
       instances: 1,
       exec_mode: 'fork',
 
-      // Heap cap. 400MB leaves room for system + Caddy + buffer on a 1GB VPS.
-      // Tune up only after observing actual usage; SSE latency degrades when swap engages.
-      node_args: '--max-old-space-size=400',
+      // Heap cap. 280MB makes room for a second backend (z-squad) on the same
+      // 1GB VPS. Combined Node heap of both apps ≤ 560MB, leaving system + Caddy
+      // ~310MB and ~90MB buffers. Revisit after a week of observation.
+      node_args: '--max-old-space-size=280',
 
       // Graceful shutdown window. NestJS should call enableShutdownHooks() and
       // close SSE connections within this budget on SIGINT.
       kill_timeout: 10000,
 
-      // Auto-restart if RSS exceeds 500MB.
-      max_memory_restart: '500M',
+      // Auto-restart if RSS exceeds 380MB (heap cap 280 + ~100 for v8/runtime).
+      max_memory_restart: '380M',
 
       // Crash loop guard: >10 restarts within 60s → PM2 stops the app.
       max_restarts: 10,
