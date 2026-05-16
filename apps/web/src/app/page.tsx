@@ -12,6 +12,7 @@ import type { GameResult, Player, Session } from "@/types/database";
 import { getEloTier, getDivisionInfo, getStreakStyle, ELO_TIERS } from "@/lib/ranks";
 import { LandingContent } from "@/components/landing-content";
 import { ErrorState } from "@/components/error-state";
+import { TopThreePodium } from "@/components/top-three-podium";
 import { ApiError } from "@/lib/api";
 
 interface ActiveSession extends Session {
@@ -385,6 +386,8 @@ function LeaderboardContent() {
         </div>
       )}
 
+      <TopThreePodium players={players} currentPlayerId={player?.id} />
+
       {/* Player Rankings */}
       <div className="mt-6">
         <div className="mb-2 flex items-center justify-between px-3 text-[10px] font-medium uppercase tracking-wider text-muted/60">
@@ -399,7 +402,8 @@ function LeaderboardContent() {
           </span>
         </div>
         <div className="space-y-2">
-        {players.map((p, i) => {
+        {(players.length >= 3 ? players.slice(3) : players).map((p, idx) => {
+          const i = players.length >= 3 ? idx + 3 : idx;
           const tier = getEloTier(p.elo);
           const badge = RANK_BADGES[i];
           const isTopThree = i < 3;

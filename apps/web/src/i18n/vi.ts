@@ -79,7 +79,7 @@ export const vi = {
   "leaderboard.recentForm": "Phong độ gần đây",
   "leaderboard.tierCount": "%d game thủ",
   "leaderboard.tierEmpty": "chưa xuất hiện",
-  "leaderboard.colPlayer": "Tay chơi",
+  "leaderboard.colPlayer": "Tay chơi khác",
   "leaderboard.colElo": "Điểm Elo",
   "leaderboard.eloTooltip": "Điểm Elo — cộng/trừ sau mỗi phiên dựa trên chip cuối ván",
 

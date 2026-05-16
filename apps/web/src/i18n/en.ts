@@ -79,7 +79,7 @@ export const en = {
   "leaderboard.recentForm": "Recent form",
   "leaderboard.tierCount": "%d players",
   "leaderboard.tierEmpty": "not yet appeared",
-  "leaderboard.colPlayer": "Player",
+  "leaderboard.colPlayer": "Other Players",
   "leaderboard.colElo": "Elo",
   "leaderboard.eloTooltip": "Elo rating — gain or lose points each session based on chip results",
 

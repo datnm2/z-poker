@@ -412,6 +412,61 @@ input[type="number"] {
   animation: rank-glint var(--rank-glint-speed, 7s) ease-out infinite;
 }
 
+/* Podium running-light — bright dot travels around the rectangle edges */
+@keyframes podium-runner {
+  0%   { offset-distance: 0%; opacity: 0; }
+  6%   { opacity: 1; }
+  94%  { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+.podium-runner-dot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.podium-runner-dot::before {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--runner-color, #fde68a) 0%, color-mix(in oklab, var(--runner-color, #fde68a) 50%, transparent) 40%, transparent 70%);
+  filter: blur(1px);
+  offset-path: rect(0 100% 100% 0 round 12px);
+  offset-rotate: 0deg;
+  animation: podium-runner var(--runner-speed, 3.2s) linear infinite;
+  animation-delay: var(--runner-delay, 0s);
+}
+
+/* Podium edge breathing — soft border glow tied to the medal color */
+@keyframes podium-breathe {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--runner-color, #fde68a) 35%, transparent),
+      0 0 14px -4px color-mix(in oklab, var(--runner-color, #fde68a) 50%, transparent);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--runner-color, #fde68a) 70%, transparent),
+      0 0 24px -2px color-mix(in oklab, var(--runner-color, #fde68a) 70%, transparent);
+  }
+}
+.animate-podium-breathe {
+  animation: podium-breathe var(--breathe-speed, 4s) ease-in-out infinite;
+}
+
+/* Podium spin — slow rotation of a conic-gradient inside each podium's
+   clipped bounding box. Speed is set via animation-duration inline.
+   Slow (10–16s) so the aura feels classy, not flashy. */
+@keyframes podium-spin {
+  to { transform: rotate(1turn); }
+}
+.animate-podium-spin {
+  animation: podium-spin 6s linear infinite;
+  will-change: transform;
+}
+
 /* Challenger rank glow — purple neon aura */
 @keyframes godlike-glow {
   0%, 100% { box-shadow: 0 0 8px -2px rgba(192, 132, 252, 0.6), 0 0 4px 0 rgba(168, 85, 247, 0.4); }
@@ -430,8 +485,11 @@ input[type="number"] {
   .animate-badge-sheen,
   .animate-rank-border-breathe,
   .animate-rank-glint,
+  .animate-podium-breathe,
+  .animate-podium-spin,
   .rank-godlike-glow {
     animation: none !important;
   }
+  .podium-runner-dot::before { animation: none !important; opacity: 0; }
   .animate-chip-spin { animation: none; }
 }
