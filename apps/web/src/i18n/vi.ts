@@ -53,10 +53,19 @@ export const vi = {
 
   // Nav
   "nav.leaderboard": "Bảng xếp hạng",
+  "nav.play": "Chơi",
   "nav.profile": "Hồ sơ",
   "nav.guide": "Hướng dẫn",
 
+  // Play page
+  "play.title": "Vào bàn",
+  "play.slogan": "Tham gia ván đang mở hoặc tạo ván mới.",
+  "play.emptyTitle": "Chưa có ván nào đang mở",
+  "play.emptySubtitle": "Tạo ván mới để bắt đầu.",
+
   // Leaderboard
+  "leaderboard.resetIn": "BXH reset mỗi quý (còn",
+  "leaderboard.resetInSuffix": ")",
   "leaderboard.title": "Bảng xếp hạng",
   "leaderboard.slogan": "Trụ lại. Gom chip. Leo rank.",
   "leaderboard.players": "Tổng game thủ",

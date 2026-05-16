@@ -53,10 +53,19 @@ export const en = {
 
   // Nav
   "nav.leaderboard": "Leaderboard",
+  "nav.play": "Play",
   "nav.profile": "Profile",
   "nav.guide": "Guide",
 
+  // Play page
+  "play.title": "Play",
+  "play.slogan": "Join an open session or start a new one.",
+  "play.emptyTitle": "No sessions are open right now",
+  "play.emptySubtitle": "Start a new session to get going.",
+
   // Leaderboard
+  "leaderboard.resetIn": "Leaderboard resets quarterly (",
+  "leaderboard.resetInSuffix": " left)",
   "leaderboard.title": "Leaderboard",
   "leaderboard.slogan": "Outlast. Outchip. Outrank.",
   "leaderboard.players": "Total Players",

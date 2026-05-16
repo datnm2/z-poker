@@ -3,8 +3,14 @@
 import Link from "next/link";
 import { useI18n } from "@/providers/i18n-provider";
 import type { Player } from "@/types/database";
+import { getEloTier, getDivisionInfo } from "@/lib/ranks";
 
 type PodiumPlayer = Pick<Player, "id" | "name" | "elo" | "avatarUrl">;
+
+function divisionStars(stars: number): string {
+  if (stars <= 0) return "";
+  return "★".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars));
+}
 
 const PODIUM_URL = `url("/images/winners-box.webp")`;
 const MARK_URL = `url("/images/mark-winners-box.webp")`;
@@ -24,10 +30,10 @@ const TONES: Record<number, Tone> = {
     avatarRing: "ring-amber-300/80",
   },
   1: {
-    textColor: "text-slate-200",
+    textColor: "text-sky-200",
     trophy: "🏆",
-    trophyShadow: "drop-shadow-[0_0_10px_rgba(203,213,225,0.8)]",
-    avatarRing: "ring-slate-300/80",
+    trophyShadow: "drop-shadow-[0_0_12px_rgba(186,230,253,0.95)]",
+    avatarRing: "ring-sky-200",
   },
   2: {
     textColor: "text-orange-400",
@@ -51,23 +57,17 @@ export function TopThreePodium({ players, currentPlayerId }: Props) {
   // podium (as % of stage height). Avatar bottom aligns to that line.
   // bottomPct measured against the new shorter (1024/560) stage.
   const columns: Array<{ rank: number; bottomPct: number; avatarSize: number; tone: Tone }> = [
-    { rank: 1, bottomPct: 59, avatarSize: 60, tone: TONES[1] }, // #2 silver — left
-    { rank: 0, bottomPct: 67, avatarSize: 70, tone: TONES[0] }, // #1 gold — center, tallest
-    { rank: 2, bottomPct: 57, avatarSize: 57, tone: TONES[2] }, // #3 bronze — right
+    { rank: 1, bottomPct: 53, avatarSize: 60, tone: TONES[1] }, // #2 silver — left
+    { rank: 0, bottomPct: 60, avatarSize: 70, tone: TONES[0] }, // #1 gold — center, tallest
+    { rank: 2, bottomPct: 51, avatarSize: 57, tone: TONES[2] }, // #3 bronze — right
   ];
 
   return (
     <div className="mt-6">
-      <div className="mb-3 flex items-center justify-center gap-2">
-        <span aria-hidden className="text-base">🏆</span>
-        <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Top 3</h2>
-        <span aria-hidden className="text-base">🏆</span>
-      </div>
-
       {/* Stage container — shorter aspect ratio crops the empty top area of
           the image. The image is enlarged + shifted down via background-size/
           position so the podiums fill the visible box. */}
-      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "1024 / 560" }}>
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "1024 / 640" }}>
         {/* Layer 1 — podium image (the box itself) */}
         <div
           aria-hidden
@@ -100,12 +100,37 @@ export function TopThreePodium({ players, currentPlayerId }: Props) {
             maskMode: "luminance",
           }}
         >
+          {/* 3 overlay gradients, one per medal color, masked by mark.
+              Each is a mostly-transparent conic with one bright arc; they all
+              rotate at the same speed but with phase offsets so silver/gold/
+              bronze pulse in sequence around the podium edges. */}
           <div
-            className="h-full w-full animate-podium-spin"
+            className="absolute inset-0 animate-podium-spin"
             style={{
               background:
-                "conic-gradient(from 0deg at 50% 50%, rgba(173,255,252,0.15) 0deg, rgba(171,245,255,0) 284deg, rgb(253,224,71) 326deg, rgb(253,186,116) 360deg)",
+                "conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(226,232,240,0) 280deg, rgb(241,245,249) 330deg, rgb(226,232,240) 360deg)",
               filter: "blur(5px)",
+              mixBlendMode: "screen",
+              willChange: "transform",
+            }}
+          />
+          <div
+            className="absolute inset-0 animate-podium-spin"
+            style={{
+              background:
+                "conic-gradient(from 120deg at 50% 50%, transparent 0deg, rgba(253,224,71,0) 280deg, rgb(253,224,71) 330deg, rgb(250,204,21) 360deg)",
+              filter: "blur(5px)",
+              mixBlendMode: "screen",
+              willChange: "transform",
+            }}
+          />
+          <div
+            className="absolute inset-0 animate-podium-spin"
+            style={{
+              background:
+                "conic-gradient(from 240deg at 50% 50%, transparent 0deg, rgba(253,186,116,0) 280deg, rgb(253,186,116) 330deg, rgb(251,146,60) 360deg)",
+              filter: "blur(5px)",
+              mixBlendMode: "screen",
               willChange: "transform",
             }}
           />
@@ -119,7 +144,6 @@ export function TopThreePodium({ players, currentPlayerId }: Props) {
             const p = players[rank];
             if (!p) return null;
             const isMe = currentPlayerId === p.id;
-            const showTrophy = rank === 0;
             return (
               <div key={p.id} className="relative flex justify-center">
                 <Link
@@ -141,13 +165,6 @@ export function TopThreePodium({ players, currentPlayerId }: Props) {
                         {(p.name?.[0] ?? "?").toUpperCase()}
                       </span>
                     )}
-                    {showTrophy && (
-                      <span
-                        className={`absolute -bottom-2 left-1/2 -translate-x-1/2 text-base leading-none ${tone.trophyShadow}`}
-                      >
-                        {tone.trophy}
-                      </span>
-                    )}
                   </span>
                 </Link>
               </div>
@@ -163,10 +180,19 @@ export function TopThreePodium({ players, currentPlayerId }: Props) {
           const p = players[rank];
           if (!p) return null;
           const isMe = currentPlayerId === p.id;
-          const liftClass = rank === 0 ? "-mt-[8%]" : "";
+          const liftClass = rank === 0 ? "-mt-[18%]" : "";
+          const tier = getEloTier(p.elo);
+          const div = getDivisionInfo(p.elo);
+          const stars = divisionStars(div.stars);
+          const showTrophy = rank === 0;
           return (
-            <div key={p.id} className={`text-center px-1 ${liftClass}`}>
-              <p className="truncate text-xs font-semibold text-foreground">
+            <div key={p.id} className={`flex flex-col items-center text-center px-1 ${liftClass}`}>
+              {showTrophy && (
+                <span aria-hidden className={`mb-0.5 text-lg leading-none ${tone.trophyShadow}`}>
+                  {tone.trophy}
+                </span>
+              )}
+              <p className={`truncate text-xs font-semibold ${tone.textColor}`}>
                 {p.name}
                 {isMe && (
                   <span className="ml-1 inline-flex rounded-full border border-accent/50 bg-accent/15 px-1 py-0.5 text-[8px] font-black uppercase tracking-wider text-accent">
@@ -174,9 +200,21 @@ export function TopThreePodium({ players, currentPlayerId }: Props) {
                   </span>
                 )}
               </p>
-              <p className={`font-mono text-lg font-black tabular-nums leading-tight ${tone.textColor}`}>
+              <p className={`mt-0.5 font-mono text-lg font-black tabular-nums leading-tight ${tone.textColor}`}>
                 {p.elo}
               </p>
+              <span
+                className={`mt-0.5 inline-flex max-w-full items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none ring-1 ring-inset ring-white/10 ${tier.bgClass} ${tier.colorClass}`}
+              >
+                <span aria-hidden>{tier.icon}</span>
+                <span className="truncate">{t(tier.key)}</span>
+                {stars && (
+                  <span aria-hidden className="tracking-tight">
+                    <span>{stars.slice(0, div.stars)}</span>
+                    <span className="opacity-30">{stars.slice(div.stars)}</span>
+                  </span>
+                )}
+              </span>
             </div>
           );
         })}

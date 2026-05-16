@@ -11,8 +11,9 @@ export interface EloTier {
   hasDivisions: boolean;
 }
 
-// 6 ranks, each 150-elo span except Thần Bài (open-ended).
-// Divisions split each span into 3 equal parts (50 elo each).
+// 6 ranks, each 90-elo span except Thần Bài (open-ended).
+// Divisions split each span into 3 equal parts (30 elo each).
+// Tay Mới brackets the starting ELO (1200) so new players sit ★★.
 export const ELO_TIERS: EloTier[] = [
   {
     key: "rank.godlike",
@@ -20,7 +21,7 @@ export const ELO_TIERS: EloTier[] = [
     colorClass: "text-purple-400",
     bgClass: "bg-purple-400/20",
     fillClass: "bg-purple-400",
-    minElo: 1600,
+    minElo: 1425,
     maxElo: Infinity,
     hasDivisions: false,
   },
@@ -30,8 +31,8 @@ export const ELO_TIERS: EloTier[] = [
     colorClass: "text-red-600",
     bgClass: "bg-red-600/15",
     fillClass: "bg-red-600",
-    minElo: 1450,
-    maxElo: 1600,
+    minElo: 1335,
+    maxElo: 1425,
     hasDivisions: true,
   },
   {
@@ -40,8 +41,8 @@ export const ELO_TIERS: EloTier[] = [
     colorClass: "text-amber-400",
     bgClass: "bg-amber-400/15",
     fillClass: "bg-amber-400",
-    minElo: 1300,
-    maxElo: 1450,
+    minElo: 1245,
+    maxElo: 1335,
     hasDivisions: true,
   },
   {
@@ -50,8 +51,8 @@ export const ELO_TIERS: EloTier[] = [
     colorClass: "text-sky-400",
     bgClass: "bg-sky-400/15",
     fillClass: "bg-sky-400",
-    minElo: 1150,
-    maxElo: 1300,
+    minElo: 1155,
+    maxElo: 1245,
     hasDivisions: true,
   },
   {
@@ -60,8 +61,8 @@ export const ELO_TIERS: EloTier[] = [
     colorClass: "text-emerald-400",
     bgClass: "bg-emerald-400/15",
     fillClass: "bg-emerald-400",
-    minElo: 1000,
-    maxElo: 1150,
+    minElo: 1065,
+    maxElo: 1155,
     hasDivisions: true,
   },
   {
@@ -71,7 +72,7 @@ export const ELO_TIERS: EloTier[] = [
     bgClass: "bg-slate-400/15",
     fillClass: "bg-slate-400",
     minElo: -Infinity,
-    maxElo: 1000,
+    maxElo: 1065,
     hasDivisions: false,
   },
 ];
@@ -100,7 +101,7 @@ export function getDivisionInfo(elo: number): DivisionInfo {
 
   // Bottom rank — no divisions, show progress toward first rank
   if (!tier.hasDivisions) {
-    const floor = 850;
+    const floor = 975;
     const span = tier.maxElo - floor;
     const progressPct = Math.min(100, Math.max(0, Math.round(((elo - floor) / span) * 100)));
     return { stars: 0, progressPct, eloToNext: tier.maxElo - elo, nextTierKey: nextTier?.key ?? null, isRankUp: true };
