@@ -397,12 +397,14 @@ function LeaderboardContent() {
                           <span className="absolute inset-y-0 left-2 flex items-center pr-[88px] text-[10px] font-semibold leading-none text-white/95 truncate drop-shadow">
                             {labelText}
                           </span>
-                          {/* Next tier — always pinned to far right of the bar */}
+                          {/* Next tier — pinned far right, dimmed so it reads
+                              as a faint preview rather than competing with the
+                              current-tier pill. */}
                           {nextTier && (
                             <span
-                              className={`absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded bg-black/45 px-1.5 py-[2px] text-[10px] font-bold leading-none ${nextTier.colorClass}`}
+                              className={`absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded px-1.5 py-[2px] text-[10px] font-semibold leading-none opacity-40 ${nextTier.colorClass}`}
                             >
-                              <span>{nextTier.icon}</span>
+                              <span aria-hidden>{nextTier.icon}</span>
                               <span className="max-w-[72px] truncate">{t(nextTier.key)}</span>
                             </span>
                           )}

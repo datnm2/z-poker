@@ -606,6 +606,7 @@ export class SessionsService {
   async lock(
     sessionId: string,
     user: AuthedUser,
+    personaId?: string | null,
   ): Promise<{ results: EloResult[] }> {
     const session = await this.loadSessionForDomain(sessionId, user.domain);
     if (session.createdBy !== user.userId) {
@@ -618,13 +619,14 @@ export class SessionsService {
       sessionId,
       results,
     });
-    void this.highlights.generateForSession(sessionId, session.domain);
+    void this.highlights.generateForSession(sessionId, session.domain, personaId);
     return { results };
   }
 
   async regenerateHighlights(
     sessionId: string,
     user: AuthedUser,
+    personaId?: string | null,
   ): Promise<void> {
     const session = await this.loadSessionForDomain(sessionId, user.domain);
     if (session.createdBy !== user.userId) {
@@ -633,6 +635,6 @@ export class SessionsService {
     if (!session.isLocked) {
       throw new BadRequestException("Session is not locked yet");
     }
-    void this.highlights.generateForSession(sessionId, session.domain);
+    void this.highlights.generateForSession(sessionId, session.domain, personaId);
   }
 }

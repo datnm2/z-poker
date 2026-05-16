@@ -241,6 +241,12 @@ function SessionContent() {
   const [locking, setLocking] = useState(false);
   const [lockError, setLockError] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [personas, setPersonas] = useState<
+    Array<{ id: string; displayName: { vi: string; en: string }; sample: string }>
+  >([]);
+  // null = random (default); otherwise specific persona id
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null);
+  const [showPersonaPicker, setShowPersonaPicker] = useState(false);
 
   const inFlightRef = useRef<Promise<void> | null>(null);
   const fetchSession = useCallback(async () => {
@@ -293,6 +299,25 @@ function SessionContent() {
   useEffect(() => {
     fetchSession();
   }, [fetchSession]);
+
+  // Fetch MC personas once so the creator can pick one before locking
+  // (or regenerating highlights).
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<Array<{ id: string; displayName: { vi: string; en: string }; sample: string }>>(
+        "/sessions/personas",
+      )
+      .then((list) => {
+        if (!cancelled) setPersonas(list);
+      })
+      .catch(() => {
+        /* non-fatal — picker just stays empty, defaults to random */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
 
   // Auto-show story once per (session, user) when highlights arrive
   useEffect(() => {
@@ -404,7 +429,9 @@ function SessionContent() {
     if (!session) return;
     setLocking(true);
     try {
-      await api.post(`/sessions/${session.id}/lock`);
+      await api.post(`/sessions/${session.id}/lock`, {
+        personaId: selectedPersonaId,
+      });
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to lock session");
     }
@@ -415,7 +442,9 @@ function SessionContent() {
     if (!session || regenerating) return;
     setRegenerating(true);
     try {
-      await api.post(`/sessions/${session.id}/highlights/regenerate`);
+      await api.post(`/sessions/${session.id}/highlights/regenerate`, {
+        personaId: selectedPersonaId,
+      });
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to regenerate");
       setRegenerating(false);
@@ -903,25 +932,99 @@ function SessionContent() {
             </div>
           )}
           {isCreator && players.length >= 2 && (
-            <div className="relative">
-              <button
-                onClick={handleLockClick}
-                className={`w-full rounded-xl px-4 py-3 font-semibold transition active:scale-[0.98] ${
-                  isValid && !locking
-                    ? "bg-accent text-accent-contrast hover:bg-accent-strong"
-                    : locking
-                    ? "bg-slate-700 text-slate-400 cursor-wait"
-                    : "bg-accent/60 text-accent-contrast/70 hover:bg-accent/70"
-                }`}
-              >
-                {locking ? t("session.calculating") : t("session.lockCalculate")}
-              </button>
-              {lockError && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-center text-sm font-medium text-red-400 animate-slide-in">
-                  {lockError}
+            <>
+              {/* MC persona picker — collapsed by default; expands to show all
+                  personas. Default selection is "random" (null). */}
+              {personas.length > 0 && (
+                <div className="rounded-xl border border-card-border bg-card/60 p-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowPersonaPicker((v) => !v)}
+                    className="flex w-full items-center justify-between gap-2 text-left"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+                        {t("session.mcPicker.label")}
+                      </p>
+                      <p className="mt-0.5 truncate text-sm font-bold text-foreground">
+                        {selectedPersonaId
+                          ? (personas.find((p) => p.id === selectedPersonaId)?.displayName[locale] ??
+                              personas.find((p) => p.id === selectedPersonaId)?.displayName.en ??
+                              t("session.mcPicker.random"))
+                          : t("session.mcPicker.random")}
+                      </p>
+                    </div>
+                    <span className={`text-muted transition-transform ${showPersonaPicker ? "rotate-90" : ""}`}>
+                      ›
+                    </span>
+                  </button>
+                  {showPersonaPicker && (
+                    <div className="mt-3 grid grid-cols-1 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPersonaId(null)}
+                        className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-left transition active:scale-[0.98] ${
+                          selectedPersonaId === null
+                            ? "border-accent bg-accent/10"
+                            : "border-card-border bg-background/40"
+                        }`}
+                      >
+                        <span className="text-base leading-none">🎲</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-foreground">
+                            {t("session.mcPicker.random")}
+                          </p>
+                          <p className="text-[11px] text-muted">
+                            {t("session.mcPicker.randomHint")}
+                          </p>
+                        </div>
+                      </button>
+                      {personas.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setSelectedPersonaId(p.id)}
+                          className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-left transition active:scale-[0.98] ${
+                            selectedPersonaId === p.id
+                              ? "border-accent bg-accent/10"
+                              : "border-card-border bg-background/40"
+                          }`}
+                        >
+                          <span className="text-base leading-none">🎤</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-foreground">
+                              {p.displayName[locale] ?? p.displayName.en}
+                            </p>
+                            <p className="line-clamp-2 text-[11px] italic text-muted">
+                              "{p.sample}"
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+              <div className="relative">
+                <button
+                  onClick={handleLockClick}
+                  className={`w-full rounded-xl px-4 py-3 font-semibold transition active:scale-[0.98] ${
+                    isValid && !locking
+                      ? "bg-accent text-accent-contrast hover:bg-accent-strong"
+                      : locking
+                      ? "bg-slate-700 text-slate-400 cursor-wait"
+                      : "bg-accent/60 text-accent-contrast/70 hover:bg-accent/70"
+                  }`}
+                >
+                  {locking ? t("session.calculating") : t("session.lockCalculate")}
+                </button>
+                {lockError && (
+                  <div className="absolute bottom-full left-0 right-0 mb-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-center text-sm font-medium text-red-400 animate-slide-in">
+                    {lockError}
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       )}

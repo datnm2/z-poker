@@ -22,6 +22,7 @@ import { SessionsService } from "./sessions.service";
 import { SessionsEventsService, type SseMessage } from "./sessions.events";
 import { CurrentUser, type AuthedUser } from "../auth/current-user.decorator";
 import { Public } from "../auth/public.decorator";
+import { MC_PERSONAS } from "./highlights/personas";
 
 class CreateSessionDto {
   @IsInt()
@@ -32,6 +33,18 @@ class CreateSessionDto {
   @IsOptional()
   @IsString()
   playedDate?: string;
+}
+
+class LockSessionDto {
+  @IsOptional()
+  @IsString()
+  personaId?: string;
+}
+
+class RegenerateHighlightsDto {
+  @IsOptional()
+  @IsString()
+  personaId?: string;
 }
 
 class ListSessionsQuery {
@@ -111,6 +124,17 @@ export class SessionsController {
     return this.events.streamForDomain(user.domain);
   }
 
+  // Static routes MUST be declared before @Get(":id") so Nest doesn't match :id="personas".
+  @Get("personas")
+  @Throttle({ read: { limit: 60, ttl: 60_000 } })
+  listPersonas() {
+    return MC_PERSONAS.map((p) => ({
+      id: p.id,
+      displayName: p.displayName,
+      sample: p.toneExamples[0] ?? "",
+    }));
+  }
+
   @Get(":id")
   @Public()
   async get(@Param("id") id: string) {
@@ -146,8 +170,12 @@ export class SessionsController {
 
   @Post(":id/lock")
   @Throttle({ write: { limit: 10, ttl: 60_000 } })
-  async lock(@CurrentUser() user: AuthedUser, @Param("id") id: string) {
-    return this.sessionsService.lock(id, user);
+  async lock(
+    @CurrentUser() user: AuthedUser,
+    @Param("id") id: string,
+    @Body() body: LockSessionDto = {},
+  ) {
+    return this.sessionsService.lock(id, user, body.personaId ?? null);
   }
 
   @Post(":id/highlights/regenerate")
@@ -155,8 +183,9 @@ export class SessionsController {
   async regenerateHighlights(
     @CurrentUser() user: AuthedUser,
     @Param("id") id: string,
+    @Body() body: RegenerateHighlightsDto = {},
   ) {
-    await this.sessionsService.regenerateHighlights(id, user);
+    await this.sessionsService.regenerateHighlights(id, user, body.personaId ?? null);
     return { ok: true };
   }
 

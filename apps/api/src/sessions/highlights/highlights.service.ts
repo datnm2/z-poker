@@ -13,7 +13,7 @@ import { AiService } from "../../ai/ai.service";
 import { SessionsEventsService } from "../sessions.events";
 import { CacheInvalidationService } from "../../cache/cache-invalidation.service";
 import type { SessionHighlights } from "./highlights.types";
-import { selectPersonaRandom, type McPersona } from "./personas";
+import { selectPersona, type McPersona } from "./personas";
 
 interface PlayerContext {
   playerId: string;
@@ -79,7 +79,11 @@ export class HighlightsService {
     private readonly cacheInvalidation: CacheInvalidationService,
   ) {}
 
-  async generateForSession(sessionId: string, domain: string): Promise<void> {
+  async generateForSession(
+    sessionId: string,
+    domain: string,
+    personaId?: string | null,
+  ): Promise<void> {
     try {
       const contexts = await this.buildPlayerContexts(sessionId, domain);
       if (contexts.length === 0) {
@@ -91,7 +95,7 @@ export class HighlightsService {
       if (!session) return;
 
       const targetCount = Math.max(2, Math.min(6, Math.ceil(contexts.length / 2)));
-      const persona = selectPersonaRandom();
+      const persona = selectPersona(personaId);
       const prompt = this.buildPrompt(
         session.buyIn,
         session.playedDate,
