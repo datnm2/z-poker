@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SchemaType, type ResponseSchema } from "@google/generative-ai";
@@ -12,6 +13,7 @@ import {
 import { AiService } from "../../ai/ai.service";
 import { SessionsEventsService } from "../sessions.events";
 import { CacheInvalidationService } from "../../cache/cache-invalidation.service";
+import { EMAIL_EVENT, type SessionRecapReadyEvent } from "../../email/email.events";
 import type { SessionHighlights } from "./highlights.types";
 import { selectPersona, type McPersona } from "./personas";
 
@@ -77,13 +79,16 @@ export class HighlightsService {
     private readonly ai: AiService,
     private readonly events: SessionsEventsService,
     private readonly cacheInvalidation: CacheInvalidationService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async generateForSession(
     sessionId: string,
     domain: string,
     personaId?: string | null,
+    options: { sendEmail?: boolean } = {},
   ): Promise<void> {
+    const sendEmail = options.sendEmail ?? true;
     try {
       const contexts = await this.buildPlayerContexts(sessionId, domain);
       if (contexts.length === 0) {
@@ -125,9 +130,17 @@ export class HighlightsService {
       await this.cacheInvalidation.invalidateForEvent(event);
       this.events.publish(event);
       this.logger.log(`Highlights generated for session ${sessionId}`);
+      if (sendEmail) this.emitRecapReady(sessionId, domain);
     } catch (err) {
       this.logger.error(`Highlights generation failed for ${sessionId}`, err);
+      // Still fire recap email even if AI failed — players want their results.
+      if (sendEmail) this.emitRecapReady(sessionId, domain);
     }
+  }
+
+  private emitRecapReady(sessionId: string, domain: string): void {
+    const payload: SessionRecapReadyEvent = { sessionId, domain };
+    this.eventEmitter.emit(EMAIL_EVENT.SESSION_RECAP_READY, payload);
   }
 
   private async buildPlayerContexts(

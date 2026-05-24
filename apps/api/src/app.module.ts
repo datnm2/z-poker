@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { AppController } from "./app.controller";
@@ -8,6 +9,7 @@ import { AiModule } from "./ai/ai.module";
 import { AuthModule } from "./auth/auth.module";
 import { CacheModule } from "./cache/cache.module";
 import { DebugModule } from "./debug/debug.module";
+import { EmailModule } from "./email/email.module";
 import { PlayersModule } from "./players/players.module";
 import { SessionsModule } from "./sessions/sessions.module";
 import { SessionsEventsModule } from "./sessions/sessions-events.module";
@@ -17,6 +19,7 @@ import { SlowQueryLogger } from "./common/slow-query.logger";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    EventEmitterModule.forRoot(),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
@@ -54,6 +57,7 @@ import { SlowQueryLogger } from "./common/slow-query.logger";
     SessionsModule,
     AiModule,
     DebugModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: UserThrottlerGuard }],

@@ -635,6 +635,6 @@ export class SessionsService {
     if (!session.isLocked) {
       throw new BadRequestException("Session is not locked yet");
     }
-    void this.highlights.generateForSession(sessionId, session.domain, personaId);
+    void this.highlights.generateForSession(sessionId, session.domain, personaId, { sendEmail: false });
   }
 }
