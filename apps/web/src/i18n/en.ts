@@ -152,6 +152,19 @@ export const en = {
   "session.highlights.hostedBy": "By",
   "session.highlights.regenerate": "Retry",
 
+  // Share
+  "share.action": "Share",
+  "share.shared": "Shared",
+  "share.copied": "Link copied",
+  "share.error": "Couldn't share",
+  "share.recap.win": "Just won {chips} chips ({elo} ELO) in today's office poker. See who got roasted by the MC:",
+  "share.recap.loss": "Just donated {chips} chips ({elo} ELO) to today's office poker. See who ran the table:",
+  "share.recap.even": "Broke even in today's office poker. Highlights of everyone getting roasted:",
+  "share.recap.spectator": "Today's office poker just wrapped. See the highlights + scoreboard:",
+  "share.og.title": "Poker session {date} — {winner} wins",
+  "share.og.description": "Buy-in {buyIn} chips · {players} players · MC {mc} on the mic",
+  "share.og.descriptionNoMc": "Buy-in {buyIn} chips · {players} players",
+
   // Profile
   "profile.editName": "Edit name",
   "profile.saveName": "Save",

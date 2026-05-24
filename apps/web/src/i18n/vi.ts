@@ -152,6 +152,19 @@ export const vi = {
   "session.highlights.regenerate": "Tạo lại",
   "session.joinHype": "Nhảy vào đi — Elo của bạn đang chờ. Chứng minh ai là số 1.",
 
+  // Share
+  "share.action": "Chia sẻ",
+  "share.shared": "Đã chia sẻ",
+  "share.copied": "Đã copy link",
+  "share.error": "Không chia sẻ được",
+  "share.recap.win": "Vừa thắng {chips} chip ({elo} ELO) ở ván poker văn phòng hôm nay. Xem highlight cả bàn:",
+  "share.recap.loss": "Vừa thua {chips} chip ({elo} ELO) ở ván poker văn phòng hôm nay. Xem highlight cả bàn:",
+  "share.recap.even": "Vừa hoà vốn ở ván poker văn phòng hôm nay. Xem highlight cả bàn:",
+  "share.recap.spectator": "Ván poker văn phòng vừa kết thúc. Xem highlight + bảng điểm:",
+  "share.og.title": "Ván poker {date} — {winner} thắng",
+  "share.og.description": "Buy-in {buyIn} chip · {players} người chơi · MC {mc} chấm điểm",
+  "share.og.descriptionNoMc": "Buy-in {buyIn} chip · {players} người chơi",
+
   // Profile
   "profile.editName": "Sửa tên",
   "profile.saveName": "Lưu",
