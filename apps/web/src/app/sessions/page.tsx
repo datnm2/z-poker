@@ -112,7 +112,7 @@ export default function SessionsHistoryPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
       <div className="mb-4 flex items-center gap-3 pr-24">
         <Link
           href="/"

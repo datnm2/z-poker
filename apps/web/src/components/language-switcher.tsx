@@ -10,22 +10,16 @@ const labels: Record<Locale, string> = {
 
 export function LanguageSwitcher() {
   const { locale, setLocale } = useI18n();
+  const next: Locale = locale === "en" ? "vi" : "en";
 
   return (
-    <div className="inline-flex h-8 items-center rounded-lg border border-card-border bg-card p-0.5">
-      {(Object.keys(labels) as Locale[]).map((lng) => (
-        <button
-          key={lng}
-          onClick={() => setLocale(lng)}
-          className={`rounded-md px-2 py-1 text-[11px] font-semibold transition ${
-            locale === lng
-              ? "bg-accent text-accent-contrast"
-              : "text-muted hover:text-foreground"
-          }`}
-        >
-          {labels[lng]}
-        </button>
-      ))}
-    </div>
+    <button
+      onClick={() => setLocale(next)}
+      aria-label={`Switch language to ${labels[next]}`}
+      title={`Switch to ${labels[next]}`}
+      className="inline-flex h-8 min-w-[2.25rem] items-center justify-center rounded-lg border border-card-border bg-card px-2 text-[11px] font-semibold text-foreground transition active:scale-[0.95]"
+    >
+      {labels[locale]}
+    </button>
   );
 }

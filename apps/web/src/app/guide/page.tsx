@@ -121,7 +121,7 @@ function GuideContent() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
       <div className="flex items-center gap-3">
         <Link
           href="/"

@@ -71,7 +71,7 @@ export function LandingContent({ variant = "public" }: { variant?: LandingVarian
   const showSignIn = variant === "public";
 
   return (
-    <div className={`mx-auto w-full max-w-lg px-4 pt-16 ${showSignIn ? "pb-12" : "pb-24"}`}>
+    <div className={`mx-auto w-full max-w-lg px-4 pt-12 ${showSignIn ? "pb-12" : "pb-24"}`}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(LANDING_JSON_LD) }}

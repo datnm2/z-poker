@@ -549,7 +549,7 @@ function SessionContent() {
   })();
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button

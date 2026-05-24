@@ -12,7 +12,7 @@ function PlayerContent() {
   const { t } = useI18n();
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
       <button
         onClick={() => router.back()}
         className="mb-4 flex items-center gap-1 text-sm text-muted hover:text-foreground"

@@ -151,7 +151,7 @@ function LeaderboardContent() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-16">
+    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
       {/* Domain HQ hero */}
       <section className="relative overflow-hidden rounded-2xl border border-card-border bg-card p-4">
         <div
