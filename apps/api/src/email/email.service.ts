@@ -99,7 +99,14 @@ export class EmailService {
     const highlightsReady = Boolean(session.highlights?.items?.length);
     const mcName = session.highlights?.personaName?.vi ?? null;
 
+    // Resend free tier: 2 req/sec. Space sends ~600ms apart to stay safely under.
+    const SEND_INTERVAL_MS = 600;
+    let isFirst = true;
+
     for (const recipient of players) {
+      if (!isFirst) await sleep(SEND_INTERVAL_MS);
+      isFirst = false;
+
       const rows: RecapRow[] = ranked.map((sp) => {
         const p = playerById.get(sp.playerId);
         const chipsEnd = sp.chipsEnd ?? 0;
@@ -127,31 +134,61 @@ export class EmailService {
         mcName,
       });
 
+      await this.sendWithRetry(recipient.email, template, sessionId);
+    }
+  }
+
+  private async sendWithRetry(
+    to: string,
+    template: { subject: string; html: string; text: string },
+    sessionId: string,
+  ): Promise<void> {
+    const MAX_ATTEMPTS = 4;
+    let backoffMs = 1100;
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
         const sendResult = await this.resend!.emails.send({
           from: this.fromEmail,
-          to: recipient.email,
+          to,
           subject: template.subject,
           html: template.html,
           text: template.text,
         });
 
-        if (sendResult.error) {
-          this.logger.error(
-            `Resend rejected email to ${recipient.email}: [${sendResult.error.name}] ${sendResult.error.message}`,
-          );
-        } else {
+        if (!sendResult.error) {
           this.logger.debug(
-            `Recap email sent to ${recipient.email} (session ${sessionId})`,
+            `Recap email sent to ${to} (session ${sessionId})`,
           );
+          return;
         }
+
+        const isRateLimit = sendResult.error.name === "rate_limit_exceeded";
+        if (isRateLimit && attempt < MAX_ATTEMPTS) {
+          this.logger.warn(
+            `Rate limited sending to ${to}, retrying in ${backoffMs}ms (attempt ${attempt}/${MAX_ATTEMPTS})`,
+          );
+          await sleep(backoffMs);
+          backoffMs *= 2;
+          continue;
+        }
+
+        this.logger.error(
+          `Resend rejected email to ${to}: [${sendResult.error.name}] ${sendResult.error.message}`,
+        );
+        return;
       } catch (err) {
         this.logger.error(
-          `Failed to send recap to ${recipient.email}: ${(err as Error).message}`,
+          `Failed to send recap to ${to}: ${(err as Error).message}`,
         );
+        return;
       }
     }
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function toDateString(v: unknown): string {
