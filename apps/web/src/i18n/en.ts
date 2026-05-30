@@ -31,7 +31,7 @@ export const en = {
   "landing.whyTitle": "Why Z-Poker?",
   "landing.why1.title": "Built for lunch breaks",
   "landing.why1.body":
-    "A \"real\" poker game runs for hours. You've got 30–45 minutes. Z-Poker scores you on chip counts when time runs out — no need to play to the last person standing.",
+    'A "real" poker game runs for hours. You\'ve got 30–45 minutes. Z-Poker scores you on chip counts when time runs out — no need to play to the last person standing.',
   "landing.why2.title": "Long-term tracking",
   "landing.why2.body":
     "Every lunch is a session. Elo compounds across months. True skill shows over many games — not one lucky day.",
@@ -81,7 +81,8 @@ export const en = {
   "leaderboard.modeOnlineDesc": "Coming soon",
   "leaderboard.games": "games played",
   "leaderboard.game": "game played",
-  "leaderboard.signInPrompt": "Sign in to see the leaderboard and join sessions.",
+  "leaderboard.signInPrompt":
+    "Sign in to see the leaderboard and join sessions.",
   "leaderboard.signInBtn": "Sign in",
   "leaderboard.streakHot": "Hot Streak",
   "leaderboard.streakCold": "Tilting Hard",
@@ -90,7 +91,8 @@ export const en = {
   "leaderboard.tierEmpty": "not yet appeared",
   "leaderboard.colPlayer": "Other Players",
   "leaderboard.colElo": "Elo",
-  "leaderboard.eloTooltip": "Elo rating — gain or lose points each session based on chip results",
+  "leaderboard.eloTooltip":
+    "Elo rating — gain or lose points each session based on chip results",
 
   // Session
   "session.title": "Session",
@@ -98,6 +100,9 @@ export const en = {
   "session.open": "Open",
   "session.chips": "Chips remaining",
   "session.chipsPlaceholder": "Final chips",
+  "session.jackpotWon": "💰 JACKPOT!",
+  "session.jackpotBonus": "+{amount} accumulated Elo",
+  "session.jackpotTotal": "Current Jackpot",
   "session.edit": "Edit",
   "session.stakes": "Elo on the line",
   "session.avgElo": "Table avg",
@@ -110,8 +115,10 @@ export const en = {
   "session.offBy": "off by",
   "session.cheatWarning": "🚨 Someone's hiding chips! Total is short by",
   "session.extraWarning": "⚠️ Extra chips detected! Total is over by",
-  "session.lockErrorNotReady": "Not all players have confirmed their chips yet.",
-  "session.lockErrorInvalid": "Chip total doesn't match. Fix the numbers first.",
+  "session.lockErrorNotReady":
+    "Not all players have confirmed their chips yet.",
+  "session.lockErrorInvalid":
+    "Chip total doesn't match. Fix the numbers first.",
   "session.joinSession": "Join Session",
   "session.joined": "Joined",
   "session.playersCount": "players",
@@ -141,10 +148,12 @@ export const en = {
   "session.streakIncluded.loss": "incl. {bonus} cold streak penalty",
   "session.rank": "Rank",
   "session.dealer": "Dealer",
-  "session.dealerHint": "Or stay as Dealer — you can edit chips & lock without joining",
+  "session.dealerHint":
+    "Or stay as Dealer — you can edit chips & lock without joining",
   "session.fighters": "Fighters",
   "session.sortedByElo": "sorted by Elo",
-  "session.joinHype": "Jump in — your Elo is on the line. Show them who's boss.",
+  "session.joinHype":
+    "Jump in — your Elo is on the line. Show them who's boss.",
   "session.highlights.title": "🎬 Session highlights",
   "session.highlights.cta": "Has the tea — tap to see the drama",
   "session.highlights.loading": "Reading the historical data...",
@@ -157,12 +166,17 @@ export const en = {
   "share.shared": "Shared",
   "share.copied": "Link copied",
   "share.error": "Couldn't share",
-  "share.recap.win": "Just won {chips} chips ({elo} ELO) in today's office poker. See who got roasted by the MC:",
-  "share.recap.loss": "Just donated {chips} chips ({elo} ELO) to today's office poker. See who ran the table:",
-  "share.recap.even": "Broke even in today's office poker. Highlights of everyone getting roasted:",
-  "share.recap.spectator": "Today's office poker just wrapped. See the highlights + scoreboard:",
+  "share.recap.win":
+    "Just won {chips} chips ({elo} ELO) in today's office poker. See who got roasted by the MC:",
+  "share.recap.loss":
+    "Just donated {chips} chips ({elo} ELO) to today's office poker. See who ran the table:",
+  "share.recap.even":
+    "Broke even in today's office poker. Highlights of everyone getting roasted:",
+  "share.recap.spectator":
+    "Today's office poker just wrapped. See the highlights + scoreboard:",
   "share.og.title": "Poker session {date} — {winner} wins",
-  "share.og.description": "Buy-in {buyIn} chips · {players} players · MC {mc} on the mic",
+  "share.og.description":
+    "Buy-in {buyIn} chips · {players} players · MC {mc} on the mic",
   "share.og.descriptionNoMc": "Buy-in {buyIn} chips · {players} players",
 
   // Profile
@@ -217,7 +231,8 @@ export const en = {
     "The system only works if everyone reports accurate chip counts. Agree on chip totals before entering them.",
 
   "guide.roles.title": "Roles",
-  "guide.roles.intro": "Z-Poker has two roles in a session: Player and Dealer (Host).",
+  "guide.roles.intro":
+    "Z-Poker has two roles in a session: Player and Dealer (Host).",
   "guide.roles.player.title": "🃏 Player",
   "guide.roles.player.body":
     "Joins the session and takes a seat. Enters their own chip count after the game. Elo is updated when the session is locked.",
@@ -316,7 +331,6 @@ export const en = {
   "rank.novice": "Novice",
   "rank.rookie": "Rookie",
   "rank.fish": "Fish",
-
 
   // Session Titles (short-term)
   "game.dominator": "Dominator",

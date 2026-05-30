@@ -17,7 +17,7 @@ import type { TFunction } from "@/providers/i18n-provider";
 import { getSessionTitle, getEloTier, getDivisionInfo } from "@/lib/ranks";
 
 interface PlayerRow extends SessionPlayer {
-  player: Pick<Player, "id" | "name" | "elo" | "avatarUrl">;
+  player: Pick<Player, "id" | "name" | "elo" | "avatarUrl" | "jackpot">;
 }
 
 interface SessionDetail {
@@ -54,12 +54,14 @@ function EloDisplay({
   before,
   after,
   streakBonus,
+  jackpotPaid,
   delay = 0,
   t,
 }: {
   before: number;
   after: number | null;
   streakBonus?: number | null;
+  jackpotPaid?: number | null;
   delay?: number;
   t: TFunction;
 }) {
@@ -82,12 +84,15 @@ function EloDisplay({
         )
     : null;
 
+  const isJackpot = jackpotPaid != null && jackpotPaid > 0;
+
   return (
     <div className="flex flex-col">
       <div className="flex items-center gap-2">
         <span className="text-xs text-muted">Elo</span>
         <span
           className={`font-mono font-bold tabular-nums transition-colors duration-300 ${
+            isJackpot && revealed ? "animate-jackpot-text text-yellow-400" :
             revealed && delta != null
               ? delta >= 0 ? "text-green-400" : "text-red-400"
               : "text-foreground"
@@ -97,19 +102,31 @@ function EloDisplay({
         </span>
         {revealed && delta != null && (
           <span
-            className={`text-xs font-bold ${delta >= 0 ? "animate-elo-up text-green-400" : "animate-elo-down text-red-400"}`}
+            className={`text-xs font-bold ${
+              isJackpot ? "animate-poker-pop text-yellow-400" :
+              delta >= 0 ? "animate-elo-up text-green-400" : "animate-elo-down text-red-400"
+            }`}
             style={{ animationDelay: `${delay + 100}ms`, opacity: 0 }}
           >
             {delta >= 0 ? "+" : ""}{delta}
           </span>
         )}
       </div>
-      {revealed && streakLabel && (
-        <span
-          className={`mt-0.5 text-[10px] italic ${streakBonus! > 0 ? "text-orange-300/80" : "text-blue-300/80"}`}
-        >
-          {streakLabel}
-        </span>
+      {revealed && (
+        <div className="flex flex-col gap-0.5">
+          {streakLabel && (
+            <span
+              className={`text-[10px] italic ${streakBonus! > 0 ? "text-orange-300/80" : "text-blue-300/80"}`}
+            >
+              {streakLabel}
+            </span>
+          )}
+          {isJackpot && (
+            <span className="animate-jackpot-pop text-[10px] font-bold text-yellow-400">
+              {t("session.jackpotWon")} {t("session.jackpotBonus").replace("{amount}", String(jackpotPaid))}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
@@ -371,7 +388,15 @@ function SessionContent() {
         }
       },
       "session.locked": (data) => {
-        if (!prevLockedRef.current) setJustLocked(true);
+        if (!prevLockedRef.current) {
+          setJustLocked(true);
+          // Trigger haptic feedback for Jackpot payout if any
+          if (data.results.some((r) => r.jackpotChange > 0)) {
+            if (typeof window !== "undefined" && "vibrate" in navigator) {
+              navigator.vibrate([100, 50, 100, 50, 200]);
+            }
+          }
+        }
         prevLockedRef.current = true;
         setSession((prev) =>
           prev ? { ...prev, isLocked: true, lockedAt: new Date().toISOString() } : prev,
@@ -381,7 +406,17 @@ function SessionContent() {
           prev.map((p) => {
             const r = byId.get(p.playerId);
             if (!r) return p;
-            return { ...p, eloBefore: r.eloBefore, eloAfter: r.eloAfter, streakBonus: r.streakBonus };
+            return {
+              ...p,
+              eloBefore: r.eloBefore,
+              eloAfter: r.eloAfter,
+              streakBonus: r.streakBonus,
+              jackpotPaid: r.jackpotChange < 0 ? Math.abs(r.jackpotChange) : 0,
+              player: {
+                ...p.player,
+                jackpot: r.jackpotAfter,
+              },
+            };
           }),
         );
       },
@@ -799,7 +834,9 @@ function SessionContent() {
               className={`rounded-xl border bg-card p-3 transition-all ${
                 session.isLocked && justLocked ? "animate-slide-in" : ""
               } ${
-                session.isLocked && rank === 0
+                session.isLocked && sp.jackpotPaid && sp.jackpotPaid > 0
+                  ? "border-yellow-400/60 ring-2 ring-yellow-400/20 bg-yellow-400/5"
+                  : session.isLocked && rank === 0
                   ? `border-amber-400/50${justLocked ? "" : " animate-pulse-glow"}`
                   : "border-card-border"
               }`}
@@ -854,12 +891,20 @@ function SessionContent() {
                       </div>
                     );
                   })()}
-                  <EloDisplay before={sp.eloBefore ?? sp.player.elo} after={sp.eloAfter} streakBonus={sp.streakBonus} delay={animDelay + 400} t={t} />
+                  <EloDisplay before={sp.eloBefore ?? sp.player.elo} after={sp.eloAfter} streakBonus={sp.streakBonus} jackpotPaid={sp.jackpotPaid} delay={animDelay + 400} t={t} />
                   {!session.isLocked && (() => {
                     const tier = getEloTier(sp.player.elo);
                     return (
-                      <div className={`text-xs ${tier.colorClass}`}>
-                        {tier.icon} {t(tier.key)}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className={`text-xs ${tier.colorClass}`}>
+                          {tier.icon} {t(tier.key)}
+                        </div>
+                        {sp.player.jackpot > 0 && (
+                          <div className="flex items-center gap-1 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/10 px-1.5 py-0.5 text-[10px] font-black text-amber-400 shadow-[0_0_12px_-2px_rgba(251,191,36,0.3)] animate-pulse-glow">
+                            <span className="text-[11px] drop-shadow-sm">💰</span>
+                            <span className="tabular-nums">{sp.player.jackpot}</span>
+                          </div>
+                        )}
                       </div>
                     );
                   })()}

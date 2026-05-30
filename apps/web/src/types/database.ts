@@ -9,6 +9,7 @@ export interface Player {
   gamesPlayed: number;
   currentStreak: number;
   lastResults: GameResult[]; // last 5, newest first
+  jackpot: number;
   avatarUrl: string | null;
   createdAt: string;
 }
@@ -32,11 +33,12 @@ export interface SessionPlayer {
   eloBefore: number | null;
   eloAfter: number | null;
   streakBonus: number | null;
+  jackpotPaid: number | null;
   updatedAt: string;
 }
 
 export interface SessionPlayerWithPlayer extends SessionPlayer {
-  player: Pick<Player, "id" | "name" | "elo" | "avatarUrl">;
+  player: Pick<Player, "id" | "name" | "elo" | "avatarUrl" | "jackpot">;
 }
 
 export interface LocalizedText {

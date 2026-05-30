@@ -33,6 +33,9 @@ export class SessionPlayer {
   @Column({ name: "streak_bonus", type: "int", nullable: true })
   streakBonus!: number | null;
 
+  @Column({ name: "jackpot_paid", type: "int", nullable: true })
+  jackpotPaid!: number | null;
+
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
   updatedAt!: Date;
 }

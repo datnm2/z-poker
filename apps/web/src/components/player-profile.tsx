@@ -127,7 +127,16 @@ export function PlayerProfile({
             </span>
           )}
         </div>
-        <p className="mt-1 text-sm text-muted">
+        {player.jackpot > 0 && (
+          <div className="mt-2 flex justify-center">
+            <div className="flex items-center gap-1.5 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-500/30 to-yellow-500/20 px-4 py-1 text-xs font-black text-amber-400 shadow-[0_0_15px_-3px_rgba(251,191,36,0.4)] animate-pulse-glow">
+              <span className="text-sm">💰</span>
+              <span className="uppercase tracking-wider">{t("session.jackpotTotal")}:</span>
+              <span className="text-sm tabular-nums">{player.jackpot}</span>
+            </div>
+          </div>
+        )}
+        <p className="mt-2 text-sm text-muted">
           {player.email.replace(/^(.{2})[^@]+(@.+)$/, "$1***$2")}
         </p>
       </div>
