@@ -30,6 +30,9 @@ export class Player {
   @Column({ name: "current_streak", type: "int", default: 0 })
   currentStreak!: number;
 
+  @Column({ type: "int", default: 0 })
+  jackpot!: number;
+
   @Column({ name: "avatar_url", type: "text", nullable: true })
   avatarUrl!: string | null;
 

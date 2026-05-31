@@ -23,6 +23,7 @@ export interface PlayerDto {
   gamesPlayed: number;
   currentStreak: number;
   lastResults: GameResult[]; // last 5 locked-session results, newest first
+  jackpot: number;
   avatarUrl: string | null;
   createdAt: string;
 }
@@ -56,6 +57,7 @@ function toDto(p: Player, lastResults: GameResult[] = []): PlayerDto {
     gamesPlayed: p.gamesPlayed,
     currentStreak: p.currentStreak,
     lastResults,
+    jackpot: p.jackpot,
     avatarUrl: p.avatarUrl,
     createdAt: p.createdAt.toISOString(),
   };

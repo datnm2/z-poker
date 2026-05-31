@@ -34,16 +34,16 @@ Real-time qua SSE → ai đó tạo/join/lock phiên là cả nhóm thấy ngay.
 
 ## 5. Key screens (web routes)
 
-| Route | Mục đích |
-|---|---|
+| Route            | Mục đích                                                                                       |
+| ---------------- | ---------------------------------------------------------------------------------------------- |
 | `/` (logged-out) | Landing page: hero, why-cards, mock leaderboard, rank ladder, "for-fun" disclaimer, CTA Google |
-| `/` (logged-in) | Leaderboard domain: active sessions, nút tạo phiên, player rankings + tier/division/progress |
-| `/session/[id]` | Chi tiết phiên: nhập chip cuối, xem "ăn/mất tối đa" ước tính, host lock |
-| `/sessions` | Lịch sử phiên đã lock (paginated, có dealer + winner) |
-| `/player/[id]` | Profile public 1 player (Elo history, games played) |
-| `/profile` | Profile của mình: đổi tên, sign out |
-| `/guide` | Hướng dẫn Elo + luật |
-| `/login` | Clerk login |
+| `/` (logged-in)  | Leaderboard domain: active sessions, nút tạo phiên, player rankings + tier/division/progress   |
+| `/session/[id]`  | Chi tiết phiên: nhập chip cuối, xem "ăn/mất tối đa" ước tính, host lock                        |
+| `/sessions`      | Lịch sử phiên đã lock (paginated, có dealer + winner)                                          |
+| `/player/[id]`   | Profile public 1 player (Elo history, games played)                                            |
+| `/profile`       | Profile của mình: đổi tên, sign out                                                            |
+| `/guide`         | Hướng dẫn Elo + luật                                                                           |
+| `/login`         | Clerk login                                                                                    |
 
 ## 6. Business rules quan trọng
 
@@ -58,14 +58,14 @@ Real-time qua SSE → ai đó tạo/join/lock phiên là cả nhóm thấy ngay.
 
 6 hạng, mid tiers chia 3 divisions 50-elo:
 
-| Tier | Elo range |
-|---|---|
-| 👑 Thần Bài — Vua Trò Chơi | 1600+ |
-| 🦈 Kẻ Săn Mồi | 1450–1600 (★ ★★ ★★★) |
-| 💰 Lão Luyện | 1300–1450 (★ ★★ ★★★) |
-| 🎯 Tay Mới | 1150–1300 (★ ★★ ★★★) |
-| 🃏 Tay Non Và Xanh | 1000–1150 (★ ★★ ★★★) |
-| 🐟 Cá Con — Chip Feeder | <1000 |
+| Tier                       | Elo range            |
+| -------------------------- | -------------------- |
+| 👑 Thần Bài — Vua Trò Chơi | 1600+                |
+| 🦈 Kẻ Săn Mồi              | 1450–1600 (★ ★★ ★★★) |
+| 💰 Lão Luyện               | 1300–1450 (★ ★★ ★★★) |
+| 🎯 Tay Mới                 | 1150–1300 (★ ★★ ★★★) |
+| 🃏 Tay Non Và Xanh         | 1000–1150 (★ ★★ ★★★) |
+| 🐟 Cá Con — Chip Feeder    | <1000                |
 
 Rank trong domain = đếm số player có elo cao hơn + 1.
 
@@ -93,6 +93,7 @@ Rank trong domain = đếm số player có elo cao hơn + 1.
 **Input**: mảng `{playerId, chipsEnd, elo}` + `buyIn`. **Output**: `eloBefore`, `eloAfter`, `change`.
 
 **Công thức lõi**:
+
 ```
 change = ceil( K × (N/2) × (actual − expected) )
 expected = 1 / (1 + 10^((avgElo − playerElo) / 400))
@@ -101,15 +102,16 @@ actual   = 0.5 + 0.5 × (chipsEnd − buyIn) / (buyIn × (N − 1))
 
 **Các hằng số & quyết định thiết kế**:
 
-| Thành phần | Giá trị | Vì sao |
-|---|---|---|
-| `K` | 70 | Chess chuẩn 10–40. Casual office poker cần feedback rõ hơn → lớn hơn. Nhưng thấp hơn 100 để tránh swing 1 ván là nhảy tier. |
-| `400` (scaling) | chuẩn Arpad Elo | 1 player hơn 400 Elo → xác suất "thắng" ~91% → Elo gap lớn thì ăn chênh lệch ít, thua thì mất nhiều (upset penalty). |
-| `N/2` scaling | × số người / 2 | N=2 giữ nguyên ×1, N=9 thành ×4.5. Bàn đông → stakes to hơn, tránh Elo bị loãng khi chia cho nhiều người. |
-| `Math.ceil` | làm tròn lên | Tạo "mild positive drift" — Elo toàn domain inflate nhẹ theo thời gian → số càng tăng càng tạo cảm giác tiến bộ (UX gamification). |
-| Min `+1` nếu chipsEnd > buyIn | winner guarantee | Thắng chip thì KHÔNG BAO GIỜ mất Elo, dù đối thủ Elo thấp hơn. Tránh cảm giác "thắng mà vẫn bị trừ" (demotivating). |
+| Thành phần                    | Giá trị          | Vì sao                                                                                                                             |
+| ----------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `K`                           | 70               | Chess chuẩn 10–40. Casual office poker cần feedback rõ hơn → lớn hơn. Nhưng thấp hơn 100 để tránh swing 1 ván là nhảy tier.        |
+| `400` (scaling)               | chuẩn Arpad Elo  | 1 player hơn 400 Elo → xác suất "thắng" ~91% → Elo gap lớn thì ăn chênh lệch ít, thua thì mất nhiều (upset penalty).               |
+| `N/2` scaling                 | × số người / 2   | N=2 giữ nguyên ×1, N=9 thành ×4.5. Bàn đông → stakes to hơn, tránh Elo bị loãng khi chia cho nhiều người.                          |
+| `Math.ceil`                   | làm tròn lên     | Tạo "mild positive drift" — Elo toàn domain inflate nhẹ theo thời gian → số càng tăng càng tạo cảm giác tiến bộ (UX gamification). |
+| Min `+1` nếu chipsEnd > buyIn | winner guarantee | Thắng chip thì KHÔNG BAO GIỜ mất Elo, dù đối thủ Elo thấp hơn. Tránh cảm giác "thắng mà vẫn bị trừ" (demotivating).                |
 
 **Tính chất quan trọng**:
+
 - **Zero-sum chip** (enforced): `sum(chipsEnd) == buyIn × N` ở lock time → nếu lệch, báo "ai giấu chip" / "chip thừa".
 - **KHÔNG zero-sum Elo** (cố ý): do `ceil` + winner-floor → tổng Elo của domain drift dương nhẹ. Trade-off: công bằng tuyệt đối vs. động lực chơi dài hạn → chọn động lực.
 - **Linear theo chip delta** (không phải rank ordinal): thắng nhiều chip hơn → `actual` cao hơn → Elo nhiều hơn. Không chỉ "ai #1" mà còn "ăn đậm cỡ nào".
@@ -117,6 +119,7 @@ actual   = 0.5 + 0.5 × (chipsEnd − buyIn) / (buyIn × (N − 1))
 - **`expected` so với avgElo bàn, không pairwise**: approximation cho multi-player (Elo gốc chỉ cho 1v1). Mỗi player so với "mặt bằng chung của bàn".
 
 **Edge case**:
+
 - `numPlayers === 1` → công thức chia cho `(N-1) = 0` → không dùng session 1 người (UI chặn).
 - Float noise (e.g. `63.0000004`) → round về 6 chữ số thập phân trước khi `ceil`.
 
@@ -125,16 +128,19 @@ actual   = 0.5 + 0.5 × (chipsEnd − buyIn) / (buyIn × (N − 1))
 **Flow**: Session được lock → trigger `HighlightsService.generateForSession()` async → gọi Gemini với structured output → lưu vào `session.highlights` JSON → UI session detail hiển thị 3 cards troll.
 
 **File chính**:
+
 - `apps/api/src/ai/ai.service.ts` — wrapper `@google/generative-ai` (Gemini), default model `gemini-3-flash-preview`, hỗ trợ `generateJson<T>()` với `ResponseSchema` để output JSON strict.
 - `apps/api/src/sessions/highlights/highlights.service.ts` — build context + prompt + parse.
 - `apps/api/src/sessions/highlights/highlights.types.ts` — `SessionHighlights` type (`{generatedAt, model, items[]}`).
 
 **Context build cho LLM** (`PlayerContext`):
+
 - Kết quả session hiện tại: `chipsEnd`, `chipDelta`, `eloBefore/After/Change`.
 - `isFirstTimer`: flag nếu người chơi chưa có history locked.
 - **History 10 session gần nhất** của mỗi player: date, buyIn, chipsEnd, eloBefore/After, result (`win`/`loss`/`tie`) → để LLM bắt được pattern streak/comeback.
 
 **Prompt design** (tiếng Việt, tone "MC sòng bài văn phòng mồm mép lanh"):
+
 - Bắt pattern có chủ đích: **thắng/thua streak ≥3**, **comeback** (thua chuỗi rồi thắng), **chip feeder** (delta âm nhất), **upset** (người thường thua bỗng thắng), **fall from grace** (streak thắng rồi thua), **first-timer** (history rỗng → angle riêng, KHÔNG bịa streak).
 - Output schema enforce: `items[3]` — mỗi item có `title/body` song ngữ `{vi, en}`, `emoji`, `playerId` khớp data.
 - **Constraints tone**: cà khịa dí dỏm, không tục, không động chạm ngoại hình/giới tính/gia đình. EN phải natural trash-talk chứ không dịch word-by-word.
@@ -143,6 +149,7 @@ actual   = 0.5 + 0.5 × (chipsEnd − buyIn) / (buyIn × (N − 1))
 **Error handling**: try/catch log error, không fail lock flow nếu AI lỗi (highlights optional, core Elo vẫn tính).
 
 **Giới hạn** (cố ý):
+
 - Chỉ 3 highlights / session (tránh spam).
 - Generated once, lưu DB, không regenerate (determinism cho user).
 - Bilingual hardcoded `vi` + `en` (i18n app hiện chỉ 2 ngôn ngữ).
@@ -175,3 +182,26 @@ Host lock xong là immutable, không sửa được. Loại bỏ drama "cho tao 
 
 **i) Inflation-biased rounding (`ceil`)**
 Làm tròn LÊN → Elo domain drift dương từ từ. Psychology: số càng tăng càng thoả mãn ("con số cao = tôi tiến bộ"), dù relative ranking không đổi. Trade-off đạo đức nhẹ vs. engagement — app chọn engagement vì không có stakes thật.
+
+## 14. Thuật toán Nổ Hũ (Jackpot) - Meta game chuỗi thắng/thua (TFT-style)
+
+Để tăng chiều sâu chiến thuật và tạo ra các "narrative" (câu chuyện) kịch tính, Z-Poker áp dụng cơ chế thưởng/phạt dựa trên chuỗi thắng/thua của người chơi, lấy cảm hứng từ game TFT.
+
+### a. Duy trì Chuỗi (Streak Bonus - Hệ thống cũ)
+
+- **Mục đích**: Thưởng cho người chơi duy trì phong độ.
+- **Cơ chế**: Dựa trên `streakAfter` (chuỗi sau ván đấu).
+  - **Chuỗi thắng (S >= 3)**: Thưởng `S * 2` ELO (Ví dụ: chuỗi 3 -> +6, chuỗi 5 -> +10). Không giới hạn.
+  - **Chuỗi thua (L >= 3)**: Phạt thêm `L` ELO (Ví dụ: chuỗi 3 -> -3, chuỗi 5 -> -5). Giới hạn tối đa phạt thêm 5 ELO (cap tại 5).
+- **Lối chơi**: "Bảo Toàn Chuỗi" - duy trì chuỗi thắng để tối đa hóa ELO cộng thêm hàng trận.
+
+### b. Nổ Hũ Chuỗi Thua (Loss Streak Jackpot - Mở rộng mới)
+
+- **Mục đích**: Tạo lối chơi "Nuôi Hũ" (eco chuỗi thua) như TFT, tạo cơ hội lật kèo cực lớn.
+- **Cơ chế**:
+  1.  **Tổn Thất Giảm Dần & Tích Hũ**: Khi thua từ trận thứ 3 trở đi (`L >= 3`), lượng ELO bị trừ cơ bản được giảm mạnh (giảm tối đa 50%). Phần ELO "được giảm" này được tích vào **Hũ (Jackpot)** cá nhân.
+  2.  **Công thức tích hũ**: `Jackpot += abs(BaseLoss) * 20% * L`.
+  3.  **Nổ Hũ**: Nếu đang có chuỗi thua (`L >= 3`) và đạt được chiến thắng lớn (**Top 3** và **Số chip cuối >= 1.5x Buy-in**), người chơi nhận lại toàn bộ số ELO trong Hũ.
+- **Lối chơi**: "Nuôi Hũ & Khô Máu" - chấp nhận thua nhẹ để tích hũ to, sau đó dồn lực thắng một trận lớn để "Nổ Hũ" và nhảy vọt trên Leaderboard.
+
+Việc công khai cơ chế này trên UI (với hiệu ứng lửa cho chuỗi thắng và icon hũ vàng cho chuỗi thua) sẽ giúp người chơi nhanh chóng định hình và lựa chọn chiến thuật leo rank phù hợp.

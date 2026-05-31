@@ -49,8 +49,15 @@ export interface SessionPlayerDto {
   eloBefore: number | null;
   eloAfter: number | null;
   streakBonus: number | null;
+  jackpotPaid: number | null;
   updatedAt: string;
-  player: { id: string; name: string; elo: number; avatarUrl: string | null };
+  player: {
+    id: string;
+    name: string;
+    elo: number;
+    avatarUrl: string | null;
+    jackpot: number;
+  };
 }
 
 export interface SessionDetailDto {
@@ -132,7 +139,9 @@ export class SessionsService {
     const key = CacheKeys.sessionsStats(domain);
     const hit = await this.cache.get<number>(key);
     if (hit !== undefined) return hit;
-    const fresh = await this.sessions.count({ where: { domain, isLocked: true } });
+    const fresh = await this.sessions.count({
+      where: { domain, isLocked: true },
+    });
     await this.cache.set(key, fresh, DEFAULT_TTL_MS);
     return fresh;
   }
@@ -224,9 +233,7 @@ export class SessionsService {
         const buyIn = buyInBySession.get(r.sessionId) ?? 0;
         const delta = r.chipsEnd - buyIn;
         const currDelta =
-          entry.winner != null
-            ? entry.winner.chipsEnd - buyIn
-            : -Infinity;
+          entry.winner != null ? entry.winner.chipsEnd - buyIn : -Infinity;
         if (delta > currDelta) {
           entry.winner = {
             playerId: r.playerId,
@@ -323,7 +330,10 @@ export class SessionsService {
     const playerRows = sessionIds.length
       ? await this.sessionPlayers
           .createQueryBuilder("sp")
-          .select(['sp.session_id AS "sessionId"', 'sp.player_id AS "playerId"'])
+          .select([
+            'sp.session_id AS "sessionId"',
+            'sp.player_id AS "playerId"',
+          ])
           .where("sp.session_id IN (:...sessionIds)", { sessionIds })
           .getRawMany<{ sessionId: string; playerId: string }>()
       : [];
@@ -437,11 +447,13 @@ export class SessionsService {
         'sp.elo_before AS "eloBefore"',
         'sp.elo_after AS "eloAfter"',
         'sp.streak_bonus AS "streakBonus"',
+        'sp.jackpot_paid AS "jackpotPaid"',
         'sp.updated_at AS "updatedAt"',
         'p.id AS "pId"',
         'p.name AS "pName"',
         'p.elo AS "pElo"',
         'p.avatar_url AS "pAvatarUrl"',
+        'p.jackpot AS "pJackpot"',
       ])
       .where("sp.session_id = :sessionId", { sessionId })
       .orderBy("sp.chips_end", "DESC", "NULLS LAST")
@@ -454,11 +466,13 @@ export class SessionsService {
         eloBefore: number | null;
         eloAfter: number | null;
         streakBonus: number | null;
+        jackpotPaid: number | null;
         updatedAt: Date;
         pId: string;
         pName: string;
         pElo: number;
         pAvatarUrl: string | null;
+        pJackpot: number;
       }>();
 
     return {
@@ -471,8 +485,15 @@ export class SessionsService {
         eloBefore: r.eloBefore,
         eloAfter: r.eloAfter,
         streakBonus: r.streakBonus,
+        jackpotPaid: r.jackpotPaid,
         updatedAt: r.updatedAt.toISOString(),
-        player: { id: r.pId, name: r.pName, elo: Number(r.pElo), avatarUrl: r.pAvatarUrl },
+        player: {
+          id: r.pId,
+          name: r.pName,
+          elo: Number(r.pElo),
+          avatarUrl: r.pAvatarUrl,
+          jackpot: Number(r.pJackpot),
+        },
       })),
       highlights: session.highlights ?? null,
     };
@@ -523,6 +544,7 @@ export class SessionsService {
       chipsEnd: null,
       eloAfter: null,
       streakBonus: null,
+      jackpotPaid: null,
     });
     const saved = await this.sessionPlayers.save(sp);
 
@@ -534,8 +556,15 @@ export class SessionsService {
       eloBefore: saved.eloBefore,
       eloAfter: saved.eloAfter,
       streakBonus: saved.streakBonus,
+      jackpotPaid: saved.jackpotPaid,
       updatedAt: saved.updatedAt.toISOString(),
-      player: { id: target.id, name: target.name, elo: target.elo, avatarUrl: target.avatarUrl },
+      player: {
+        id: target.id,
+        name: target.name,
+        elo: target.elo,
+        avatarUrl: target.avatarUrl,
+        jackpot: target.jackpot,
+      },
     };
     await this.emit({
       type: "session.player_joined",
@@ -619,7 +648,11 @@ export class SessionsService {
       sessionId,
       results,
     });
-    void this.highlights.generateForSession(sessionId, session.domain, personaId);
+    void this.highlights.generateForSession(
+      sessionId,
+      session.domain,
+      personaId,
+    );
     return { results };
   }
 
@@ -635,6 +668,11 @@ export class SessionsService {
     if (!session.isLocked) {
       throw new BadRequestException("Session is not locked yet");
     }
-    void this.highlights.generateForSession(sessionId, session.domain, personaId, { sendEmail: false });
+    void this.highlights.generateForSession(
+      sessionId,
+      session.domain,
+      personaId,
+      { sendEmail: false },
+    );
   }
 }

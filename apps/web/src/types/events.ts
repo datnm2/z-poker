@@ -11,6 +11,9 @@ export interface EloResult {
   streakBefore: number;
   streakAfter: number;
   streakBonus: number;
+  jackpotBefore: number;
+  jackpotAfter: number;
+  jackpotChange: number;
 }
 
 export interface SessionWithCreator extends Session {
@@ -26,8 +29,15 @@ export interface SessionPlayerWithPlayer {
   eloBefore: number | null;
   eloAfter: number | null;
   streakBonus: number | null;
+  jackpotPaid: number | null;
   updatedAt: string;
-  player: { id: string; name: string; elo: number; avatarUrl: string | null };
+  player: {
+    id: string;
+    name: string;
+    elo: number;
+    avatarUrl: string | null;
+    jackpot: number;
+  };
 }
 
 export type SessionEvent =

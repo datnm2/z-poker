@@ -31,7 +31,7 @@ export const vi = {
   "landing.whyTitle": "Tại sao Z-Poker?",
   "landing.why1.title": "Hợp với giờ trưa",
   "landing.why1.body":
-    "Một ván poker \"đúng chuẩn\" cần vài tiếng. Văn phòng chỉ có 30–45 phút. Z-Poker nghỉ ngang vẫn tính Elo theo chip cuối — không cần chơi tới người cuối cùng.",
+    'Một ván poker "đúng chuẩn" cần vài tiếng. Văn phòng chỉ có 30–45 phút. Z-Poker nghỉ ngang vẫn tính Elo theo chip cuối — không cần chơi tới người cuối cùng.',
   "landing.why2.title": "Tracking dài hạn",
   "landing.why2.body":
     "Mỗi buổi trưa là một phiên, Elo cộng dồn qua tháng. Ai giỏi thật sự lộ ra sau nhiều phiên — không phải ăn may 1 ván.",
@@ -81,7 +81,8 @@ export const vi = {
   "leaderboard.modeOnlineDesc": "Sắp ra mắt",
   "leaderboard.games": "ván đã đấu",
   "leaderboard.game": "ván đã đấu",
-  "leaderboard.signInPrompt": "Đăng nhập để xem bảng xếp hạng và tham gia ván chơi.",
+  "leaderboard.signInPrompt":
+    "Đăng nhập để xem bảng xếp hạng và tham gia ván chơi.",
   "leaderboard.signInBtn": "Đăng nhập",
   "leaderboard.streakHot": "Phong Độ Cao",
   "leaderboard.streakCold": "Cắm Đầu",
@@ -90,7 +91,8 @@ export const vi = {
   "leaderboard.tierEmpty": "chưa xuất hiện",
   "leaderboard.colPlayer": "Tay chơi khác",
   "leaderboard.colElo": "Điểm Elo",
-  "leaderboard.eloTooltip": "Điểm Elo — cộng/trừ sau mỗi phiên dựa trên chip cuối ván",
+  "leaderboard.eloTooltip":
+    "Điểm Elo — cộng/trừ sau mỗi phiên dựa trên chip cuối ván",
 
   // Session
   "session.title": "Phiên chơi",
@@ -98,6 +100,9 @@ export const vi = {
   "session.open": "Đang mở",
   "session.chips": "Chip còn lại",
   "session.chipsPlaceholder": "Chip cuối ván",
+  "session.jackpotWon": "💰 NỔ HŨ!",
+  "session.jackpotBonus": "+{amount} Elo tích lũy",
+  "session.jackpotTotal": "Hũ hiện tại",
   "session.edit": "Sửa",
   "session.stakes": "Elo ván này",
   "session.avgElo": "Trung bình bàn",
@@ -110,7 +115,8 @@ export const vi = {
   "session.offBy": "lệch",
   "session.cheatWarning": "🚨 Ai đó đang giấu chip! Thiếu mất",
   "session.extraWarning": "⚠️ Chip thừa không rõ nguồn gốc! Dư ra",
-  "session.lockErrorNotReady": "Chưa phải tất cả người chơi đều đã xác nhận chip.",
+  "session.lockErrorNotReady":
+    "Chưa phải tất cả người chơi đều đã xác nhận chip.",
   "session.lockErrorInvalid": "Tổng chip chưa khớp. Sửa lại số liệu trước.",
   "session.joinSession": "Tham gia phiên",
   "session.joined": "Đã tham gia",
@@ -141,7 +147,8 @@ export const vi = {
   "session.streakIncluded.loss": "đã gồm {bonus} phạt chuỗi thua",
   "session.rank": "Xếp hạng",
   "session.dealer": "Dealer",
-  "session.dealerHint": "Hoặc đứng Dealer — bạn vẫn sửa chip & khóa phiên mà không cần tham gia",
+  "session.dealerHint":
+    "Hoặc đứng Dealer — bạn vẫn sửa chip & khóa phiên mà không cần tham gia",
   "session.fighters": "Chiến binh",
   "session.sortedByElo": "xếp theo Elo",
   "session.highlights.title": "🎬 Highlights của ván",
@@ -150,19 +157,25 @@ export const vi = {
   "session.highlights.loadingHint": "Đang tổng hợp drama, chờ tí nhé",
   "session.highlights.hostedBy": "Bởi",
   "session.highlights.regenerate": "Tạo lại",
-  "session.joinHype": "Nhảy vào đi — Elo của bạn đang chờ. Chứng minh ai là số 1.",
+  "session.joinHype":
+    "Nhảy vào đi — Elo của bạn đang chờ. Chứng minh ai là số 1.",
 
   // Share
   "share.action": "Chia sẻ",
   "share.shared": "Đã chia sẻ",
   "share.copied": "Đã copy link",
   "share.error": "Không chia sẻ được",
-  "share.recap.win": "Vừa thắng {chips} chip ({elo} ELO) ở ván poker văn phòng hôm nay. Xem highlight cả bàn:",
-  "share.recap.loss": "Vừa thua {chips} chip ({elo} ELO) ở ván poker văn phòng hôm nay. Xem highlight cả bàn:",
-  "share.recap.even": "Vừa hoà vốn ở ván poker văn phòng hôm nay. Xem highlight cả bàn:",
-  "share.recap.spectator": "Ván poker văn phòng vừa kết thúc. Xem highlight + bảng điểm:",
+  "share.recap.win":
+    "Vừa thắng {chips} chip ({elo} ELO) ở ván poker văn phòng hôm nay. Xem highlight cả bàn:",
+  "share.recap.loss":
+    "Vừa thua {chips} chip ({elo} ELO) ở ván poker văn phòng hôm nay. Xem highlight cả bàn:",
+  "share.recap.even":
+    "Vừa hoà vốn ở ván poker văn phòng hôm nay. Xem highlight cả bàn:",
+  "share.recap.spectator":
+    "Ván poker văn phòng vừa kết thúc. Xem highlight + bảng điểm:",
   "share.og.title": "Ván poker {date} — {winner} thắng",
-  "share.og.description": "Buy-in {buyIn} chip · {players} người chơi · MC {mc} chấm điểm",
+  "share.og.description":
+    "Buy-in {buyIn} chip · {players} người chơi · MC {mc} chấm điểm",
   "share.og.descriptionNoMc": "Buy-in {buyIn} chip · {players} người chơi",
 
   // Profile
@@ -217,7 +230,8 @@ export const vi = {
     "Hệ thống chỉ hoạt động khi mọi người báo số chip chính xác. Hãy thống nhất trước khi nhập.",
 
   "guide.roles.title": "Vai trò",
-  "guide.roles.intro": "Z-Poker có hai vai trò trong mỗi phiên: Người chơi và Dealer (Chủ phiên).",
+  "guide.roles.intro":
+    "Z-Poker có hai vai trò trong mỗi phiên: Người chơi và Dealer (Chủ phiên).",
   "guide.roles.player.title": "🃏 Người chơi",
   "guide.roles.player.body":
     "Tham gia phiên và ngồi vào bàn. Nhập số chip của mình sau ván. Elo được cập nhật khi phiên bị khóa.",

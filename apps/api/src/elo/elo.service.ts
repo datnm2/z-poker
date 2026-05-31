@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import { Player } from "../players/player.entity";
@@ -41,6 +45,7 @@ export class EloService {
           'sp.updated_at AS "updatedAt"',
           'p.elo AS "elo"',
           'p.current_streak AS "currentStreak"',
+          'p.jackpot AS "jackpot"',
         ])
         .where("sp.session_id = :sessionId", { sessionId })
         .orderBy("sp.chips_end", "DESC", "NULLS LAST")
@@ -51,6 +56,7 @@ export class EloService {
           updatedAt: Date;
           elo: number;
           currentStreak: number;
+          jackpot: number;
         }>();
 
       const numPlayers = rows.length;
@@ -78,6 +84,7 @@ export class EloService {
           chipsEnd: r.chipsEnd as number,
           elo: Number(r.elo),
           currentStreak: Number(r.currentStreak ?? 0),
+          jackpot: Number(r.jackpot ?? 0),
         })),
         buyIn,
       );
@@ -89,18 +96,31 @@ export class EloService {
       const changes = results.map((r) => r.change);
       const streakAfters = results.map((r) => r.streakAfter);
       const streakBonuses = results.map((r) => r.streakBonus);
+      const jackpotAfters = results.map((r) => r.jackpotAfter);
+      // Payout is recorded as a positive number when jackpotChange < 0
+      const jackpotPaids = results.map((r) =>
+        r.jackpotChange < 0 ? Math.abs(r.jackpotChange) : 0,
+      );
 
       await tx.query(
         `UPDATE session_players sp
-         SET elo_before = v.elo_before, elo_after = v.elo_after, streak_bonus = v.streak_bonus
+         SET elo_before = v.elo_before, elo_after = v.elo_after, streak_bonus = v.streak_bonus, jackpot_paid = v.jackpot_paid
          FROM (
            SELECT unnest($1::text[]) AS player_id,
                   unnest($2::int[]) AS elo_before,
                   unnest($3::int[]) AS elo_after,
-                  unnest($4::int[]) AS streak_bonus
+                  unnest($4::int[]) AS streak_bonus,
+                  unnest($5::int[]) AS jackpot_paid
          ) v
-         WHERE sp.session_id = $5 AND sp.player_id = v.player_id`,
-        [playerIds, eloBefores, eloAfters, streakBonuses, sessionId],
+         WHERE sp.session_id = $6 AND sp.player_id = v.player_id`,
+        [
+          playerIds,
+          eloBefores,
+          eloAfters,
+          streakBonuses,
+          jackpotPaids,
+          sessionId,
+        ],
       );
 
       // Lock player rows in id-sorted order first to avoid deadlocks when two
@@ -113,14 +133,16 @@ export class EloService {
         `UPDATE players p
          SET elo = p.elo + v.change,
              games_played = games_played + 1,
-             current_streak = v.streak_after
+             current_streak = v.streak_after,
+             jackpot = v.jackpot_after
          FROM (
            SELECT unnest($1::text[]) AS id,
                   unnest($2::int[]) AS change,
-                  unnest($3::int[]) AS streak_after
+                  unnest($3::int[]) AS streak_after,
+                  unnest($4::int[]) AS jackpot_after
          ) v
          WHERE p.id = v.id`,
-        [playerIds, changes, streakAfters],
+        [playerIds, changes, streakAfters, jackpotAfters],
       );
 
       await tx
