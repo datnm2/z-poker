@@ -263,7 +263,23 @@ export const en = {
     "After 3 sessions with the same outcome, a bonus kicks in. Win streak = streak × 2 (3→+6, 4→+8, 5→+10, unbounded) — rewards being on a heater. Loss streak grows step 1 then caps at −5 (3→−3, 4→−4, 5→−5, 6→−5...) — punishes losing slumps without spiraling. A tie (chips = buy-in) resets the streak to 0.",
   "guide.elo.example.title": "Concrete example",
   "guide.elo.example.body":
-    "6-player table, buy-in 100. You're 1300 Elo, table avg 1200, you finish 180 chips (+80). Expected = 1/(1+10^(-100/700)) = 0.582. Actual = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.582)) = 0. As a winner: max(0, 2) + 3 = +5 Elo. On a 3-game win streak: +5 + 6 = +11 Elo. Upset case: 1000 Elo player at avg-1300 table sweeps the full pot (600 chips) → expected 0.272, actual 1.0, raw = round(70 × 3 × 0.728) = +153 → +156 Elo with the bonus.",
+    "6-player table, buy-in 100. You're 1300 Elo, table avg 1200, you finish 180 chips (+80). Expected = 1/(1+10^(-100/700)) = 0.582. Actual = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.582)) = 0. As a winner: max(0, 2) + 3 = +5 Elo. On a 3-game win streak: +5 + 6 = +11 Elo. Upset case: 1000 Elo player at avg-1300 table sweeps the full pot (600 chips) → expected 0.272, actual 1.0, raw = round(70 × 3 × 0.728) = +153 → +156 Elo with the bonus).",
+
+  "guide.jackpot.title": "Jackpot Mechanism",
+  "guide.jackpot.intro":
+    "Z-Poker features a Jackpot mechanism to add excitement and reward players on a 'cold streak'.",
+  "guide.jackpot.accumulation.title": "Accumulation",
+  "guide.jackpot.accumulation.body":
+    "Starting from the first loss. The percentage of Elo points deducted from the personal jackpot increases according to the formula: 20% × Number of consecutive losses.",
+  "guide.jackpot.mitigation.title": "Loss Mitigation",
+  "guide.jackpot.mitigation.body":
+    "Applies from the first loss. For each consecutive loss, the player receives a 10% reduction in Elo penalty (maximum reduction of 50%).",
+  "guide.jackpot.payout.title": "Jackpot Payout",
+  "guide.jackpot.payout.body":
+    "The jackpot will be hit when the player has a losing streak of 3 or more consecutive games and achieves the following ranking: Top 3 in the session, and Achievement: Final chip count >= 1.5 times Buy-in.",
+  "guide.jackpot.reset.title": "Reset",
+  "guide.jackpot.reset.body":
+    "When the jackpot is hit, the player receives all the points in the jackpot back. Then, the personal jackpot and win/loss streak are immediately reset to 0.",
 
   "guide.strategy.title": "Level Up Your Elo",
   "guide.strategy.intro":
