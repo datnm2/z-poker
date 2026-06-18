@@ -264,6 +264,22 @@ export const vi = {
   "guide.elo.example.body":
     "Bàn 6 người, buy-in 100. Bạn ELO 1300, bàn TB 1200, kết thúc 180 chip (lãi +80). Kỳ vọng = 1/(1+10^(-100/700)) = 0.582. Thực tế = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.582)) = 0. Vì là winner: max(0, 2) + 3 = +5 Elo. Nếu đang chuỗi thắng 3 trận: +5 + 6 = +11 Elo. Trường hợp upset: ELO 1000 đánh bàn TB 1300, ăn full pot 600 → kỳ vọng 0.272, thực tế 1.0, raw = round(70 × 3 × 0.728) = +153 → +156 Elo (cộng bonus).",
 
+  "guide.jackpot.title": "Cơ Chế Nổ Hũ (Jackpot)",
+  "guide.jackpot.intro":
+    "Z-Poker có cơ chế Nổ Hũ để tăng kịch tính và thưởng cho người chơi gặp 'chuỗi đen'.",
+  "guide.jackpot.accumulation.title": "Tích lũy",
+  "guide.jackpot.accumulation.body":
+    "Bắt đầu ngay từ trận thua đầu tiên. Tỷ lệ trích điểm Elo bị trừ vào hũ cá nhân tăng dần theo công thức: 20% × Số trận thua liên tiếp.",
+  "guide.jackpot.mitigation.title": "Giảm lỗ",
+  "guide.jackpot.mitigation.body":
+    "Áp dụng ngay từ trận thua đầu tiên. Cứ mỗi trận thua liên tiếp, người chơi được giảm 10% hình phạt Elo (giảm tối đa 50%).",
+  "guide.jackpot.payout.title": "Nổ Hũ (Payout)",
+  "guide.jackpot.payout.body":
+    "Hũ sẽ nổ khi người chơi có chuỗi thua liên tiếp từ 3 trận trở lên đạt được Thứ hạng: Top 3 trong phiên, và Thành tích: Số chip cuối trận >= 1.5 lần Buy-in.",
+  "guide.jackpot.reset.title": "Reset",
+  "guide.jackpot.reset.body":
+    "SKhi nổ hũ thành công, người chơi nhận lại toàn bộ điểm trong hũ. Sau đó, hũ cá nhân và chuỗi thắng/thua lập tức được reset về 0.",
+
   "guide.strategy.title": "Tăng Elo của bạn",
   "guide.strategy.intro":
     "Elo trong Z-Poker phụ thuộc vào số chip cuối cùng so với buy-in. Những chiến thuật dưới đây giúp bạn kết thúc với nhiều chip hơn một cách nhất quán.",

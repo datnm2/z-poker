@@ -65,49 +65,140 @@ const sections: Section[] = [
     titleKey: "guide.roles.title",
     introKey: "guide.roles.intro",
     items: [
-      { titleKey: "guide.roles.player.title", bodyKey: "guide.roles.player.body" },
-      { titleKey: "guide.roles.dealer.title", bodyKey: "guide.roles.dealer.body" },
-      { titleKey: "guide.roles.gameMode.title", bodyKey: "guide.roles.gameMode.body" },
+      {
+        titleKey: "guide.roles.player.title",
+        bodyKey: "guide.roles.player.body",
+      },
+      {
+        titleKey: "guide.roles.dealer.title",
+        bodyKey: "guide.roles.dealer.body",
+      },
+      {
+        titleKey: "guide.roles.gameMode.title",
+        bodyKey: "guide.roles.gameMode.body",
+      },
     ],
   },
   {
     titleKey: "guide.elo.title",
     introKey: "guide.elo.intro",
     items: [
-      { titleKey: "guide.elo.starting.title", bodyKey: "guide.elo.starting.body" },
+      {
+        titleKey: "guide.elo.starting.title",
+        bodyKey: "guide.elo.starting.body",
+      },
       { tiers: true, titleKey: "guide.elo.tiers.title" },
-      { titleKey: "guide.elo.howWorks.title", bodyKey: "guide.elo.howWorks.body" },
-      { titleKey: "guide.elo.kfactor.title", bodyKey: "guide.elo.kfactor.body" },
-      { titleKey: "guide.elo.formula.title", bodyKey: "guide.elo.formula.body" },
+      {
+        titleKey: "guide.elo.howWorks.title",
+        bodyKey: "guide.elo.howWorks.body",
+      },
+      {
+        titleKey: "guide.elo.kfactor.title",
+        bodyKey: "guide.elo.kfactor.body",
+      },
+      {
+        titleKey: "guide.elo.formula.title",
+        bodyKey: "guide.elo.formula.body",
+      },
       { titleKey: "guide.elo.streak.title", bodyKey: "guide.elo.streak.body" },
-      { titleKey: "guide.elo.example.title", bodyKey: "guide.elo.example.body" },
+      {
+        titleKey: "guide.elo.example.title",
+        bodyKey: "guide.elo.example.body",
+      },
     ],
   },
   {
     titleKey: "guide.strategy.title",
     introKey: "guide.strategy.intro",
     items: [
-      { titleKey: "guide.strategy.chip1.title", bodyKey: "guide.strategy.chip1.body" },
-      { titleKey: "guide.strategy.chip2.title", bodyKey: "guide.strategy.chip2.body" },
-      { titleKey: "guide.strategy.chip3.title", bodyKey: "guide.strategy.chip3.body" },
-      { titleKey: "guide.strategy.chip4.title", bodyKey: "guide.strategy.chip4.body" },
-      { titleKey: "guide.strategy.chip5.title", bodyKey: "guide.strategy.chip5.body" },
+      {
+        titleKey: "guide.strategy.chip1.title",
+        bodyKey: "guide.strategy.chip1.body",
+      },
+      {
+        titleKey: "guide.strategy.chip2.title",
+        bodyKey: "guide.strategy.chip2.body",
+      },
+      {
+        titleKey: "guide.strategy.chip3.title",
+        bodyKey: "guide.strategy.chip3.body",
+      },
+      {
+        titleKey: "guide.strategy.chip4.title",
+        bodyKey: "guide.strategy.chip4.body",
+      },
+      {
+        titleKey: "guide.strategy.chip5.title",
+        bodyKey: "guide.strategy.chip5.body",
+      },
     ],
   },
   {
     titleKey: "guide.poker101.title",
     introKey: "guide.poker101.intro",
     items: [
-      { titleKey: "guide.poker101.hand1.title", bodyKey: "guide.poker101.hand1.body" },
-      { titleKey: "guide.poker101.hand2.title", bodyKey: "guide.poker101.hand2.body" },
-      { titleKey: "guide.poker101.hand3.title", bodyKey: "guide.poker101.hand3.body" },
-      { titleKey: "guide.poker101.hand4.title", bodyKey: "guide.poker101.hand4.body" },
-      { titleKey: "guide.poker101.hand5.title", bodyKey: "guide.poker101.hand5.body" },
-      { titleKey: "guide.poker101.hand6.title", bodyKey: "guide.poker101.hand6.body" },
-      { titleKey: "guide.poker101.hand7.title", bodyKey: "guide.poker101.hand7.body" },
-      { titleKey: "guide.poker101.hand8.title", bodyKey: "guide.poker101.hand8.body" },
-      { titleKey: "guide.poker101.hand9.title", bodyKey: "guide.poker101.hand9.body" },
-      { titleKey: "guide.poker101.hand10.title", bodyKey: "guide.poker101.hand10.body" },
+      {
+        titleKey: "guide.poker101.hand1.title",
+        bodyKey: "guide.poker101.hand1.body",
+      },
+      {
+        titleKey: "guide.poker101.hand2.title",
+        bodyKey: "guide.poker101.hand2.body",
+      },
+      {
+        titleKey: "guide.poker101.hand3.title",
+        bodyKey: "guide.poker101.hand3.body",
+      },
+      {
+        titleKey: "guide.poker101.hand4.title",
+        bodyKey: "guide.poker101.hand4.body",
+      },
+      {
+        titleKey: "guide.poker101.hand5.title",
+        bodyKey: "guide.poker101.hand5.body",
+      },
+      {
+        titleKey: "guide.poker101.hand6.title",
+        bodyKey: "guide.poker101.hand6.body",
+      },
+      {
+        titleKey: "guide.poker101.hand7.title",
+        bodyKey: "guide.poker101.hand7.body",
+      },
+      {
+        titleKey: "guide.poker101.hand8.title",
+        bodyKey: "guide.poker101.hand8.body",
+      },
+      {
+        titleKey: "guide.poker101.hand9.title",
+        bodyKey: "guide.poker101.hand9.body",
+      },
+      {
+        titleKey: "guide.poker101.hand10.title",
+        bodyKey: "guide.poker101.hand10.body",
+      },
+    ],
+  },
+  {
+    titleKey: "guide.jackpot.title",
+    introKey: "guide.jackpot.intro",
+    items: [
+      {
+        titleKey: "guide.jackpot.accumulation.title",
+        bodyKey: "guide.jackpot.accumulation.body",
+      },
+      {
+        titleKey: "guide.jackpot.mitigation.title",
+        bodyKey: "guide.jackpot.mitigation.body",
+      },
+      {
+        titleKey: "guide.jackpot.payout.title",
+        bodyKey: "guide.jackpot.payout.body",
+      },
+      {
+        titleKey: "guide.jackpot.reset.title",
+        bodyKey: "guide.jackpot.reset.body",
+      },
     ],
   },
 ];
@@ -116,9 +207,7 @@ function GuideContent() {
   const { t } = useI18n();
   const { isLoggedIn, signInWithGoogle } = useAuth();
 
-  const sectionIds = sections.map((s) =>
-    s.titleKey.replace(/\./g, "-")
-  );
+  const sectionIds = sections.map((s) => s.titleKey.replace(/\./g, "-"));
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
@@ -127,8 +216,18 @@ function GuideContent() {
           href="/"
           className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-card-border bg-card/60 px-2.5 py-1 text-sm text-muted transition active:scale-95 active:text-foreground"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           <span>{t("back")}</span>
         </Link>
@@ -157,11 +256,23 @@ function GuideContent() {
                 className="flex items-center justify-between gap-2 rounded-lg border border-card-border bg-card/50 px-3 py-2 text-sm text-foreground transition active:scale-[0.98] active:border-accent/40 active:bg-accent/5"
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <span className="w-5 shrink-0 font-mono text-xs text-accent/70">{i + 1}.</span>
+                  <span className="w-5 shrink-0 font-mono text-xs text-accent/70">
+                    {i + 1}.
+                  </span>
                   <span className="truncate">{t(section.titleKey)}</span>
                 </span>
-                <svg className="h-4 w-4 flex-shrink-0 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                <svg
+                  className="h-4 w-4 flex-shrink-0 text-muted"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </a>
             </li>
@@ -171,7 +282,11 @@ function GuideContent() {
 
       <div className="mt-6 space-y-8">
         {sections.map((section, i) => (
-          <section key={section.titleKey} id={sectionIds[i]} className="scroll-mt-4">
+          <section
+            key={section.titleKey}
+            id={sectionIds[i]}
+            className="scroll-mt-4"
+          >
             <h2 className="text-lg font-bold text-accent">
               {t(section.titleKey)}
             </h2>
@@ -183,15 +298,30 @@ function GuideContent() {
             <div className="mt-4 space-y-3">
               {section.items.map((item) =>
                 item.tiers ? (
-                  <div key="tiers" className="rounded-xl border border-card-border bg-card p-4">
-                    <h3 className="font-semibold text-foreground mb-3">{t(item.titleKey)}</h3>
+                  <div
+                    key="tiers"
+                    className="rounded-xl border border-card-border bg-card p-4"
+                  >
+                    <h3 className="font-semibold text-foreground mb-3">
+                      {t(item.titleKey)}
+                    </h3>
                     <div className="space-y-2">
                       {ELO_TIERS.map((tier) => (
                         <div key={tier.key} className="flex items-center gap-3">
-                          <span className={`flex h-6 w-6 items-center justify-center text-base`}>{tier.icon}</span>
-                          <span className={`text-sm font-semibold ${tier.colorClass} min-w-[120px]`}>{t(tier.key)}</span>
+                          <span
+                            className={`flex h-6 w-6 items-center justify-center text-base`}
+                          >
+                            {tier.icon}
+                          </span>
+                          <span
+                            className={`text-sm font-semibold ${tier.colorClass} min-w-[120px]`}
+                          >
+                            {t(tier.key)}
+                          </span>
                           <span className="text-xs text-muted">
-                            {tier.minElo === -Infinity ? `< ${ELO_TIERS[ELO_TIERS.length - 2]?.minElo ?? 1060}` : `${tier.minElo}+`}
+                            {tier.minElo === -Infinity
+                              ? `< ${ELO_TIERS[ELO_TIERS.length - 2]?.minElo ?? 1060}`
+                              : `${tier.minElo}+`}
                           </span>
                         </div>
                       ))}
@@ -209,7 +339,7 @@ function GuideContent() {
                       {t(item.bodyKey)}
                     </p>
                   </div>
-                )
+                ),
               )}
             </div>
           </section>
