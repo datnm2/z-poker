@@ -18,7 +18,6 @@ interface SessionRecord {
   eloAfter: number | null;
   session: {
     id: string;
-    playedDate: string;
     buyIn: number;
     isLocked: boolean;
     lockedAt: string | null;
@@ -47,7 +46,7 @@ export function PlayerProfile({
     try {
       const [p, history] = await Promise.all([
         api.get<PlayerWithRank>(`/players/${playerId}`),
-        api.get<SessionRecord[]>(`/players/${playerId}/history?limit=20`),
+        api.get<SessionRecord[]>(`/players/${playerId}/history?limit=90`),
       ]);
       setPlayer(p);
       setSessions(history);
@@ -82,11 +81,11 @@ export function PlayerProfile({
     );
   }
 
-  const wins = sessions.filter(
-    (s) => s.chipsEnd != null && s.chipsEnd > s.session.buyIn
-  ).length;
+  const lockedSessions = sessions.filter((s) => s.session.isLocked && s.chipsEnd != null);
+  const totalGames = lockedSessions.length;
+  const wins = lockedSessions.filter((s) => s.chipsEnd! > s.session.buyIn).length;
   const winRate =
-    sessions.length > 0 ? Math.round((wins / sessions.length) * 100) : 0;
+    totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
   const eloHistory = sessions
     .filter((s) => s.eloAfter != null)
@@ -201,16 +200,23 @@ export function PlayerProfile({
       {/* Stats */}
       <div className="mt-6 grid grid-cols-3 gap-3">
         {[
-          { label: t("session.elo"), value: player.elo },
-          { label: t("profile.winRate"), value: `${winRate}%` },
-          { label: t("profile.rank"), value: player.rank ? `#${player.rank}` : "-" },
+          { label: t("session.elo"), value: player.elo, sub: null as string | null },
+          {
+            label: t("profile.winRate"),
+            value: `${winRate}%`,
+            sub: totalGames > 0 ? `${wins}/${totalGames}` : null,
+          },
+          { label: t("profile.rank"), value: player.rank ? `#${player.rank}` : "-", sub: null },
         ].map((s) => (
           <div
             key={s.label}
             className="rounded-xl border border-card-border bg-card p-3 text-center"
           >
             <div className="text-lg font-bold text-accent">{s.value}</div>
-            <div className="text-xs text-muted">{s.label}</div>
+            <div className="text-xs text-muted">
+              {s.label}
+              {s.sub && <span className="tabular-nums"> ({s.sub})</span>}
+            </div>
           </div>
         ))}
       </div>
@@ -236,6 +242,7 @@ export function PlayerProfile({
             </div>
           </div>
           <div className="rounded-xl border border-card-border bg-card p-4">
+           <div className="relative">
             {(() => {
               const points = eloHistory.map((elo, i) => {
                 const x = (i / (eloHistory.length - 1)) * 296 + 2;
@@ -346,6 +353,34 @@ export function PlayerProfile({
                 </svg>
               );
             })()}
+
+            {/* Peak / lowest value labels overlaid (SVG text would distort with preserveAspectRatio=none) */}
+            {(() => {
+              const labels: { elo: number; xPct: number; yPct: number; place: "top" | "bottom"; color: string }[] = [];
+              const xPctFor = (i: number) => ((i / (eloHistory.length - 1)) * 296 + 2) / 3;
+              const yPctFor = (elo: number) => 96 - ((elo - eloMin) / eloRange) * 92;
+              if (peakElo != null) {
+                const i = eloHistory.indexOf(peakElo);
+                labels.push({ elo: peakElo, xPct: xPctFor(i), yPct: yPctFor(peakElo), place: "top", color: "text-emerald-400" });
+              }
+              if (showLowest && lowestElo != null) {
+                const i = eloHistory.indexOf(lowestElo);
+                labels.push({ elo: lowestElo, xPct: xPctFor(i), yPct: yPctFor(lowestElo), place: "bottom", color: "text-red-400" });
+              }
+              return labels.map((l) => (
+                <span
+                  key={`${l.place}-${l.elo}`}
+                  className={`pointer-events-none absolute z-10 -translate-x-1/2 ${l.place === "top" ? "-translate-y-full" : ""} rounded bg-card/90 px-1 text-[9px] font-bold tabular-nums leading-none ${l.color}`}
+                  style={{
+                    left: `${Math.min(94, Math.max(6, l.xPct))}%`,
+                    top: `calc(${l.yPct}% ${l.place === "top" ? "- 6px" : "+ 8px"})`,
+                  }}
+                >
+                  {l.elo}
+                </span>
+              ));
+            })()}
+           </div>
           </div>
         </div>
       )}
@@ -401,14 +436,14 @@ export function PlayerProfile({
                   className="flex items-center justify-between gap-2 rounded-xl border border-card-border bg-card p-3 transition-all duration-150 hover:border-accent/30 active:scale-[0.98] active:border-accent/50"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium">
-                      {s.session.playedDate}
-                      {s.session.lockedAt && (
+                    {s.session.lockedAt && (
+                      <div className="text-sm font-medium">
+                        {new Date(s.session.lockedAt).toLocaleDateString()}
                         <span className="ml-1.5 text-xs font-normal text-muted">
                           {new Date(s.session.lockedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     <div className="text-xs text-muted">
                       {t("session.buyIn")}: {s.session.buyIn}
                       {" · "}
