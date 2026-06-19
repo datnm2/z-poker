@@ -56,16 +56,16 @@ Real-time qua SSE → ai đó tạo/join/lock phiên là cả nhóm thấy ngay.
 
 ## 7. Rank tiers (gamification)
 
-6 hạng, mid tiers chia 3 divisions 50-elo:
+6 hạng, mid tiers chia 3 divisions 30-elo (riêng Tay Non chia 8-elo/division):
 
 | Tier                       | Elo range            |
 | -------------------------- | -------------------- |
-| 👑 Thần Bài — Vua Trò Chơi | 1600+                |
-| 🦈 Kẻ Săn Mồi              | 1450–1600 (★ ★★ ★★★) |
-| 💰 Lão Luyện               | 1300–1450 (★ ★★ ★★★) |
-| 🎯 Tay Mới                 | 1150–1300 (★ ★★ ★★★) |
-| 🃏 Tay Non Và Xanh         | 1000–1150 (★ ★★ ★★★) |
-| 🐟 Cá Con — Chip Feeder    | <1000                |
+| 👑 Thần Bài — Vua Trò Chơi | 1425+                |
+| 🦈 Kẻ Săn Mồi              | 1335–1425 (★ ★★ ★★★) |
+| 💰 Lão Luyện               | 1245–1335 (★ ★★ ★★★) |
+| 🎯 Tay Mới                 | 1150–1245 (★ ★★ ★★★) |
+| 🃏 Tay Non Và Xanh         | 1126–1150 (★ ★★ ★★★) |
+| 🐟 Cá Con — Chip Feeder    | <1126                |
 
 Rank trong domain = đếm số player có elo cao hơn + 1.
 
@@ -166,7 +166,7 @@ Elo thay đổi phụ thuộc avgElo bàn, N người, chip gap → không thể
 Low-Elo thắng High-Elo → `expected` thấp → `(actual − expected)` lớn → ăn nhiều Elo. Ngược lại, cao đè thấp chỉ ăn rỉa. → Ngăn **rich get richer**, top player không thể farm người yếu để cày rank.
 
 **d) Tier gating với divisions (gamification ladder)**
-6 tier × 3 divisions ở mid tier = **15 nấc nhỏ** thay vì 1 thanh liên tục từ 1000→1600. Mỗi 50 Elo là 1 cột mốc visible (★→★★→★★★→tier mới). Short-term goals → dopamine hit thường xuyên hơn so với "còn 400 Elo nữa tới Thần Bài".
+6 tier × 3 divisions ở mid tier = **15 nấc nhỏ** thay vì 1 thanh liên tục từ 1126→1425. Mỗi ~30 Elo là 1 cột mốc visible (★→★★→★★★→tier mới). Short-term goals → dopamine hit thường xuyên hơn so với "còn 300 Elo nữa tới Thần Bài".
 
 **e) Zero-sum chip + social accountability**
 Tổng chip phải khớp ở lock → nếu lệch UI cảnh báo "🚨 Ai đó giấu chip". Nhóm public thấy → social pressure tự correct. Game theory: **common knowledge of defection** → tự-enforce honesty mà không cần audit.

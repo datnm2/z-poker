@@ -71,11 +71,11 @@ Trận underdog ELO 1000 vs bàn avg 1300 (chênh −300), thắng full pot:
 
 Pool 20 người, ~100 games/5 tháng, top player chơi ~50 trận với winrate ~75%:
 
-- 1200→1300: ~15 games (EV ~+2/game)
-- 1300→1400: ~20 games (EV ~+1.5/game)
-- 1400→1500: ~50 games (EV ~+0.5/game) — phanh tự nhiên rõ rệt
-- → 50 games đạt ~Kẻ Săn Mồi ★, 100 games đạt ~Kẻ Săn Mồi ★★
-- → Thần Bài (1600) khả thi sau 7–8 tháng chơi đều + streak win dài
+- 1200→1245: ~10 games (EV ~+2/game) — lên Lão Luyện ★
+- 1245→1335: ~25 games (EV ~+1.5/game) — leo Lão Luyện → chạm Kẻ Săn Mồi
+- 1335→1425: ~50 games (EV ~+0.5/game) — phanh tự nhiên rõ rệt
+- → ~35 games đạt Kẻ Săn Mồi ★, ~60 games đạt Kẻ Săn Mồi ★★★
+- → Thần Bài (1425) khả thi sau 7–8 tháng chơi đều + streak win dài
 
 ### Tuning constants
 
@@ -100,14 +100,14 @@ Custom params: `SIZES=4,6,9 BUY_IN=200 yarn workspace api elo:matrix` hoặc `GA
 
 | Tier                       | ELO       | Divisions  |
 | -------------------------- | --------- | ---------- |
-| 👑 Thần Bài - Vua Trò Chơi | 1600+     | —          |
-| 🦈 Kẻ Săn Mồi              | 1450–1600 | ★, ★★, ★★★ |
-| 💰 Lão Luyện               | 1300–1450 | ★, ★★, ★★★ |
-| 🎯 Tay Mới                 | 1150–1300 | ★, ★★, ★★★ |
-| 🃏 Tay Non Và Xanh         | 1000–1150 | ★, ★★, ★★★ |
-| 🐟 Cá Con - Chip Feeder    | <1000     | —          |
+| 👑 Thần Bài - Vua Trò Chơi | 1425+     | —          |
+| 🦈 Kẻ Săn Mồi              | 1335–1425 | ★, ★★, ★★★ |
+| 💰 Lão Luyện               | 1245–1335 | ★, ★★, ★★★ |
+| 🎯 Tay Mới                 | 1150–1245 | ★, ★★, ★★★ |
+| 🃏 Tay Non Và Xanh         | 1126–1150 | ★, ★★, ★★★ |
+| 🐟 Cá Con - Chip Feeder    | <1126     | —          |
 
-Mid tiers chia 50-elo divisions; rank tính theo domain (count players higher elo + 1).
+Mid tiers chia 30-elo divisions (riêng Tay Non Và Xanh chia 8-elo/division để người tụt khỏi Tay Mới phân hóa nhanh xuống Cá Con); rank tính theo domain (count players higher elo + 1).
 
 ## Multi-tenancy
 

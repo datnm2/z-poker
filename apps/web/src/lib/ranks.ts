@@ -11,8 +11,10 @@ export interface EloTier {
   hasDivisions: boolean;
 }
 
-// 6 ranks, each 90-elo span except Thần Bài (open-ended).
-// Divisions split each span into 3 equal parts (30 elo each).
+// 6 ranks. Most spans are 90 elo (30/division), except the bottom band
+// Tay Non Và Xanh which is narrowed to 24 elo (8/division) so players
+// dropping out of Tay Mới separate quickly into Cá Con instead of clustering.
+// Divisions split each span into 3 equal parts.
 // Tay Mới brackets the starting ELO (1200) so new players sit ★★.
 export const ELO_TIERS: EloTier[] = [
   {
@@ -51,7 +53,7 @@ export const ELO_TIERS: EloTier[] = [
     colorClass: "text-sky-400",
     bgClass: "bg-sky-400/15",
     fillClass: "bg-sky-400",
-    minElo: 1155,
+    minElo: 1150,
     maxElo: 1245,
     hasDivisions: true,
   },
@@ -61,8 +63,10 @@ export const ELO_TIERS: EloTier[] = [
     colorClass: "text-emerald-400",
     bgClass: "bg-emerald-400/15",
     fillClass: "bg-emerald-400",
-    minElo: 1065,
-    maxElo: 1155,
+    // Narrow band (24 elo = 8 per star) so demotions out of Novice
+    // separate quickly into Fish instead of clustering here.
+    minElo: 1126,
+    maxElo: 1150,
     hasDivisions: true,
   },
   {
@@ -72,7 +76,7 @@ export const ELO_TIERS: EloTier[] = [
     bgClass: "bg-slate-400/15",
     fillClass: "bg-slate-400",
     minElo: -Infinity,
-    maxElo: 1065,
+    maxElo: 1126,
     hasDivisions: false,
   },
 ];
@@ -101,7 +105,7 @@ export function getDivisionInfo(elo: number): DivisionInfo {
 
   // Bottom rank — no divisions, show progress toward first rank
   if (!tier.hasDivisions) {
-    const floor = 975;
+    const floor = 1050;
     const span = tier.maxElo - floor;
     const progressPct = Math.min(100, Math.max(0, Math.round(((elo - floor) / span) * 100)));
     return { stars: 0, progressPct, eloToNext: tier.maxElo - elo, nextTierKey: nextTier?.key ?? null, isRankUp: true };
