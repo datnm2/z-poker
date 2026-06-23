@@ -36,6 +36,11 @@ export type SessionEvent =
       domain: string;
       sessionId: string;
       highlights: SessionHighlights;
+    }
+  | {
+      type: "season.reset";
+      domain: string;
+      seasonKey: string;
     };
 
 export interface SseMessage {
@@ -66,7 +71,7 @@ export class SessionsEventsService {
 
   streamFor(sessionId: string): Observable<SseMessage> {
     const events$ = this.subject.asObservable().pipe(
-      filter((e) => e.sessionId === sessionId),
+      filter((e) => "sessionId" in e && e.sessionId === sessionId),
       map((e) => ({ data: JSON.stringify(e), type: e.type })),
     );
     return merge(events$, this.heartbeat$).pipe(
@@ -81,6 +86,7 @@ export class SessionsEventsService {
     "session.created",
     "session.player_joined",
     "session.locked",
+    "season.reset",
   ]);
 
   streamForDomain(domain: string): Observable<SseMessage> {

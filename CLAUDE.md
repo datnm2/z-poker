@@ -38,6 +38,18 @@ Tuned cho pool nhỏ (~20 người, văn phòng) chơi 30 phút/ngày. Mục ti�
 - **Zero-sum chips**: `sum(chipsEnd) == buyIn × N` enforced at lock (chỉ chip, không phải ELO)
 - **Starting ELO**: 1200
 
+## Season reset (soft reset cuối quý)
+
+Mỗi quý (Q1–Q4, theo countdown trên leaderboard) một mùa giải kết thúc → đóng mùa thủ công qua `POST /seasons/close` (xem `apps/api/src/seasons/seasons.service.ts` → `closeSeason`).
+
+- **KHÔNG reset cứng về 1200.** Dùng **soft reset 70/30**: mỗi người bị kéo 70% khoảng chênh lệch về 1200, **giữ lại 30% deviation** để vẫn còn phân hạng đầu mùa mới (top player không bị về chung mâm cá con).
+  - Công thức: `newElo = round(1200 + (oldElo − 1200) × 0.30)` — hằng số `RESET_KEEP_RATIO = 0.3` trong `seasons.service.ts`.
+  - VD: 1422 → 1267, 1370 → 1251, 1046 → 1154. Khoảng cách thu hẹp nhưng thứ tự được giữ.
+- **Jackpot (hũ chưa nổ)**: cũng giữ 30% → `newJackpot = round(oldJackpot × 0.30)`. Không mất trắng tiền hũ đang tích.
+- **`gamesPlayed` + `currentStreak`**: reset về 0 (mùa mới đếm lại từ đầu).
+- **Snapshot trước khi reset**: thứ hạng cuối mùa (elo/rank/games) lưu vào bảng `season_results`; `session_players` history giữ nguyên (recap + profile history vẫn chạy).
+- **Recap**: sau khi đóng mùa, sinh AI prose (giọng MC, thì quá khứ — xem `season-recap-prose.service.ts`) lưu vào `season_recaps`, hiện story "Wrapped" trên leaderboard. Cờ `recap_visible` per-mùa (admin bật/tắt qua `POST /seasons/recap/visibility`).
+
 ### Ví dụ cụ thể (bàn 6 người, buyIn 100, mọi người ELO 1200)
 
 Trận winner ăn full pot 600 chips, 5 losers 0 chip:

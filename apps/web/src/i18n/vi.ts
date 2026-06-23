@@ -66,6 +66,16 @@ export const vi = {
   // Leaderboard
   "leaderboard.resetIn": "BXH reset mỗi quý (còn",
   "leaderboard.resetInSuffix": ")",
+  "leaderboard.resetLearnMore": "Cách reset?",
+  "season.recap.replay": "📽️ Xem tổng kết mùa gần nhất",
+  "seasons.list.title": "Các mùa đã qua",
+  "seasons.list.empty": "Chưa có mùa nào kết thúc.",
+  "seasons.list.games": "{n} ván",
+  "seasons.list.players": "{n} người",
+  "seasons.detail.title": "BXH mùa {key}",
+  "seasons.detail.empty": "Mùa này không có dữ liệu.",
+  "seasons.detail.gamesShort": "ván",
+  "seasons.detail.watchHighlight": "🎬 Xem highlight mùa {key}",
   "leaderboard.title": "Bảng xếp hạng",
   "leaderboard.slogan": "Trụ lại. Gom chip. Leo rank.",
   "leaderboard.players": "Tổng game thủ",
@@ -260,6 +270,9 @@ export const vi = {
   "guide.elo.streak.title": "Bonus chuỗi thắng / thua",
   "guide.elo.streak.body":
     "Sau 3 trận liên tiếp cùng kết quả, bonus được cộng vào: chuỗi thắng = streak × 2 (3→+6, 4→+8, 5→+10, vô hạn) → khen người đang nóng máy. Chuỗi thua tăng từng bậc rồi cap tại −5 (3→−3, 4→−4, 5→−5, 6→−5...) — phạt nhưng không xoáy sâu. Hòa (chip = buy-in) reset streak về 0.",
+  "guide.elo.seasonReset.title": "Reset cuối mùa (70/30)",
+  "guide.elo.seasonReset.body":
+    "Hết mỗi quý, bảng xếp hạng được reset MỀM — KHÔNG kéo tất cả về 1200. Mỗi người chỉ bị kéo 70% khoảng chênh lệch về mốc 1200, giữ lại 30% để vẫn còn phân hạng đầu mùa mới (cao thủ không bị về chung mâm với lính mới). Công thức: ELO mới = 1200 + (ELO cũ − 1200) × 0.30. VD: 1422 → 1267, 1046 → 1154. Hũ (jackpot) chưa nổ cũng giữ lại 30%. Số trận và chuỗi thắng/thua thì đếm lại từ 0. Thành tích cả mùa được lưu lại và lên màn tổng kết mùa.",
   "guide.elo.example.title": "Ví dụ thực tế",
   "guide.elo.example.body":
     "Bàn 6 người, buy-in 100. Bạn ELO 1300, bàn TB 1200, kết thúc 180 chip (lãi +80). Kỳ vọng = 1/(1+10^(-100/700)) = 0.582. Thực tế = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.582)) = 0. Vì là winner: max(0, 2) + 3 = +5 Elo. Nếu đang chuỗi thắng 3 trận: +5 + 6 = +11 Elo. Trường hợp upset: ELO 1000 đánh bàn TB 1300, ăn full pot 600 → kỳ vọng 0.272, thực tế 1.0, raw = round(70 × 3 × 0.728) = +153 → +156 Elo (cộng bonus).",

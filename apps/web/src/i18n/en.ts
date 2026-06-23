@@ -66,6 +66,16 @@ export const en = {
   // Leaderboard
   "leaderboard.resetIn": "Leaderboard resets quarterly (",
   "leaderboard.resetInSuffix": " left)",
+  "leaderboard.resetLearnMore": "How it works",
+  "season.recap.replay": "📽️ Watch latest season recap",
+  "seasons.list.title": "Past seasons",
+  "seasons.list.empty": "No season has ended yet.",
+  "seasons.list.games": "{n} games",
+  "seasons.list.players": "{n} players",
+  "seasons.detail.title": "Season {key} standings",
+  "seasons.detail.empty": "No data for this season.",
+  "seasons.detail.gamesShort": "games",
+  "seasons.detail.watchHighlight": "🎬 Watch season {key} highlights",
   "leaderboard.title": "Leaderboard",
   "leaderboard.slogan": "Outlast. Outchip. Outrank.",
   "leaderboard.players": "Total Players",
@@ -261,6 +271,9 @@ export const en = {
   "guide.elo.streak.title": "Win/loss streak bonus",
   "guide.elo.streak.body":
     "After 3 sessions with the same outcome, a bonus kicks in. Win streak = streak × 2 (3→+6, 4→+8, 5→+10, unbounded) — rewards being on a heater. Loss streak grows step 1 then caps at −5 (3→−3, 4→−4, 5→−5, 6→−5...) — punishes losing slumps without spiraling. A tie (chips = buy-in) resets the streak to 0.",
+  "guide.elo.seasonReset.title": "End-of-season reset (70/30)",
+  "guide.elo.seasonReset.body":
+    "At the end of each quarter the leaderboard SOFT-resets — it does NOT slam everyone back to 1200. Each player is pulled 70% of the way toward 1200, keeping 30% of their gap so some ranking carries into the new season (top players don't land back with the rookies). Formula: new Elo = 1200 + (old Elo − 1200) × 0.30. E.g. 1422 → 1267, 1046 → 1154. An un-popped jackpot also keeps 30%. Games played and win/loss streaks start over at 0. The full season's records are saved and shown in the season recap.",
   "guide.elo.example.title": "Concrete example",
   "guide.elo.example.body":
     "6-player table, buy-in 100. You're 1300 Elo, table avg 1200, you finish 180 chips (+80). Expected = 1/(1+10^(-100/700)) = 0.582. Actual = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.582)) = 0. As a winner: max(0, 2) + 3 = +5 Elo. On a 3-game win streak: +5 + 6 = +11 Elo. Upset case: 1000 Elo player at avg-1300 table sweeps the full pot (600 chips) → expected 0.272, actual 1.0, raw = round(70 × 3 × 0.728) = +153 → +156 Elo with the bonus).",

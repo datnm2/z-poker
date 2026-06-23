@@ -12,6 +12,7 @@ import { DebugModule } from "./debug/debug.module";
 import { EmailModule } from "./email/email.module";
 import { PlayersModule } from "./players/players.module";
 import { SessionsModule } from "./sessions/sessions.module";
+import { SeasonsModule } from "./seasons/seasons.module";
 import { SessionsEventsModule } from "./sessions/sessions-events.module";
 import { UserThrottlerGuard } from "./common/user-throttler.guard";
 import { SlowQueryLogger } from "./common/slow-query.logger";
@@ -55,6 +56,7 @@ import { SlowQueryLogger } from "./common/slow-query.logger";
     CacheModule,
     PlayersModule,
     SessionsModule,
+    SeasonsModule,
     AiModule,
     DebugModule,
     EmailModule,

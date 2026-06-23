@@ -7,7 +7,13 @@ import { useI18n } from "@/providers/i18n-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
-import type { GameResult, Player } from "@/types/database";
+import type {
+  GameResult,
+  Player,
+  SeasonLatestDto,
+  SeasonRecapDto,
+} from "@/types/database";
+import { SeasonRecapStory } from "@/components/season-recap-story";
 import {
   getEloTier,
   getDivisionInfo,
@@ -42,16 +48,20 @@ function LeaderboardContent() {
     message: string;
     status?: number;
   } | null>(null);
+  const [seasonLatest, setSeasonLatest] = useState<SeasonLatestDto | null>(null);
+  const [recap, setRecap] = useState<SeasonRecapDto | null>(null);
 
   const fetchData = useCallback(async () => {
     setError(null);
     try {
-      const [p, stats] = await Promise.all([
+      const [p, stats, latest] = await Promise.all([
         api.get<Player[]>("/players"),
         api.get<{ totalSessions: number }>("/sessions/stats"),
+        api.get<SeasonLatestDto>("/seasons/latest").catch(() => null),
       ]);
       setPlayers(p);
       setTotalSessions(stats.totalSessions);
+      setSeasonLatest(latest);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const status = err instanceof ApiError ? err.status : undefined;
@@ -60,6 +70,24 @@ function LeaderboardContent() {
       setLoading(false);
     }
   }, [api]);
+
+  const openRecap = useCallback(async () => {
+    try {
+      const data = await api.get<SeasonRecapDto>("/seasons/recap");
+      setRecap(data);
+    } catch {
+      // recap unavailable — ignore, button just won't open
+    }
+  }, [api]);
+
+  // Auto-open the recap once per user per season when a closed season exists.
+  useEffect(() => {
+    if (!seasonLatest?.available) return;
+    const seenKey = `z-poker-recap-seen-${seasonLatest.seasonKey}`;
+    if (localStorage.getItem(seenKey)) return;
+    localStorage.setItem(seenKey, "1");
+    void openRecap();
+  }, [seasonLatest, openRecap]);
 
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
@@ -96,8 +124,13 @@ function LeaderboardContent() {
         });
         setTotalSessions((n) => n + 1);
       },
+      "season.reset": () => {
+        // ELO was reset (or recap visibility toggled) server-side. Refetch — this
+        // pulls fresh /seasons/latest (incl. recapVisible) and re-surfaces the recap.
+        fetchData();
+      },
     }),
-    [],
+    [fetchData],
   );
 
   useSseStream({
@@ -260,6 +293,19 @@ function LeaderboardContent() {
       </section>
 
       <LeaderboardCountdown />
+
+      {seasonLatest?.available && (
+        <p className="mt-2 text-center">
+          <Link
+            href="/seasons"
+            className="text-[11px] text-muted underline decoration-dotted decoration-muted/40 underline-offset-4 transition active:text-foreground"
+          >
+            🏆 {t("seasons.list.title")}
+          </Link>
+        </p>
+      )}
+
+      {recap && <SeasonRecapStory recap={recap} onClose={() => setRecap(null)} />}
 
       <TopThreePodium players={players} currentPlayerId={player?.id} />
 
