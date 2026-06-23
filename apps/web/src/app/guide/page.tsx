@@ -102,6 +102,10 @@ const sections: Section[] = [
       },
       { titleKey: "guide.elo.streak.title", bodyKey: "guide.elo.streak.body" },
       {
+        titleKey: "guide.elo.seasonReset.title",
+        bodyKey: "guide.elo.seasonReset.body",
+      },
+      {
         titleKey: "guide.elo.example.title",
         bodyKey: "guide.elo.example.body",
       },

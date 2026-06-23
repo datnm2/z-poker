@@ -26,6 +26,8 @@ export const CacheKeys = {
     `sessions-history:${domain}:${cursor ?? ""}:${limit}`,
   sessionsActive: (domain: string) => `sessions-active:${domain}`,
   sessionsStats: (domain: string) => `sessions-stats:${domain}`,
+  seasonRecap: (domain: string, seasonKey: string) =>
+    `season-recap:${domain}:${seasonKey}`,
 
   profilePrefix: (domain: string) => `profile:${domain}:`,
   profileHistoryPrefix: (domain: string) => `profile-history:${domain}:`,

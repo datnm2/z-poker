@@ -72,4 +72,9 @@ export type SessionEvent =
       domain: string;
       sessionId: string;
       highlights: SessionHighlights;
+    }
+  | {
+      type: "season.reset";
+      domain: string;
+      seasonKey: string;
     };

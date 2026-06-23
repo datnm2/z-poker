@@ -61,3 +61,54 @@ export interface SessionHighlights {
   personaId?: string;
   personaName?: LocalizedText;
 }
+
+interface SeasonPlayerRef {
+  playerId: string;
+  playerName: string;
+  avatarUrl: string | null;
+}
+
+export interface SeasonRecapProse {
+  slides: Record<string, LocalizedText>;
+  personaId?: string;
+  personaName?: LocalizedText;
+  model: string;
+  generatedAt: string;
+}
+
+export interface SeasonRecapDto {
+  seasonKey: string;
+  totalGames: number;
+  hardest: (SeasonPlayerRef & { games: number })[];
+  topWinrate: (SeasonPlayerRef & { wins: number; games: number; pct: number })[];
+  records: {
+    chipRatio: (SeasonPlayerRef & { ratio: number; sessionId: string }) | null;
+    biggestTable: { sessionId: string; playerCount: number; playedDate: string } | null;
+    biggestEloGain: (SeasonPlayerRef & { gain: number; sessionId: string }) | null;
+    longestWinStreak: (SeasonPlayerRef & { length: number }) | null;
+    longestLossStreak: (SeasonPlayerRef & { length: number }) | null;
+  };
+  prose?: SeasonRecapProse | null;
+}
+
+export interface SeasonLatestDto {
+  seasonKey: string;
+  totalGames: number;
+  available: boolean;
+  recapVisible: boolean;
+}
+
+export interface RecapSlideRow {
+  name: string;
+  avatarUrl?: string | null;
+  value: string;
+  rank?: number;
+}
+
+export interface RecapSlide {
+  key: string;
+  emoji: string;
+  title: LocalizedText;
+  body: LocalizedText;
+  rows?: RecapSlideRow[];
+}
