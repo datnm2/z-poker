@@ -90,9 +90,9 @@ export default function SeasonDetailPage() {
       {data?.recapVisible && rows.length > 0 && (
         <button
           onClick={openRecap}
-          className="mx-auto mb-4 flex min-h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500/20 to-purple-500/20 px-5 text-sm font-bold text-accent ring-1 ring-accent/30 transition active:scale-[0.97]"
+          className="mx-auto mb-5 flex min-h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-600 px-6 text-sm font-bold text-white shadow-lg shadow-purple-900/40 ring-1 ring-white/20 transition hover:brightness-110 hover:shadow-purple-700/50 active:scale-[0.96]"
         >
-          {t("season.recap.replay")}
+          {t("seasons.detail.watchHighlight").replace("{key}", key)}
         </button>
       )}
 

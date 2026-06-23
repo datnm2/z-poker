@@ -295,20 +295,14 @@ function LeaderboardContent() {
       <LeaderboardCountdown />
 
       {seasonLatest?.available && (
-        <div className="mt-3 flex flex-col items-center gap-1.5">
-          <button
-            onClick={openRecap}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500/20 to-purple-500/20 px-5 text-sm font-bold text-accent ring-1 ring-accent/30 transition active:scale-[0.97]"
-          >
-            {t("season.recap.replay")}
-          </button>
+        <p className="mt-2 text-center">
           <Link
             href="/seasons"
             className="text-[11px] text-muted underline decoration-dotted decoration-muted/40 underline-offset-4 transition active:text-foreground"
           >
-            {t("seasons.list.title")}
+            🏆 {t("seasons.list.title")}
           </Link>
-        </div>
+        </p>
       )}
 
       {recap && <SeasonRecapStory recap={recap} onClose={() => setRecap(null)} />}

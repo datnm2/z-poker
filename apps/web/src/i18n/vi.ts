@@ -75,6 +75,7 @@ export const vi = {
   "seasons.detail.title": "BXH mùa {key}",
   "seasons.detail.empty": "Mùa này không có dữ liệu.",
   "seasons.detail.gamesShort": "ván",
+  "seasons.detail.watchHighlight": "🎬 Xem highlight mùa {key}",
   "leaderboard.title": "Bảng xếp hạng",
   "leaderboard.slogan": "Trụ lại. Gom chip. Leo rank.",
   "leaderboard.players": "Tổng game thủ",
