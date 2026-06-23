@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Post, Query } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Get, Param, Post, Query } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
 import { SeasonsService } from "./seasons.service";
@@ -45,6 +45,21 @@ export class SeasonsController {
   async recap(@CurrentUser() user: AuthedUser, @Query("season") season?: string) {
     const seasonKey = season ?? previousSeasonKey(new Date());
     return this.seasons.getRecap(user.domain, seasonKey);
+  }
+
+  // List of past (closed) seasons for the domain.
+  @Get()
+  @Throttle({ read: { limit: 60, ttl: 60_000 } })
+  async list(@CurrentUser() user: AuthedUser) {
+    return this.seasons.listClosed(user.domain);
+  }
+
+  // Snapshot standings for one season. Declared after the static routes above so
+  // ":key" doesn't swallow "latest"/"recap".
+  @Get(":key/standings")
+  @Throttle({ read: { limit: 60, ttl: 60_000 } })
+  async standings(@CurrentUser() user: AuthedUser, @Param("key") key: string) {
+    return this.seasons.getStandings(user.domain, key);
   }
 
   // Manual season close. Domain is passed explicitly, but must match the caller's

@@ -98,6 +98,32 @@ export interface SeasonLatestDto {
   recapVisible: boolean;
 }
 
+export interface SeasonListItemDto {
+  seasonKey: string;
+  totalGames: number;
+  playerCount: number;
+  champion: { playerId: string; playerName: string } | null;
+  recapVisible: boolean;
+  closedAt: string;
+}
+
+export interface SeasonStandingRow {
+  playerId: string;
+  playerName: string;
+  avatarUrl: string | null;
+  finalElo: number;
+  finalRank: number;
+  gamesPlayed: number;
+}
+
+export interface SeasonStandingsDto {
+  seasonKey: string;
+  totalGames: number;
+  recapVisible: boolean;
+  closedAt: string | null;
+  rows: SeasonStandingRow[];
+}
+
 export interface RecapSlideRow {
   name: string;
   avatarUrl?: string | null;
