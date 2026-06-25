@@ -24,6 +24,9 @@ export class SeasonRecap {
   @Column({ type: "jsonb", nullable: true })
   prose!: SeasonRecapProse | null;
 
+  @Column({ name: "prose_by_persona", type: "jsonb", nullable: true })
+  proseByPersona!: Record<string, SeasonRecapProse> | null;
+
   @Column({ name: "recap_visible", type: "boolean", default: true })
   recapVisible!: boolean;
 

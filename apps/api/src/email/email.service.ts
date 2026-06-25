@@ -7,11 +7,15 @@ import { Resend } from "resend";
 import { Player } from "../players/player.entity";
 import { Session } from "../sessions/session.entity";
 import { SessionPlayer } from "../sessions/session-player.entity";
-import { EMAIL_EVENT, type SessionRecapReadyEvent } from "./email.events";
+import { SeasonRecap } from "../seasons/season-recap.entity";
+import { EMAIL_EVENT, type SessionRecapReadyEvent, type SeasonRecapReadyEvent } from "./email.events";
 import {
   getSessionRecapTemplate,
   type RecapRow,
 } from "./templates/session-recap.template";
+import { getSeasonRecapTemplate } from "./templates/season-recap.template";
+import { computeRecap } from "../seasons/season.recap";
+import { seasonRange } from "../seasons/season.util";
 
 @Injectable()
 export class EmailService {
@@ -28,6 +32,8 @@ export class EmailService {
     private readonly sessions: Repository<Session>,
     @InjectRepository(SessionPlayer)
     private readonly sessionPlayers: Repository<SessionPlayer>,
+    @InjectRepository(SeasonRecap)
+    private readonly seasonRecaps: Repository<SeasonRecap>,
   ) {
     const apiKey = this.config.get<string>("RESEND_API_KEY");
     this.fromEmail = this.config.get<string>(
@@ -135,6 +141,117 @@ export class EmailService {
       });
 
       await this.sendWithRetry(recipient.email, template, sessionId);
+    }
+  }
+
+  @OnEvent(EMAIL_EVENT.SEASON_RECAP_READY, { async: true })
+  async handleSeasonRecapReady(event: SeasonRecapReadyEvent): Promise<void> {
+    if (!this.resend) return;
+
+    try {
+      await this.sendSeasonRecap(event.domain, event.seasonKey);
+    } catch (err) {
+      this.logger.error(
+        `Failed to send season recap emails for ${event.domain} ${event.seasonKey}: ${(err as Error).message}`,
+        err instanceof Error ? err.stack : undefined,
+      );
+    }
+  }
+
+  async previewSeasonRecapHtml(domain: string, seasonKey: string, recipientName = "Preview"): Promise<string> {
+    const recapRow = await this.seasonRecaps.findOne({ where: { domain, seasonKey } });
+
+    const { start, end } = seasonRange(seasonKey);
+    const rows = await this.sessionPlayers
+      .createQueryBuilder("sp")
+      .innerJoin(Session, "s", "s.id = sp.session_id")
+      .innerJoin(Player, "p", "p.id = sp.player_id")
+      .select([
+        'sp.player_id AS "playerId"',
+        'p.name AS "playerName"',
+        'p.avatar_url AS "avatarUrl"',
+        'sp.session_id AS "sessionId"',
+        'sp.chips_end AS "chipsEnd"',
+        's.buy_in AS "buyIn"',
+        'sp.elo_before AS "eloBefore"',
+        'sp.elo_after AS "eloAfter"',
+        's.locked_at AS "lockedAt"',
+        's.played_date AS "playedDate"',
+      ])
+      .where("s.domain = :domain", { domain })
+      .andWhere("s.is_locked = true")
+      .andWhere("sp.chips_end IS NOT NULL")
+      .andWhere("s.locked_at >= :start AND s.locked_at <= :end", { start, end })
+      .orderBy("s.locked_at", "ASC")
+      .getRawMany();
+
+    const recap = computeRecap(seasonKey, rows);
+    recap.prose = recapRow?.prose ?? null;
+
+    const template = getSeasonRecapTemplate({
+      recipientName,
+      domain,
+      seasonKey,
+      recap,
+      webOrigin: this.webOrigin,
+    });
+
+    return template.html;
+  }
+
+  async sendSeasonRecap(domain: string, seasonKey: string): Promise<void> {
+    const players = await this.players.find({ where: { domain } });
+    if (players.length === 0) {
+      this.logger.warn(`No players in domain ${domain} — skipping season recap`);
+      return;
+    }
+
+    const recapRow = await this.seasonRecaps.findOne({ where: { domain, seasonKey } });
+
+    const { start, end } = seasonRange(seasonKey);
+    const rows = await this.sessionPlayers
+      .createQueryBuilder("sp")
+      .innerJoin(Session, "s", "s.id = sp.session_id")
+      .innerJoin(Player, "p", "p.id = sp.player_id")
+      .select([
+        'sp.player_id AS "playerId"',
+        'p.name AS "playerName"',
+        'p.avatar_url AS "avatarUrl"',
+        'sp.session_id AS "sessionId"',
+        'sp.chips_end AS "chipsEnd"',
+        's.buy_in AS "buyIn"',
+        'sp.elo_before AS "eloBefore"',
+        'sp.elo_after AS "eloAfter"',
+        's.locked_at AS "lockedAt"',
+        's.played_date AS "playedDate"',
+      ])
+      .where("s.domain = :domain", { domain })
+      .andWhere("s.is_locked = true")
+      .andWhere("sp.chips_end IS NOT NULL")
+      .andWhere("s.locked_at >= :start AND s.locked_at <= :end", { start, end })
+      .orderBy("s.locked_at", "ASC")
+      .getRawMany();
+
+    const recap = computeRecap(seasonKey, rows);
+    recap.prose = recapRow?.prose ?? null;
+
+    const SEND_INTERVAL_MS = 600;
+    let isFirst = true;
+
+    for (const recipient of players) {
+      if (!recipient.email) continue;
+      if (!isFirst) await sleep(SEND_INTERVAL_MS);
+      isFirst = false;
+
+      const template = getSeasonRecapTemplate({
+        recipientName: recipient.name,
+        domain,
+        seasonKey,
+        recap,
+        webOrigin: this.webOrigin,
+      });
+
+      await this.sendWithRetry(recipient.email, template, `season:${seasonKey}`);
     }
   }
 

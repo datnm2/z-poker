@@ -1,5 +1,6 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { DataSource, In, Repository } from "typeorm";
 import { Player } from "../players/player.entity";
 import { Session } from "../sessions/session.entity";
@@ -9,6 +10,7 @@ import { SeasonRecap } from "./season-recap.entity";
 import { SeasonRecapProseService } from "./season-recap-prose.service";
 import { SessionsEventsService } from "../sessions/sessions.events";
 import { CACHE_ADAPTER } from "../cache/cache.tokens";
+import { EMAIL_EVENT, type SeasonRecapReadyEvent } from "../email/email.events";
 import {
   CacheKeys,
   DEFAULT_TTL_MS,
@@ -72,6 +74,8 @@ export interface SeasonStandingsDto {
 
 @Injectable()
 export class SeasonsService {
+  private readonly logger = new Logger(SeasonsService.name);
+
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     @InjectRepository(Player)
@@ -83,6 +87,7 @@ export class SeasonsService {
     private readonly prose: SeasonRecapProseService,
     private readonly events: SessionsEventsService,
     @Inject(CACHE_ADAPTER) private readonly cache: CacheAdapter,
+    private readonly emitter: EventEmitter2,
   ) {}
 
   async latest(domain: string, now = new Date()): Promise<SeasonLatestDto> {
@@ -254,7 +259,11 @@ export class SeasonsService {
     const recap = computeRecap(seasonKey, rows);
     const recapRow = await this.seasonRecaps.findOne({ where: { domain, seasonKey } });
     recap.prose = recapRow?.prose ?? null;
-    await this.cache.set(cacheKey, recap, DEFAULT_TTL_MS);
+    recap.proseByPersona = recapRow?.proseByPersona ?? null;
+    // Don't cache while all-persona generation is still in flight (proseByPersona null).
+    if (recap.proseByPersona !== null) {
+      await this.cache.set(cacheKey, recap, DEFAULT_TTL_MS);
+    }
     return recap;
   }
 
@@ -338,6 +347,8 @@ export class SeasonsService {
       // recap + AI prose after the reset transaction has committed.
       const rows = await this.loadRows(domain, seasonKey);
       const recap = computeRecap(seasonKey, rows);
+      // Generate prose for the requested persona (or random) first so the recap
+      // is visible immediately; then kick off all-persona generation async.
       const prose = await this.prose.generate(recap, personaId);
       await this.seasonRecaps.save(
         this.seasonRecaps.create({ domain, seasonKey, prose, recapVisible: true }),
@@ -348,8 +359,68 @@ export class SeasonsService {
       await this.cache.del(CacheKeys.sessionsStats(domain));
       await this.cache.del(CacheKeys.seasonRecap(domain, seasonKey));
       this.events.publish({ type: "season.reset", domain, seasonKey });
+      this.emitter.emit(EMAIL_EVENT.SEASON_RECAP_READY, {
+        domain,
+        seasonKey,
+      } satisfies SeasonRecapReadyEvent);
+
+      // Fire-and-forget: generate prose for all personas in the background.
+      void this.generateAllProseInBackground(domain, seasonKey, recap);
     }
 
     return result;
+  }
+
+  private async generateAllProseInBackground(
+    domain: string,
+    seasonKey: string,
+    recap: ReturnType<typeof computeRecap>,
+  ): Promise<void> {
+    this.logger.log(`generateAllProseInBackground: starting for ${domain} ${seasonKey}, totalGames=${recap.totalGames}`);
+    const proseByPersona = await this.prose.generateAllPersonas(recap);
+    this.logger.log(`generateAllProseInBackground: got ${Object.keys(proseByPersona).length} personas`);
+    if (Object.keys(proseByPersona).length === 0) return;
+    const existing = await this.seasonRecaps.findOne({ where: { domain, seasonKey } });
+    const merged = { ...(existing?.proseByPersona ?? {}), ...proseByPersona };
+    await this.seasonRecaps
+      .createQueryBuilder()
+      .update()
+      .set({ proseByPersona: merged })
+      .where("domain = :domain AND season_key = :seasonKey", { domain, seasonKey })
+      .execute();
+    await this.cache.del(CacheKeys.seasonRecap(domain, seasonKey));
+    this.events.publish({ type: "season.reset", domain, seasonKey });
+  }
+
+  async generateAllRecapPersonas(domain: string, seasonKey: string): Promise<void> {
+    this.logger.log(`generateAllRecapPersonas: loading rows for ${domain} ${seasonKey}`);
+    const rows = await this.loadRows(domain, seasonKey);
+    this.logger.log(`generateAllRecapPersonas: ${rows.length} rows loaded`);
+    if (rows.length === 0) return;
+    const recap = computeRecap(seasonKey, rows);
+    await this.generateAllProseInBackground(domain, seasonKey, recap);
+  }
+
+  async generateRecapForPersona(
+    domain: string,
+    seasonKey: string,
+    personaId: string,
+  ): Promise<{ ok: boolean }> {
+    const rows = await this.loadRows(domain, seasonKey);
+    if (rows.length === 0) return { ok: false };
+    const recap = computeRecap(seasonKey, rows);
+    const prose = await this.prose.generate(recap, personaId);
+    if (!prose) return { ok: false };
+
+    const existing = await this.seasonRecaps.findOne({ where: { domain, seasonKey } });
+    const proseByPersona = { ...(existing?.proseByPersona ?? {}), [personaId]: prose };
+    await this.seasonRecaps
+      .createQueryBuilder()
+      .update()
+      .set({ proseByPersona })
+      .where("domain = :domain AND season_key = :seasonKey", { domain, seasonKey })
+      .execute();
+    await this.cache.del(CacheKeys.seasonRecap(domain, seasonKey));
+    return { ok: true };
   }
 }

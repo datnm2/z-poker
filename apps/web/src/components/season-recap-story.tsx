@@ -10,6 +10,7 @@ interface Props {
   recap: SeasonRecapDto;
   onClose: () => void;
   durationMs?: number;
+  initialPersonaId?: string;
 }
 
 const PALETTES = [
@@ -167,9 +168,15 @@ export function buildRecapSlides(recap: SeasonRecapDto): RecapSlide[] {
   return slides;
 }
 
-export function SeasonRecapStory({ recap, onClose, durationMs = 7000 }: Props) {
+export function SeasonRecapStory({ recap, onClose, durationMs = 7000, initialPersonaId }: Props) {
   const { locale } = useI18n();
-  const items = useMemo(() => buildRecapSlides(recap), [recap]);
+  const activeRecap = useMemo(() => {
+    if (initialPersonaId && recap.proseByPersona?.[initialPersonaId]) {
+      return { ...recap, prose: recap.proseByPersona[initialPersonaId] };
+    }
+    return recap;
+  }, [recap, initialPersonaId]);
+  const items = useMemo(() => buildRecapSlides(activeRecap), [activeRecap]);
   const [index, setIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -184,7 +191,10 @@ export function SeasonRecapStory({ recap, onClose, durationMs = 7000 }: Props) {
   const palette = PALETTES[index % PALETTES.length];
   const title = current ? current.title[locale] ?? current.title.en : "";
   const body = current ? current.body[locale] ?? current.body.en : "";
-  const stepLabel = locale === "vi" ? "Tổng kết mùa" : "Season recap";
+  const personaName = activeRecap.prose?.personaName
+    ? (activeRecap.prose.personaName[locale] ?? activeRecap.prose.personaName.en)
+    : null;
+  const stepLabel = personaName ?? (locale === "vi" ? "Tổng kết mùa" : "Season recap");
 
   useEffect(() => {
     setMounted(true);
@@ -309,7 +319,7 @@ export function SeasonRecapStory({ recap, onClose, durationMs = 7000 }: Props) {
         </div>
 
         {/* Header */}
-        <div className="relative z-20 flex items-center justify-between px-5 pb-2 pt-6 text-white">
+        <div className="relative z-20 flex items-center justify-between px-5 pb-2 pt-3 text-white">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-sm font-black text-white shadow-md shadow-fuchsia-900/40">
               Z

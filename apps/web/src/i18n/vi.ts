@@ -76,6 +76,7 @@ export const vi = {
   "seasons.detail.empty": "Mùa này không có dữ liệu.",
   "seasons.detail.gamesShort": "ván",
   "seasons.detail.watchHighlight": "🎬 Xem highlight mùa {key}",
+  "seasons.detail.chooseCommentator": "Chọn bình luận viên",
   "leaderboard.title": "Bảng xếp hạng",
   "leaderboard.slogan": "Trụ lại. Gom chip. Leo rank.",
   "leaderboard.players": "Tổng game thủ",

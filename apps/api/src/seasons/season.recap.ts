@@ -37,6 +37,7 @@ export interface SeasonRecapDto {
     longestLossStreak: (PlayerRef & { length: number }) | null;
   };
   prose?: SeasonRecapProse | null;
+  proseByPersona?: Record<string, SeasonRecapProse> | null;
 }
 
 function toDateStr(d: string | Date): string {

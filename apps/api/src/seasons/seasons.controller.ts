@@ -1,7 +1,9 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Get, Header, Param, Post, Query, Res } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
+import type { Response } from "express";
 import { SeasonsService } from "./seasons.service";
+import { EmailService } from "../email/email.service";
 import { CurrentUser, type AuthedUser } from "../auth/current-user.decorator";
 import { previousSeasonKey } from "./season.util";
 
@@ -18,6 +20,18 @@ class CloseSeasonDto {
   personaId?: string;
 }
 
+class GenerateRecapDto {
+  @IsString()
+  domain!: string;
+
+  @IsString()
+  personaId!: string;
+
+  @IsOptional()
+  @IsString()
+  seasonKey?: string;
+}
+
 class RecapVisibilityDto {
   @IsString()
   domain!: string;
@@ -32,7 +46,10 @@ class RecapVisibilityDto {
 
 @Controller("seasons")
 export class SeasonsController {
-  constructor(private readonly seasons: SeasonsService) {}
+  constructor(
+    private readonly seasons: SeasonsService,
+    private readonly email: EmailService,
+  ) {}
 
   @Get("latest")
   @Throttle({ read: { limit: 60, ttl: 60_000 } })
@@ -72,6 +89,44 @@ export class SeasonsController {
     }
     const seasonKey = body.seasonKey ?? previousSeasonKey(new Date());
     return this.seasons.closeSeason(body.domain, seasonKey, body.personaId ?? null);
+  }
+
+  // Local dev only: preview the season recap email as HTML in browser.
+  @Get("recap/preview-email")
+  @Throttle({ read: { limit: 10, ttl: 60_000 } })
+  async previewSeasonRecapEmail(
+    @CurrentUser() user: AuthedUser,
+    @Query("season") season: string | undefined,
+    @Res() res: Response,
+  ) {
+    const seasonKey = season ?? previousSeasonKey(new Date());
+    const html = await this.email.previewSeasonRecapHtml(user.domain, seasonKey, user.email.split("@")[0]);
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(html);
+  }
+
+  // Generate (or re-generate) prose for a specific persona for a given domain+season.
+  @Post("recap/generate")
+  @Throttle({ write: { limit: 20, ttl: 60_000 } })
+  async generateRecap(@CurrentUser() user: AuthedUser, @Body() body: GenerateRecapDto) {
+    if (body.domain !== user.domain) {
+      throw new ForbiddenException("Cannot generate recap for another domain");
+    }
+    const seasonKey = body.seasonKey ?? previousSeasonKey(new Date());
+    return this.seasons.generateRecapForPersona(body.domain, seasonKey, body.personaId);
+  }
+
+  // Kick off background generation for ALL personas for a domain+season.
+  // Returns immediately — generation runs async.
+  @Post("recap/generate-all")
+  @Throttle({ write: { limit: 5, ttl: 60_000 } })
+  async generateRecapAll(@CurrentUser() user: AuthedUser, @Body() body: Omit<GenerateRecapDto, "personaId"> & { seasonKey?: string }) {
+    if (body.domain !== user.domain) {
+      throw new ForbiddenException("Cannot generate recap for another domain");
+    }
+    const seasonKey = body.seasonKey ?? previousSeasonKey(new Date());
+    void this.seasons.generateAllRecapPersonas(body.domain, seasonKey);
+    return { ok: true, seasonKey };
   }
 
   // Admin toggle: show/hide the recap button + auto-open for a season.

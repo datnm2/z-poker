@@ -13,13 +13,55 @@ import { SeasonRecapStory } from "@/components/season-recap-story";
 import { getEloTier } from "@/lib/ranks";
 import { ApiError } from "@/lib/api";
 import type { SeasonRecapDto, SeasonStandingsDto } from "@/types/database";
+import type { Locale } from "@/i18n/translations";
+
+function PersonaButtons({
+  recapData,
+  onSelect,
+  locale,
+}: {
+  recapData: SeasonRecapDto | null;
+  onSelect: (personaId: string) => void;
+  locale: Locale;
+}) {
+  if (!recapData?.proseByPersona) {
+    return (
+      <button
+        onClick={() => onSelect("default")}
+        className="mx-auto flex min-h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-600 px-6 text-sm font-bold text-white shadow-lg shadow-purple-900/40 ring-1 ring-white/20 transition hover:brightness-110 active:scale-[0.96]"
+      >
+        Xem highlight
+      </button>
+    );
+  }
+  const entries = Object.entries(recapData.proseByPersona);
+  return (
+    <div className="flex flex-wrap justify-center gap-2">
+      {entries.map(([id, prose]) => {
+        const label = prose.personaName
+          ? (prose.personaName[locale] ?? prose.personaName.en ?? id)
+          : id;
+        return (
+          <button
+            key={id}
+            onClick={() => onSelect(id)}
+            className="flex min-h-11 items-center justify-center rounded-full border border-fuchsia-500/40 bg-gradient-to-r from-fuchsia-500/10 to-purple-600/10 px-4 text-sm font-semibold text-fuchsia-400 shadow-sm transition hover:border-fuchsia-400/70 hover:text-fuchsia-300 active:scale-[0.96]"
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function SeasonDetailPage() {
   const { key } = useParams<{ key: string }>();
   const { api, player, isLoggedIn, isLoading: authLoading } = useAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [data, setData] = useState<SeasonStandingsDto | null>(null);
   const [recap, setRecap] = useState<SeasonRecapDto | null>(null);
+  const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [error, setError] = useState<{ message: string; status?: number } | null>(null);
 
@@ -41,14 +83,23 @@ export default function SeasonDetailPage() {
     if (!authLoading && isLoggedIn) fetchStandings();
   }, [authLoading, isLoggedIn, fetchStandings]);
 
-  const openRecap = useCallback(async () => {
-    try {
-      const res = await api.get<SeasonRecapDto>(`/seasons/recap?season=${key}`);
-      setRecap(res);
-    } catch {
-      // recap unavailable — ignore
-    }
-  }, [api, key]);
+  const [recapData, setRecapData] = useState<SeasonRecapDto | null>(null);
+  const [recapLoading, setRecapLoading] = useState(false);
+
+  useEffect(() => {
+    if (!data?.recapVisible) return;
+    setRecapLoading(true);
+    api.get<SeasonRecapDto>(`/seasons/recap?season=${key}`)
+      .then(setRecapData)
+      .catch(() => {})
+      .finally(() => setRecapLoading(false));
+  }, [api, key, data?.recapVisible]);
+
+  const openPersona = useCallback((personaId: string) => {
+    if (!recapData) return;
+    setRecap(recapData);
+    setActivePersonaId(personaId);
+  }, [recapData]);
 
   if (authLoading || !initialized) return <Loading fullscreen />;
   if (error && !data) {
@@ -88,15 +139,31 @@ export default function SeasonDetailPage() {
       </p>
 
       {data?.recapVisible && rows.length > 0 && (
-        <button
-          onClick={openRecap}
-          className="mx-auto mb-5 flex min-h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-600 px-6 text-sm font-bold text-white shadow-lg shadow-purple-900/40 ring-1 ring-white/20 transition hover:brightness-110 hover:shadow-purple-700/50 active:scale-[0.96]"
-        >
-          {t("seasons.detail.watchHighlight").replace("{key}", key)}
-        </button>
+        <div className="mb-5">
+          <p className="mb-2.5 text-center text-xs font-semibold uppercase tracking-widest text-muted">
+            {t("seasons.detail.chooseCommentator")}
+          </p>
+          {recapLoading ? (
+            <div className="flex justify-center py-2">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+            </div>
+          ) : (
+            <PersonaButtons
+              recapData={recapData}
+              onSelect={openPersona}
+              locale={locale}
+            />
+          )}
+        </div>
       )}
 
-      {recap && <SeasonRecapStory recap={recap} onClose={() => setRecap(null)} />}
+      {recap && activePersonaId && (
+        <SeasonRecapStory
+          recap={recap}
+          initialPersonaId={activePersonaId}
+          onClose={() => { setRecap(null); setActivePersonaId(null); }}
+        />
+      )}
 
       {rows.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted">{t("seasons.detail.empty")}</p>

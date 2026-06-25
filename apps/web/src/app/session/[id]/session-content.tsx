@@ -474,12 +474,13 @@ function SessionContent() {
     setLocking(false);
   };
 
-  const regenerateHighlights = async () => {
+  const regenerateHighlights = async (personaIdArg?: string | null) => {
     if (!session || regenerating) return;
+    const pid = personaIdArg !== undefined ? personaIdArg : selectedPersonaId;
     setRegenerating(true);
     try {
       await api.post(`/sessions/${session.id}/highlights/regenerate`, {
-        personaId: selectedPersonaId,
+        personaId: pid,
       });
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to regenerate");
@@ -755,31 +756,93 @@ function SessionContent() {
       {session.isLocked && (
         <>
           {highlights ? (
-            <button
-              onClick={() => setStoryOpen(true)}
-              className="mt-3 flex w-full items-center gap-3 overflow-hidden rounded-xl border border-fuchsia-400/40 bg-gradient-to-r from-fuchsia-500/15 via-purple-500/15 to-indigo-500/15 px-4 py-3 text-left transition hover:from-fuchsia-500/25 hover:via-purple-500/25 hover:to-indigo-500/25"
-            >
-              <div className="flex -space-x-2">
-                {highlights.items.slice(0, 3).map((it, i) => (
-                  <span
-                    key={i}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-card bg-black/40 text-lg"
-                  >
-                    {it.emoji}
-                  </span>
-                ))}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-foreground">{t("session.highlights.title")}</p>
-                <p className="text-xs text-muted">{t("session.highlights.cta")}</p>
-                {highlights.personaName && (
-                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-fuchsia-300">
-                    {t("session.highlights.hostedBy")} "{highlights.personaName[locale] ?? highlights.personaName.en}"
-                  </p>
-                )}
-              </div>
-              <span className="text-muted">›</span>
-            </button>
+            <>
+              <button
+                onClick={() => setStoryOpen(true)}
+                className="mt-3 flex w-full items-center gap-3 overflow-hidden rounded-xl border border-fuchsia-400/40 bg-gradient-to-r from-fuchsia-500/15 via-purple-500/15 to-indigo-500/15 px-4 py-3 text-left transition hover:from-fuchsia-500/25 hover:via-purple-500/25 hover:to-indigo-500/25"
+              >
+                <div className="flex -space-x-2">
+                  {highlights.items.slice(0, 3).map((it, i) => (
+                    <span
+                      key={i}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-card bg-black/40 text-lg"
+                    >
+                      {it.emoji}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-foreground">{t("session.highlights.title")}</p>
+                  <p className="text-xs text-muted">{t("session.highlights.cta")}</p>
+                  {highlights.personaName && (
+                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-fuchsia-300">
+                      {t("session.highlights.hostedBy")} "{highlights.personaName[locale] ?? highlights.personaName.en}"
+                    </p>
+                  )}
+                </div>
+                <span className="text-muted">›</span>
+              </button>
+
+              {personas.length > 0 && (
+                <div className="relative mt-2">
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    {/* Random option */}
+                    {(() => {
+                      const isActive = !highlights.personaId && !selectedPersonaId;
+                      return (
+                        <button
+                          key="random"
+                          disabled={regenerating}
+                          onClick={() => {
+                            setSelectedPersonaId(null);
+                            regenerateHighlights(null);
+                          }}
+                          className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-semibold transition active:scale-95 disabled:opacity-40 ${
+                            isActive
+                              ? "border-fuchsia-400/60 bg-fuchsia-500/20 text-fuchsia-300"
+                              : "border-card-border bg-card/60 text-muted"
+                          }`}
+                        >
+                          {regenerating && isActive ? (
+                            <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-fuchsia-400 border-t-transparent" />
+                          ) : (
+                            "🎲 Random"
+                          )}
+                        </button>
+                      );
+                    })()}
+
+                    {personas.map((p) => {
+                      const isActive = highlights.personaId
+                        ? highlights.personaId === p.id
+                        : selectedPersonaId === p.id;
+                      const label = p.displayName[locale as keyof typeof p.displayName] ?? p.displayName.en;
+                      return (
+                        <button
+                          key={p.id}
+                          disabled={regenerating}
+                          onClick={() => {
+                            setSelectedPersonaId(p.id);
+                            regenerateHighlights(p.id);
+                          }}
+                          className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-semibold transition active:scale-95 disabled:opacity-40 ${
+                            isActive
+                              ? "border-fuchsia-400/60 bg-fuchsia-500/20 text-fuchsia-300"
+                              : "border-card-border bg-card/60 text-muted"
+                          }`}
+                        >
+                          {regenerating && isActive ? (
+                            <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-fuchsia-400 border-t-transparent" />
+                          ) : (
+                            label
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="mt-3 flex items-center gap-3 rounded-xl border border-card-border bg-card/60 px-4 py-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-fuchsia-500/20 text-lg animate-pulse">
@@ -791,7 +854,7 @@ function SessionContent() {
               </div>
               {isCreator ? (
                 <button
-                  onClick={regenerateHighlights}
+                  onClick={() => regenerateHighlights()}
                   disabled={regenerating}
                   className="min-h-9 rounded-lg bg-fuchsia-500/20 px-3 text-xs font-semibold text-fuchsia-300 transition active:scale-95 active:bg-fuchsia-500/30 disabled:opacity-50"
                 >

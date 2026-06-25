@@ -76,6 +76,7 @@ export const en = {
   "seasons.detail.empty": "No data for this season.",
   "seasons.detail.gamesShort": "games",
   "seasons.detail.watchHighlight": "🎬 Watch season {key} highlights",
+  "seasons.detail.chooseCommentator": "Choose commentator",
   "leaderboard.title": "Leaderboard",
   "leaderboard.slogan": "Outlast. Outchip. Outrank.",
   "leaderboard.players": "Total Players",
