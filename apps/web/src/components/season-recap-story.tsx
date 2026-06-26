@@ -197,6 +197,7 @@ export function SeasonRecapStory({ recap, onClose, durationMs = 7000, initialPer
   const stepLabel = personaName ?? (locale === "vi" ? "Tổng kết mùa" : "Season recap");
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe client-only flag
     setMounted(true);
   }, []);
 

@@ -53,6 +53,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const detected = detectInitialLocale();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- locale only detectable post-hydration
     if (detected !== "en") setLocaleState(detected);
   }, []);
 

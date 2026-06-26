@@ -776,7 +776,7 @@ function SessionContent() {
                   <p className="text-xs text-muted">{t("session.highlights.cta")}</p>
                   {highlights.personaName && (
                     <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-fuchsia-300">
-                      {t("session.highlights.hostedBy")} "{highlights.personaName[locale] ?? highlights.personaName.en}"
+                      {t("session.highlights.hostedBy")} &ldquo;{highlights.personaName[locale] ?? highlights.personaName.en}&rdquo;
                     </p>
                   )}
                 </div>
@@ -1149,7 +1149,7 @@ function SessionContent() {
                               {p.displayName[locale] ?? p.displayName.en}
                             </p>
                             <p className="line-clamp-2 text-[11px] italic text-muted">
-                              "{p.sample}"
+                              &ldquo;{p.sample}&rdquo;
                             </p>
                           </div>
                         </button>

@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // every consumer that memoizes on it (including `api` below + useSseStream).
   // Pin it through a ref so downstream memos stay stable for the session.
   const getTokenRef = useRef(getToken);
+  // eslint-disable-next-line react-hooks/refs -- keep latest getToken without destabilizing memos
   getTokenRef.current = getToken;
   const getTokenStable = useCallback(async () => {
     if (!clerkLoaded) return null;
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clerkLoaded]);
 
   const api = useMemo(
+    // eslint-disable-next-line react-hooks/refs -- getTokenStable only reads the ref when invoked, not during render
     () => createApiClient(getTokenStable),
     [getTokenStable],
   );

@@ -43,6 +43,7 @@ export function HighlightsStory({ items, players, onClose, durationMs = 10000, p
     ? (personaName[locale] ?? personaName.en)
     : (locale === "vi" ? "MC kể chuyện" : "MC's take");
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe client-only flag
   useEffect(() => { setMounted(true); }, []);
 
   const next = useCallback(() => {
