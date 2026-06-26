@@ -1,0 +1,35 @@
+name: CI - Web
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/ci-web.yml'
+
+concurrency:
+  group: ci-web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint + type-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn workspace web lint
+
+      - name: Type-check
+        run: yarn workspace web exec tsc --noEmit

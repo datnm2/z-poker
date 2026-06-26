@@ -41,6 +41,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
       if (stored === "light" || stored === "dark") next = stored;
     } catch {}
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- stored theme only readable post-hydration
     setThemeState(next);
     applyTheme(next);
   }, []);

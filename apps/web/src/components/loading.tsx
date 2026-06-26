@@ -128,6 +128,7 @@ export function Loading({ size = "md", fullscreen, className = "", scope = "glob
 
   useEffect(() => {
     // Randomize tip index after hydration (client-only)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: random only valid post-hydration
     setTipIndex(Math.floor(Math.random() * 20));
   }, []);
 

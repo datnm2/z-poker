@@ -30,9 +30,13 @@ export function useSseStream({ path, handlers, onResync, enabled = true }: Optio
   // mints a new single-use ticket each time and quickly hits the rate limit.
   const getTokenRef = useRef(getToken);
 
+  // Keep latest callbacks in refs so the SSE effect (mounted once) always
+  // calls the freshest handler without re-subscribing on every render.
+  /* eslint-disable react-hooks/refs */
   handlersRef.current = handlers;
   onResyncRef.current = onResync;
   getTokenRef.current = getToken;
+  /* eslint-enable react-hooks/refs */
 
   useEffect(() => {
     if (!enabled || !path) return;
