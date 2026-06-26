@@ -59,7 +59,7 @@ function buildStandingsHtml(recap: SeasonRecapDto): string {
             <tr>
               <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">#${i + 1}</td>
               <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${escapeHtml(p.playerName)}</td>
-              <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${p.pct}%</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;">${Math.round(p.pct * 100)}%</td>
               <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;color:#6b7280;">${p.wins}/${p.games}</td>
             </tr>`,
             )
@@ -129,7 +129,7 @@ export function getSeasonRecapTemplate(
   const label = seasonLabel(seasonKey);
   const subject = `Z-Poker: Tổng kết mùa ${label} — ${recap.totalGames} ván`;
 
-  const seasonUrl = `${webOrigin}/seasons`;
+  const seasonUrl = `${webOrigin}/seasons/${seasonKey}`;
   const proseHtml = recap.prose ? buildProseHtml(recap.prose) : "";
   const standingsHtml = buildStandingsHtml(recap);
 
@@ -176,7 +176,7 @@ export function getSeasonRecapTemplate(
     recap.topWinrate.length > 0
       ? "Winrate cao nhất:\n" +
         recap.topWinrate
-          .map((p, i) => `#${i + 1} ${p.playerName}: ${p.pct}% (${p.wins}/${p.games})`)
+          .map((p, i) => `#${i + 1} ${p.playerName}: ${Math.round(p.pct * 100)}% (${p.wins}/${p.games})`)
           .join("\n")
       : null,
   ]
