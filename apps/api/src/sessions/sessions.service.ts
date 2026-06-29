@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { QueryFailedError, Repository } from "typeorm";
 import { Session } from "./session.entity";
 import { SessionPlayer } from "./session-player.entity";
 import { Player } from "../players/player.entity";
@@ -546,7 +546,16 @@ export class SessionsService {
       streakBonus: null,
       jackpotPaid: null,
     });
-    const saved = await this.sessionPlayers.save(sp);
+    let saved: SessionPlayer;
+    try {
+      saved = await this.sessionPlayers.save(sp);
+    } catch (err) {
+      // Race: a concurrent request inserted the same player after our check above.
+      if (err instanceof QueryFailedError && (err.driverError as { code?: string })?.code === "23505") {
+        throw new BadRequestException("Player already in session");
+      }
+      throw err;
+    }
 
     const dto: SessionPlayerDto = {
       id: saved.id,
