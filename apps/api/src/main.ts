@@ -64,7 +64,11 @@ async function bootstrap() {
     .setTitle("Z-Poker API")
     .setDescription(swaggerDescription)
     .setVersion(deploy.shortSha)
-    .addBearerAuth()
+    .addBearerAuth(
+      { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+      "bearer",
+    )
+    .addSecurityRequirements("bearer")
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup("docs", app, document, {
