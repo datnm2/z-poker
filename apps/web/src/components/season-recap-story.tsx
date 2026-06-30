@@ -71,8 +71,8 @@ export function buildRecapSlides(recap: SeasonRecapDto): RecapSlide[] {
       emoji: "🎯",
       title: { vi: "Tỉ lệ thắng cao nhất", en: "Top win rate" },
       body: {
-        vi: "Ai về bờ thường xuyên nhất (tối thiểu 3 ván).",
-        en: "Most consistent winners (min 3 games).",
+        vi: "Ai về bờ thường xuyên nhất (tối thiểu 10 ván).",
+        en: "Most consistent winners (min 10 games).",
       },
       rows: recap.topWinrate.map((w, i) => ({
         name: w.playerName,

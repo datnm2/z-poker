@@ -2,7 +2,7 @@
 
 import type { SeasonRecapProse } from "./season-recap.entity";
 
-export const MIN_GAMES_FOR_WINRATE = 3;
+export const MIN_GAMES_FOR_WINRATE = 10;
 export const TOP_N = 3;
 
 interface PlayerRef {

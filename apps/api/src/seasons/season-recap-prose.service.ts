@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { SchemaType, type ResponseSchema } from "@google/generative-ai";
 import { AiService } from "../ai/ai.service";
 import { selectPersona, type McPersona } from "../sessions/highlights/personas";
-import type { SeasonRecapDto } from "./season.recap";
+import { MIN_GAMES_FOR_WINRATE, type SeasonRecapDto } from "./season.recap";
 import type { LocalizedText, SeasonRecapProse } from "./season-recap.entity";
 
 // Slide keys the recap overlay knows how to render. Order matters for the prompt
@@ -117,7 +117,7 @@ CỰC KỲ QUAN TRỌNG — THÌ THỜI GIAN: TẤT CẢ sự kiện này đã x
 Nhiệm vụ: viết prose cho từng slide trong danh sách: ${keyList}. Ý nghĩa từng slide:
 - intro: mở màn, hype tổng quan cả mùa (${recap.totalGames} ván).
 - hardest: vinh danh mấy người cày nhiều ván nhất mùa (con số games trong data).
-- winrate: mấy người có tỉ lệ thắng cao nhất (tối thiểu 3 ván).
+- winrate: mấy người có tỉ lệ thắng cao nhất (tối thiểu ${MIN_GAMES_FOR_WINRATE} ván).
 - chipRatio: phi vụ ôm chip về đậm nhất một ván (ratio = chip cuối / buy-in).
 - biggestTable: bàn đông người nhất mùa.
 - biggestEloGain: cú nhảy ELO lớn nhất trong một ván.

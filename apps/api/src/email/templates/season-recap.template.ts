@@ -1,4 +1,7 @@
-import type { SeasonRecapDto } from "../../seasons/season.recap";
+import {
+  MIN_GAMES_FOR_WINRATE,
+  type SeasonRecapDto,
+} from "../../seasons/season.recap";
 import type { SeasonRecapProse } from "../../seasons/season-recap.entity";
 import type { EmailTemplate } from "./session-recap.template";
 
@@ -50,7 +53,7 @@ function buildStandingsHtml(recap: SeasonRecapDto): string {
 
   if (recap.topWinrate.length > 0) {
     rows.push(`
-      <h3 style="margin:20px 0 8px;font-size:15px;color:#374151;">Winrate cao nhất (tối thiểu 3 ván)</h3>
+      <h3 style="margin:20px 0 8px;font-size:15px;color:#374151;">Winrate cao nhất (tối thiểu ${MIN_GAMES_FOR_WINRATE} ván)</h3>
       <table style="width:100%;border-collapse:collapse;font-size:14px;">
         <tbody>
           ${recap.topWinrate

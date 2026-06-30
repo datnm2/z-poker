@@ -1,4 +1,8 @@
-import { computeRecap, type RecapRow } from "./season.recap";
+import {
+  computeRecap,
+  MIN_GAMES_FOR_WINRATE,
+  type RecapRow,
+} from "./season.recap";
 
 function row(p: Partial<RecapRow> & Pick<RecapRow, "playerId" | "sessionId" | "chipsEnd">): RecapRow {
   return {
@@ -36,18 +40,19 @@ describe("computeRecap", () => {
   });
 
   it("applies the min-games floor to win rate", () => {
-    const rows = [
-      // c: 1 game, 100% win — excluded (below floor of 3)
-      row({ playerId: "c", sessionId: "s1", chipsEnd: 200 }),
-      // a: 3 games, 2 wins
-      row({ playerId: "a", sessionId: "s1", chipsEnd: 150 }),
-      row({ playerId: "a", sessionId: "s2", chipsEnd: 150 }),
-      row({ playerId: "a", sessionId: "s3", chipsEnd: 50 }),
-    ];
-    const { topWinrate } = computeRecap("2026-Q2", rows);
+    const floor = MIN_GAMES_FOR_WINRATE;
+    // a: exactly at the floor, 2 wins → included
+    const aRows = Array.from({ length: floor }, (_, i) =>
+      row({ playerId: "a", sessionId: `a${i}`, chipsEnd: i < 2 ? 150 : 50 }),
+    );
+    // c: one game below the floor, 100% win → excluded
+    const cRows = Array.from({ length: floor - 1 }, (_, i) =>
+      row({ playerId: "c", sessionId: `c${i}`, chipsEnd: 150 }),
+    );
+    const { topWinrate } = computeRecap("2026-Q2", [...aRows, ...cRows]);
     expect(topWinrate).toHaveLength(1);
-    expect(topWinrate[0]).toMatchObject({ playerId: "a", wins: 2, games: 3 });
-    expect(topWinrate[0].pct).toBeCloseTo(2 / 3);
+    expect(topWinrate[0]).toMatchObject({ playerId: "a", wins: 2, games: floor });
+    expect(topWinrate[0].pct).toBeCloseTo(2 / floor);
   });
 
   it("finds record holders", () => {
