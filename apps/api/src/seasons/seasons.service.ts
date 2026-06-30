@@ -8,6 +8,7 @@ import { SessionPlayer } from "../sessions/session-player.entity";
 import { SeasonResult } from "./season-result.entity";
 import { SeasonRecap } from "./season-recap.entity";
 import { SeasonRecapProseService } from "./season-recap-prose.service";
+import { MC_PERSONAS } from "../sessions/highlights/personas";
 import { SessionsEventsService } from "../sessions/sessions.events";
 import { CACHE_ADAPTER } from "../cache/cache.tokens";
 import { EMAIL_EVENT, type SeasonRecapReadyEvent } from "../email/email.events";
@@ -349,6 +350,9 @@ export class SeasonsService {
       const recap = computeRecap(seasonKey, rows);
       // Generate prose for the requested persona (or random) first so the recap
       // is visible immediately; then kick off all-persona generation async.
+      // prose may be null if the AI chain is exhausted (e.g. sustained 503) — still
+      // create the row so the season is marked closed + recap_visible; the background
+      // pass below (and a later /recap/generate-all) backfills the prose.
       const prose = await this.prose.generate(recap, personaId);
       await this.seasonRecaps.save(
         this.seasonRecaps.create({ domain, seasonKey, prose, recapVisible: true }),
@@ -365,7 +369,7 @@ export class SeasonsService {
       } satisfies SeasonRecapReadyEvent);
 
       // Fire-and-forget: generate prose for all personas in the background.
-      void this.generateAllProseInBackground(domain, seasonKey, recap);
+      void this.generateAllProseInBackground(domain, seasonKey);
     }
 
     return result;
@@ -374,31 +378,40 @@ export class SeasonsService {
   private async generateAllProseInBackground(
     domain: string,
     seasonKey: string,
-    recap: ReturnType<typeof computeRecap>,
   ): Promise<void> {
-    this.logger.log(`generateAllProseInBackground: starting for ${domain} ${seasonKey}, totalGames=${recap.totalGames}`);
-    const proseByPersona = await this.prose.generateAllPersonas(recap);
-    this.logger.log(`generateAllProseInBackground: got ${Object.keys(proseByPersona).length} personas`);
-    if (Object.keys(proseByPersona).length === 0) return;
-    const existing = await this.seasonRecaps.findOne({ where: { domain, seasonKey } });
-    const merged = { ...(existing?.proseByPersona ?? {}), ...proseByPersona };
-    await this.seasonRecaps
-      .createQueryBuilder()
-      .update()
-      .set({ proseByPersona: merged })
-      .where("domain = :domain AND season_key = :seasonKey", { domain, seasonKey })
-      .execute();
-    await this.cache.del(CacheKeys.seasonRecap(domain, seasonKey));
-    this.events.publish({ type: "season.reset", domain, seasonKey });
+    this.logger.log(`generateAllProseInBackground: starting for ${domain} ${seasonKey}`);
+    // Persist each persona as soon as it's generated so a mid-run restart/crash
+    // doesn't lose all prose. generateRecapForPersona returns ok:false only after
+    // AiService has exhausted its own retries + key/model fallback chain; one extra
+    // pass here covers personas that lost the whole chain to a transient 503.
+    const pending = MC_PERSONAS.map((p) => p.id);
+    let saved = 0;
+    for (let pass = 0; pass < 2 && pending.length > 0; pass++) {
+      const failed: string[] = [];
+      for (const personaId of pending) {
+        const res = await this.generateRecapForPersona(domain, seasonKey, personaId);
+        if (res.ok) {
+          saved++;
+          this.events.publish({ type: "season.reset", domain, seasonKey });
+        } else {
+          failed.push(personaId);
+        }
+        await new Promise((r) => setTimeout(r, 3000));
+      }
+      pending.length = 0;
+      pending.push(...failed);
+    }
+    this.logger.log(
+      `generateAllProseInBackground: saved ${saved}/${MC_PERSONAS.length} personas` +
+        (pending.length ? `, still failing: ${pending.join(",")}` : ""),
+    );
   }
 
   async generateAllRecapPersonas(domain: string, seasonKey: string): Promise<void> {
-    this.logger.log(`generateAllRecapPersonas: loading rows for ${domain} ${seasonKey}`);
     const rows = await this.loadRows(domain, seasonKey);
-    this.logger.log(`generateAllRecapPersonas: ${rows.length} rows loaded`);
+    this.logger.log(`generateAllRecapPersonas: ${rows.length} rows for ${domain} ${seasonKey}`);
     if (rows.length === 0) return;
-    const recap = computeRecap(seasonKey, rows);
-    await this.generateAllProseInBackground(domain, seasonKey, recap);
+    await this.generateAllProseInBackground(domain, seasonKey);
   }
 
   async generateRecapForPersona(
@@ -414,11 +427,14 @@ export class SeasonsService {
 
     const existing = await this.seasonRecaps.findOne({ where: { domain, seasonKey } });
     const proseByPersona = { ...(existing?.proseByPersona ?? {}), [personaId]: prose };
+    // Upsert: the row may not exist yet (e.g. generate-all called before close,
+    // or close crashed before saving). orUpdate keeps recap_visible + prose intact.
     await this.seasonRecaps
       .createQueryBuilder()
-      .update()
-      .set({ proseByPersona })
-      .where("domain = :domain AND season_key = :seasonKey", { domain, seasonKey })
+      .insert()
+      .into(SeasonRecap)
+      .values({ domain, seasonKey, proseByPersona, recapVisible: true })
+      .orUpdate(["prose_by_persona"], ["domain", "season_key"])
       .execute();
     await this.cache.del(CacheKeys.seasonRecap(domain, seasonKey));
     return { ok: true };
