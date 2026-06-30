@@ -164,12 +164,30 @@ export class AiService implements OnModuleInit {
 
   private isRetryable(err: unknown): boolean {
     const msg = (err as Error)?.message ?? "";
-    return /\b(429|500|502|503|504)\b/.test(msg) || /high demand|overloaded|unavailable|ECONNRESET|ETIMEDOUT/i.test(msg);
+    return (
+      /\b(429|500|502|503|504)\b/.test(msg) ||
+      /high demand|overloaded|unavailable/i.test(msg) ||
+      this.isNetworkError(msg)
+    );
   }
 
-  // Worth moving to the next (key, model) in the chain: server errors or quota (429).
+  // Worth moving to the next (key, model) in the chain: server errors, quota
+  // (429), or a transient network failure (the current key's endpoint is
+  // unreachable — another key/model may resolve fine).
   private shouldFallback(err: unknown): boolean {
     const msg = (err as Error)?.message ?? "";
-    return /\b(429|500|502|503|504)\b/.test(msg) || /high demand|overloaded|unavailable|quota|exhausted/i.test(msg);
+    return (
+      /\b(429|500|502|503|504)\b/.test(msg) ||
+      /high demand|overloaded|unavailable|quota|exhausted/i.test(msg) ||
+      this.isNetworkError(msg)
+    );
+  }
+
+  // undici/node network failures: connection reset, timeout, DNS, or the
+  // generic "fetch failed" wrapper Gemini's SDK surfaces for all of these.
+  private isNetworkError(msg: string): boolean {
+    return /fetch failed|ECONNRESET|ETIMEDOUT|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|socket hang up|network/i.test(
+      msg,
+    );
   }
 }
