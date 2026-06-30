@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { SchemaType, type ResponseSchema } from "@google/generative-ai";
 import { AiService } from "../ai/ai.service";
-import { selectPersona, MC_PERSONAS, type McPersona } from "../sessions/highlights/personas";
+import { selectPersona, type McPersona } from "../sessions/highlights/personas";
 import type { SeasonRecapDto } from "./season.recap";
 import type { LocalizedText, SeasonRecapProse } from "./season-recap.entity";
 
@@ -83,21 +83,6 @@ export class SeasonRecapProseService {
     }
   }
 
-  // Loop through all personas sequentially, 3s apart to respect AI rate limits.
-  // Returns a map personaId → prose (failed ones are omitted).
-  async generateAllPersonas(
-    recap: SeasonRecapDto,
-  ): Promise<Record<string, SeasonRecapProse>> {
-    const result: Record<string, SeasonRecapProse> = {};
-    for (const persona of MC_PERSONAS) {
-      const prose = await this.generate(recap, persona.id);
-      if (prose) result[persona.id] = prose;
-      // Pace calls to avoid hitting AI API rate limits
-      await sleep(3000);
-    }
-    return result;
-  }
-
   private relevantKeys(recap: SeasonRecapDto): SlideKey[] {
     const r = recap.records;
     const has: Record<SlideKey, boolean> = {
@@ -153,8 +138,4 @@ Output — SONG NGỮ (BẮT BUỘC), JSON object "slides" với đúng các key
 Data tổng kết mùa:
 ${statsJson}`;
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
