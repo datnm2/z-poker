@@ -62,10 +62,9 @@ describe("computeEloChanges", () => {
       1000,
     );
     // Winner: K*(N/2)*(1.0-0.5) = 70*1*0.5 = 35, plus WINNER_FLAT_BONUS.
-    // Loser: K_LOSS*(N/2)*(0-0.5) = 50*1*(-0.5) = -25 (softened).
-    // WITH mitigation (L=1, 0.9x): -25 * 0.9 = -22.5 -> -22 (Math.round(-22.5) rounds towards zero in JS for negative if not careful, but let's see results)
+    // Loser: K_LOSS*(N/2)*(0-0.5) = 50*1*(-0.5) = -25. No mitigation → full loss.
     expect(result[0].change).toBe(35 + WINNER_FLAT_BONUS);
-    expect(result[1].change).toBe(-22);
+    expect(result[1].change).toBe(-25);
   });
 
   it("penalizes the favorite for losing to the underdog", () => {
@@ -384,9 +383,9 @@ describe("computeEloChanges", () => {
       );
       expect(result[1].streakAfter).toBe(-3);
       expect(result[1].streakBonus).toBe(-STREAK_THRESHOLD); // step 1, not ×2
-      // K_LOSS=50 → loser raw = -25. Mitigation (L=3) = 0.7. Round(-25*0.7) = -17.
-      // Streak bonus = -3. Total = -17 - 3 = -20.
-      expect(result[1].change).toBe(-17 - 3);
+      // K_LOSS=50 → loser raw = -25. No mitigation → full loss.
+      // Streak bonus = -3. Total = -25 - 3 = -28.
+      expect(result[1].change).toBe(-25 - 3);
     });
 
     it("scales win-streak bonus linearly with longer streaks (no cap)", () => {
@@ -653,8 +652,8 @@ describe("computeEloChanges", () => {
       expect(result[1].streakAfter).toBe(-1);
       expect(result[1].streakBonus).toBe(0);
       // No residual win-streak credit leaks in. K_LOSS=50 → raw -25.
-      // WITH mitigation (L=1, 0.9x): -25 * 0.9 = -22.5 -> -22
-      expect(result[1].change).toBe(-22);
+      // No mitigation → full loss.
+      expect(result[1].change).toBe(-25);
     });
 
     it("starts a fresh win streak from a tie (currentStreak=0 → +1)", () => {
@@ -785,15 +784,13 @@ describe("computeEloChanges", () => {
       ];
       const result = computeEloChanges(players, buyIn);
       const loser = result[1];
-      // Base loss: 50 * 1 * -0.5 = -25.
-      // L_after = 3. mitigation = max(0.5, 1 - 0.1 * 3) = 0.7.
-      // Mitigated: -25 * 0.7 = -17.5 -> -17 (Math.round).
-      // Jackpot addition: abs(-25) * 0.2 * 3 = 15.
+      // Base loss: 50 * 1 * -0.5 = -25. No mitigation → full loss.
+      // L_after = 3. Jackpot addition: abs(-25) * 0.1 * 3 = 7.5 -> 8 (Math.round).
       expect(loser.streakAfter).toBe(-3);
       expect(loser.streakBonus).toBe(-3);
-      // change = -17 (mitigated) + -3 (streak bonus) = -20.
-      expect(loser.change).toBe(-20);
-      expect(loser.jackpotAfter).toBe(10 + 15);
+      // change = -25 (full) + -3 (streak bonus) = -28.
+      expect(loser.change).toBe(-28);
+      expect(loser.jackpotAfter).toBe(10 + 8);
     });
 
     it("explodes Jackpot (Nổ Hũ) for Top 3 with 1.5x chips", () => {
@@ -1026,9 +1023,9 @@ describe("computeEloChanges", () => {
         ],
         1000,
       );
-      // K_LOSS=50, actual=0, expected=0.5 -> -25.
-      // WITH mitigation (L=1, 0.9x): -25 * 0.9 = -22.5 -> -22
-      expect(result[1].change).toBe(-22);
+      // K_LOSS=50, actual=0, expected=0.5 -> -25. No mitigation → full loss,
+      // already worse than the -3 bust floor so the floor doesn't weaken it.
+      expect(result[1].change).toBe(-25);
     });
   });
 

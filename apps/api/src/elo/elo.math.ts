@@ -8,12 +8,10 @@ export const K = 70;
 export const K_LOSS = 50;
 
 // ELO scaling factor in the expected-score formula. Arpad standard is 400;
-// we use 1200 to flatten expectations more aggressively. With realistic chip
-// distributions (no full-pot blowouts in 30-min office games), high-ELO
-// players were getting clamped to +1 on most wins because raw went negative.
-// 1200 keeps raw modestly positive on small wins while still letting upsets
-// (low ELO beating high ELO) feel rewarding.
-export const ELO_SCALE = 1200;
+// we use 1000 to flatten expectations while keeping the curve steep enough that
+// high-ELO players brake naturally: they earn less on small wins and shed more
+// on losses, so only 1-2 players reach the top tier per season (~48 games).
+export const ELO_SCALE = 1000;
 
 // Flat bonus added to every player who finishes with more chips than buy-in.
 // Drives mild ELO inflation so the pool spreads into higher tiers over time
@@ -50,7 +48,7 @@ export const LOSS_STREAK_BONUS_CAP = 5;
 export const JACKPOT_ELIGIBLE_LOSS_STREAK_MIN = 3;
 export const JACKPOT_PAYOUT_TOP_RANK_MAX = 3;
 export const JACKPOT_PAYOUT_MIN_BUYIN_MULTIPLIER = 1.5;
-export const JACKPOT_ACCUMULATION_RATE = 0.2;
+export const JACKPOT_ACCUMULATION_RATE = 0.1;
 
 export interface EloInput {
   playerId: string;
@@ -117,17 +115,14 @@ export function computeEloChanges(
         streakAfter = 0; // Reset streak on jackpot payout (nổ hũ)
       }
     } else if (isLoss) {
-      // 3. Loss Streak Mitigation & Jackpot Accumulation
+      // 3. Jackpot Accumulation (no ELO mitigation — losses hit at full weight;
+      // the jackpot is funded on top of the full loss to curb inflation).
       const L_after = Math.abs(streakAfter);
       if (L_after >= 1) {
-        const mitigation = Math.max(0.5, 1 - 0.1 * L_after);
-        const mitigatedChange = Math.round(change * mitigation);
-
         // Accumulate to jackpot: rate * L * baseEloLoss
         jackpotChange = Math.round(
           Math.abs(change) * (JACKPOT_ACCUMULATION_RATE * L_after),
         );
-        change = mitigatedChange;
       }
     }
 
