@@ -20,7 +20,7 @@ Events: `session.created`, `session.player_joined`, `session.chips_updated`, `se
 Tuned cho pool nhỏ (~20 người, văn phòng) chơi 30 phút/ngày. Mục tiêu: cân bằng skill (ăn ELO cao hơn khi thắng cá lớn) và volume (chơi đều thì leo dần lên), tránh "kẹt 1200 mãi".
 
 - **Core formula**: `raw = round(kFactor × (N/2) × (actual − expected))`
-  - `expected = 1 / (1 + 10^((avgElo − playerElo) / ELO_SCALE))`, **`ELO_SCALE = 700`** (nới từ Arpad chuẩn 400 để curve phẳng hơn → high-ELO không bị nghẹt khi thắng nhỏ)
+  - `expected = 1 / (1 + 10^((avgElo − playerElo) / ELO_SCALE))`, **`ELO_SCALE = 1000`** (nới từ Arpad chuẩn 400 để curve phẳng hơn, nhưng vẫn đủ dốc để top player tự phanh: thắng nhỏ ăn ít, thua thì tụt nhiều → chỉ 1–2 người/mùa lên Thần Bài)
   - `actual = 0.5 + 0.5 × (chipsEnd − buyIn) / (buyIn × (N − 1))` — linear theo chip
   - **Asymmetric K**: winner dùng `K=70`, loser dùng `K_LOSS=50` (loss bớt đau ~30% để top player có EV dương khi winrate cao)
 - **Winner rewards** (cộng dồn sau công thức):
@@ -31,8 +31,8 @@ Tuned cho pool nhỏ (~20 người, văn phòng) chơi 30 phút/ngày. Mục ti�
   - Win streak: `streak × 2`, vô hạn (3→+6, 4→+8, 5→+10, …) — reward hot run
   - Loss streak: step 1, cap tại `LOSS_STREAK_BONUS_CAP = 5` (3→−3, 4→−4, 5→−5, 6→−5, …) — phạt thua liên tiếp nhưng không bị xoáy
 - **Jackpot Mechanism (Nổ Hũ)**:
-  - **Tích lũy**: Bắt đầu ngay từ trận thua đầu tiên. Tỷ lệ trích điểm Elo bị trừ vào hũ cá nhân tăng dần theo công thức: 20% × Số trận thua liên tiếp.
-  - **Giảm lỗ**: Áp dụng ngay từ trận thua đầu tiên. Cứ mỗi trận thua liên tiếp, người chơi được giảm 10% hình phạt Elo (giảm tối đa 50%).
+  - **Tích lũy**: Bắt đầu ngay từ trận thua đầu tiên. Hũ tích thêm `10% × Số trận thua liên tiếp × |ELO loss gốc|` mỗi trận (`JACKPOT_ACCUMULATION_RATE = 0.1`). Hũ tích **on top** của loss, không rút từ ELO thua.
+  - **Không giảm lỗ**: Thua liên tiếp bị trừ ELO **đầy đủ** (bỏ mitigation cũ) — giảm lạm phát ở đáy. Hũ vẫn tích trên loss gốc.
   - **Nổ Hũ (Payout)**: Hũ sẽ nổ khi người chơi có chuỗi thua >= 3 đạt được Thứ hạng: Top 3 trong phiên, Thành tích: Số chip cuối trận >= 1.5× Buy-in.
   - **Reset**: Khi nổ hũ thành công, người chơi nhận lại toàn bộ điểm trong hũ. Sau đó, hũ cá nhân và chuỗi thắng/thua lập tức được reset về 0.
 - **Zero-sum chips**: `sum(chipsEnd) == buyIn × N` enforced at lock (chỉ chip, không phải ELO)
