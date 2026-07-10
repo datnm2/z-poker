@@ -12,6 +12,7 @@ import { LandingContent } from "@/components/landing-content";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Session } from "@/types/database";
 import { ApiError } from "@/lib/api";
+import { localDate } from "@/lib/date";
 
 interface ActiveSession extends Session {
   creator: { id: string; name: string } | null;
@@ -147,7 +148,7 @@ export default function PlayPage() {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{s.playedDate}</span>
+                      <span className="text-sm font-medium">{localDate(s.createdAt)}</span>
                       {isJoined ? (
                         <span className="rounded-full bg-accent/20 px-2 py-0.5 text-xs font-semibold text-accent">
                           {t("session.joined")}

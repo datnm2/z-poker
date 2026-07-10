@@ -99,7 +99,7 @@ function toDateString(v: unknown): string {
 function sessionToDto(s: Session): SessionDto {
   return {
     id: s.id,
-    playedDate: toDateString(s.playedDate),
+    playedDate: toDateString(s.createdAt),
     buyIn: s.buyIn,
     domain: s.domain,
     createdBy: s.createdBy,
@@ -253,7 +253,7 @@ export class SessionsService {
         const dealer = dealerById.get(s.createdBy);
         return {
           id: s.id,
-          playedDate: toDateString(s.playedDate),
+          playedDate: toDateString(s.createdAt),
           buyIn,
           lockedAt: s.lockedAt!.toISOString(),
           playerCount: entry.count,
@@ -298,7 +298,6 @@ export class SessionsService {
       .leftJoin(Player, "p", "p.id = s.created_by")
       .select([
         's.id AS "id"',
-        's.played_date AS "playedDate"',
         's.buy_in AS "buyIn"',
         's.domain AS "domain"',
         's.created_by AS "createdBy"',
@@ -314,7 +313,6 @@ export class SessionsService {
       .limit(50)
       .getRawMany<{
         id: string;
-        playedDate: Date | string;
         buyIn: number;
         domain: string;
         createdBy: string;
@@ -346,7 +344,7 @@ export class SessionsService {
 
     return rows.map((r) => ({
       id: r.id,
-      playedDate: toDateString(r.playedDate),
+      playedDate: toDateString(r.createdAt),
       buyIn: Number(r.buyIn),
       domain: r.domain,
       createdBy: r.createdBy,
@@ -363,11 +361,10 @@ export class SessionsService {
 
   async create(
     user: AuthedUser,
-    input: { buyIn: number; playedDate?: string },
+    input: { buyIn: number },
   ): Promise<SessionDto> {
     const session = this.sessions.create({
       buyIn: input.buyIn,
-      playedDate: input.playedDate ?? new Date().toISOString().slice(0, 10),
       domain: user.domain,
       createdBy: user.userId,
       isLocked: false,

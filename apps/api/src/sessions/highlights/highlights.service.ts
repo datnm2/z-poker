@@ -103,7 +103,7 @@ export class HighlightsService {
       const persona = selectPersona(personaId);
       const prompt = this.buildPrompt(
         session.buyIn,
-        session.playedDate,
+        session.createdAt.toISOString().slice(0, 10),
         contexts,
         targetCount,
         persona,

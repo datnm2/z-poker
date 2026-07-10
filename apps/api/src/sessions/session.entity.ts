@@ -2,19 +2,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import type { SessionHighlights } from "./highlights/highlights.types";
 
 @Entity("sessions")
-@Index("idx_sessions_domain_date", ["domain", "playedDate"])
 export class Session {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
-
-  @Column({ name: "played_date", type: "date" })
-  playedDate!: string;
 
   @Column({ name: "buy_in", type: "int", default: 1000 })
   buyIn!: number;

@@ -11,7 +11,6 @@ import { ApiError } from "@/lib/api";
 
 interface HistoryItem {
   id: string;
-  playedDate: string;
   buyIn: number;
   lockedAt: string;
   playerCount: number;

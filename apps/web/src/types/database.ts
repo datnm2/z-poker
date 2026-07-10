@@ -16,7 +16,6 @@ export interface Player {
 
 export interface Session {
   id: string;
-  playedDate: string;
   buyIn: number;
   domain: string;
   createdBy: string;

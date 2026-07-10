@@ -241,7 +241,7 @@ export class SeasonsService {
         'sp.elo_before AS "eloBefore"',
         'sp.elo_after AS "eloAfter"',
         's.locked_at AS "lockedAt"',
-        's.played_date AS "playedDate"',
+        's.created_at AS "playedDate"',
       ])
       .where("s.domain = :domain", { domain })
       .andWhere("s.is_locked = true")

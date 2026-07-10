@@ -94,8 +94,8 @@ export class EmailService {
     const playerById = new Map(players.map((p) => [p.id, p]));
 
     const buyIn = Number(session.buyIn);
-    const playedDate = toDateString(session.playedDate);
     const createdAt = session.createdAt;
+    const playedDate = toDateString(createdAt);
 
     const ranked = [...sps].sort(
       (a, b) => (b.chipsEnd ?? 0) - (a.chipsEnd ?? 0),
@@ -176,7 +176,7 @@ export class EmailService {
         'sp.elo_before AS "eloBefore"',
         'sp.elo_after AS "eloAfter"',
         's.locked_at AS "lockedAt"',
-        's.played_date AS "playedDate"',
+        's.created_at AS "playedDate"',
       ])
       .where("s.domain = :domain", { domain })
       .andWhere("s.is_locked = true")
@@ -223,7 +223,7 @@ export class EmailService {
         'sp.elo_before AS "eloBefore"',
         'sp.elo_after AS "eloAfter"',
         's.locked_at AS "lockedAt"',
-        's.played_date AS "playedDate"',
+        's.created_at AS "playedDate"',
       ])
       .where("s.domain = :domain", { domain })
       .andWhere("s.is_locked = true")

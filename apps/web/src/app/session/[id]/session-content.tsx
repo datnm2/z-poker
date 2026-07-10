@@ -9,6 +9,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { Loading } from "@/components/loading";
 import { ErrorState } from "@/components/error-state";
 import { ApiError } from "@/lib/api";
+import { localDate } from "@/lib/date";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 import type { Session, Player, SessionPlayer, SessionHighlights } from "@/types/database";
 import { HighlightsStory } from "@/components/highlights-story";
@@ -555,7 +556,7 @@ function SessionContent() {
     const url = window.location.href;
     const winner = resultPlayers[0];
     const ogTitle = t("share.og.title")
-      .replace("{date}", session.playedDate)
+      .replace("{date}", localDate(session.createdAt))
       .replace("{winner}", winner?.player.name ?? "?");
     const personaName = highlights?.personaName?.[locale] ?? highlights?.personaName?.en ?? null;
     const ogDesc = personaName
@@ -599,7 +600,7 @@ function SessionContent() {
         </button>
         <div className="flex-1">
           <h1 className="text-xl font-bold">{t("session.title")}</h1>
-          <p className="text-xs text-muted">{session.playedDate} {localTime} &middot; {t("session.buyIn")}: {session.buyIn}</p>
+          <p className="text-xs text-muted">{localDate(session.createdAt)} {localTime} &middot; {t("session.buyIn")}: {session.buyIn}</p>
         </div>
         <div className="flex items-center gap-2">
           {shareData && (

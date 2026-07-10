@@ -29,10 +29,6 @@ class CreateSessionDto {
   @Min(1)
   @Max(1_000_000)
   buyIn!: number;
-
-  @IsOptional()
-  @IsString()
-  playedDate?: string;
 }
 
 class LockSessionDto {

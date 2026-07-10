@@ -12,6 +12,7 @@ import { getEloTier, getDivisionInfo, ELO_TIERS } from "@/lib/ranks";
 import { LandingContent } from "@/components/landing-content";
 import { ErrorState } from "@/components/error-state";
 import { ApiError } from "@/lib/api";
+import { localDate } from "@/lib/date";
 import "./linear.css";
 
 interface ActiveSession extends Session {
@@ -193,7 +194,7 @@ function LinearLeaderboard() {
                   >
                     <div className="lnr-active-body">
                       <div className="lnr-active-title">
-                        <span className="lnr-text-primary">{s.playedDate}</span>
+                        <span className="lnr-text-primary">{localDate(s.createdAt)}</span>
                         {isJoined ? (
                           <span className="lnr-badge lnr-badge--accent">{t("session.joined")}</span>
                         ) : (

@@ -204,7 +204,7 @@ export class PlayersService {
         'sp.elo_before AS "eloBefore"',
         'sp.elo_after AS "eloAfter"',
         's.id AS "sId"',
-        's.played_date AS "sPlayedDate"',
+        's.created_at AS "sCreatedAt"',
         's.buy_in AS "sBuyIn"',
         's.is_locked AS "sIsLocked"',
         's.locked_at AS "sLockedAt"',
@@ -220,7 +220,7 @@ export class PlayersService {
         eloBefore: number | null;
         eloAfter: number | null;
         sId: string;
-        sPlayedDate: string;
+        sCreatedAt: Date | string;
         sBuyIn: number;
         sIsLocked: boolean;
         sLockedAt: Date | null;
@@ -234,10 +234,12 @@ export class PlayersService {
       eloAfter: r.eloAfter,
       session: {
         id: r.sId,
-        playedDate:
-          (r.sPlayedDate as unknown) instanceof Date
-            ? (r.sPlayedDate as unknown as Date).toISOString().slice(0, 10)
-            : String(r.sPlayedDate),
+        playedDate: (r.sCreatedAt instanceof Date
+          ? r.sCreatedAt
+          : new Date(r.sCreatedAt)
+        )
+          .toISOString()
+          .slice(0, 10),
         buyIn: Number(r.sBuyIn),
         isLocked: r.sIsLocked,
         lockedAt: r.sLockedAt ? (r.sLockedAt instanceof Date ? r.sLockedAt : new Date(r.sLockedAt)).toISOString() : null,
