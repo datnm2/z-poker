@@ -267,7 +267,7 @@ export const vi = {
     "K=70 cho người thắng chip, K_LOSS=50 cho người thua (giảm ~30% sting để top-rank không bị 'tự kéo phanh' quá mạnh). Cả hai nhân thêm N/2 để bàn đông swing tỉ lệ — bàn 2 người winner đổi tối đa ±70, bàn 6 người ±210. Người thắng còn được +3 flat bonus, dẫn tới ELO cả pool lạm phát nhẹ theo thời gian.",
   "guide.elo.formula.title": "Công thức đầy đủ",
   "guide.elo.formula.body":
-    "Kỳ vọng: 1 / (1 + 10^((elo_TB − elo_bạn) / 700)). Hằng 700 (nới từ 400 chuẩn Arpad) làm curve phẳng hơn → top-rank vẫn dễ ăn điểm khi thắng cá bé. Thực tế: 0.5 + 0.5 × (chip_cuối − buy_in) / (buy_in × (N − 1)). Raw = round(K × N/2 × (thực_tế − kỳ_vọng)), với K=70 nếu thắng chip, K=50 nếu thua. Người thắng: change = max(raw, 2) + 3. Người thua: change = min(raw, 0). Cộng thêm streak bonus nếu chuỗi thắng/thua đạt 3 trận liên tiếp.",
+    "Kỳ vọng: 1 / (1 + 10^((elo_TB − elo_bạn) / 1000)). Hằng 1000 (nới từ 400 chuẩn Arpad) làm curve phẳng hơn → top-rank vẫn dễ ăn điểm khi thắng cá bé. Thực tế: 0.5 + 0.5 × (chip_cuối − buy_in) / (buy_in × (N − 1)). Raw = round(K × N/2 × (thực_tế − kỳ_vọng)), với K=70 nếu thắng chip, K=50 nếu thua. Người thắng: change = max(raw, 2) + 3. Người thua: change = min(raw, −1), thua sạch (0 chip) tối thiểu −5. Cộng thêm streak bonus nếu chuỗi thắng/thua đạt 3 trận liên tiếp.",
   "guide.elo.streak.title": "Bonus chuỗi thắng / thua",
   "guide.elo.streak.body":
     "Sau 3 trận liên tiếp cùng kết quả, bonus được cộng vào: chuỗi thắng = streak × 2 (3→+6, 4→+8, 5→+10, vô hạn) → khen người đang nóng máy. Chuỗi thua tăng từng bậc rồi cap tại −5 (3→−3, 4→−4, 5→−5, 6→−5...) — phạt nhưng không xoáy sâu. Hòa (chip = buy-in) reset streak về 0.",
@@ -276,23 +276,23 @@ export const vi = {
     "Hết mỗi quý, bảng xếp hạng được reset MỀM — KHÔNG kéo tất cả về 1200. Mỗi người chỉ bị kéo 70% khoảng chênh lệch về mốc 1200, giữ lại 30% để vẫn còn phân hạng đầu mùa mới (cao thủ không bị về chung mâm với lính mới). Công thức: ELO mới = 1200 + (ELO cũ − 1200) × 0.30. VD: 1422 → 1267, 1046 → 1154. Hũ (jackpot) chưa nổ cũng giữ lại 30%. Số trận và chuỗi thắng/thua thì đếm lại từ 0. Thành tích cả mùa được lưu lại và lên màn tổng kết mùa.",
   "guide.elo.example.title": "Ví dụ thực tế",
   "guide.elo.example.body":
-    "Bàn 6 người, buy-in 100. Bạn ELO 1300, bàn TB 1200, kết thúc 180 chip (lãi +80). Kỳ vọng = 1/(1+10^(-100/700)) = 0.582. Thực tế = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.582)) = 0. Vì là winner: max(0, 2) + 3 = +5 Elo. Nếu đang chuỗi thắng 3 trận: +5 + 6 = +11 Elo. Trường hợp upset: ELO 1000 đánh bàn TB 1300, ăn full pot 600 → kỳ vọng 0.272, thực tế 1.0, raw = round(70 × 3 × 0.728) = +153 → +156 Elo (cộng bonus).",
+    "Bàn 6 người, buy-in 100. Bạn ELO 1300, bàn TB 1200, kết thúc 180 chip (lãi +80). Kỳ vọng = 1/(1+10^(-100/1000)) = 0.557. Thực tế = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.557)) = 5. Vì là winner: max(5, 2) + 3 = +8 Elo. Nếu đang chuỗi thắng 3 trận: +8 + 6 = +14 Elo. Trường hợp upset: ELO 1000 đánh bàn TB 1300, ăn full pot 600 → kỳ vọng 0.334, thực tế 1.0, raw = round(70 × 3 × 0.666) = +140 → +143 Elo (cộng bonus).",
 
   "guide.jackpot.title": "Cơ Chế Nổ Hũ (Jackpot)",
   "guide.jackpot.intro":
     "Z-Poker có cơ chế Nổ Hũ để tăng kịch tính và thưởng cho người chơi gặp 'chuỗi đen'.",
   "guide.jackpot.accumulation.title": "Tích lũy",
   "guide.jackpot.accumulation.body":
-    "Bắt đầu ngay từ trận thua đầu tiên. Tỷ lệ trích điểm Elo bị trừ vào hũ cá nhân tăng dần theo công thức: 20% × Số trận thua liên tiếp.",
-  "guide.jackpot.mitigation.title": "Giảm lỗ",
+    "Bắt đầu ngay từ trận thua đầu tiên. Mỗi trận thua liên tiếp, hũ cá nhân tích thêm 10% × Số trận thua liên tiếp × |Elo bị trừ trận đó|. Càng thua sâu, hũ càng phình nhanh. Hũ được tích ON TOP của khoản thua — không rút ra từ điểm Elo bạn mất.",
+  "guide.jackpot.mitigation.title": "Không giảm lỗ",
   "guide.jackpot.mitigation.body":
-    "Áp dụng ngay từ trận thua đầu tiên. Cứ mỗi trận thua liên tiếp, người chơi được giảm 10% hình phạt Elo (giảm tối đa 50%).",
+    "Thua liên tiếp bị trừ Elo ĐẦY ĐỦ, không còn cơ chế giảm lỗ như trước — điều này giúp giảm lạm phát ở đáy bảng. Bù lại, toàn bộ khoản thua vẫn được dùng làm cơ sở để tích hũ, chờ ngày nổ.",
   "guide.jackpot.payout.title": "Nổ Hũ (Payout)",
   "guide.jackpot.payout.body":
-    "Hũ sẽ nổ khi người chơi có chuỗi thua liên tiếp từ 3 trận trở lên đạt được Thứ hạng: Top 3 trong phiên, và Thành tích: Số chip cuối trận >= 1.5 lần Buy-in.",
+    "Hũ sẽ nổ khi người chơi có chuỗi thua liên tiếp từ 3 trận trở lên đạt được đồng thời: Thứ hạng Top 3 trong phiên, VÀ số chip cuối trận >= 1.5 lần Buy-in. Khi nổ, toàn bộ điểm trong hũ được cộng thẳng vào Elo trận đó.",
   "guide.jackpot.reset.title": "Reset",
   "guide.jackpot.reset.body":
-    "SKhi nổ hũ thành công, người chơi nhận lại toàn bộ điểm trong hũ. Sau đó, hũ cá nhân và chuỗi thắng/thua lập tức được reset về 0.",
+    "Khi nổ hũ thành công, người chơi nhận lại toàn bộ điểm trong hũ. Sau đó, hũ cá nhân và chuỗi thắng/thua lập tức được reset về 0.",
 
   "guide.strategy.title": "Tăng Elo của bạn",
   "guide.strategy.intro":

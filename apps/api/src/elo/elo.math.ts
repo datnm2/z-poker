@@ -27,9 +27,9 @@ export const WINNER_RAW_FLOOR = 2;
 // Symmetric floors for chip-losers. A low-ELO player can have actual ≈ expected
 // when they lose modestly, making raw round to 0 — which paints a chip-loser
 // as "+0 ELO" in the UI. Guarantee at least -1 for any chip loss, and at least
-// -3 for a full bust (chips_end = 0).
+// -5 for a full bust (chips_end = 0).
 export const LOSER_MIN_PENALTY = -1;
-export const BUST_MIN_PENALTY = -3;
+export const BUST_MIN_PENALTY = -5;
 
 // Streak bonus: applied when |nextStreak| >= STREAK_THRESHOLD.
 // Win streak grows unbounded (3→+6, 4→+8, 5→+10, …) to reward hot runs.
