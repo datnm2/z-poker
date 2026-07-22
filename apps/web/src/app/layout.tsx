@@ -8,6 +8,7 @@ import { LoadingProvider } from "@/providers/loading-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { AppTopBar } from "@/components/app-top-bar";
 import { PoweredByBadge } from "@/components/powered-by-badge";
+import { GithubStarButton } from "@/components/github-star-button";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -134,8 +135,9 @@ export default function RootLayout({
                 <AuthProvider>
                   <AppTopBar />
                   <main className="flex flex-1 flex-col">{children}</main>
-                  <footer className="flex justify-center pb-24 pt-6">
+                  <footer className="flex flex-wrap items-center justify-center gap-2 pb-24 pt-6">
                     <PoweredByBadge />
+                    <GithubStarButton />
                   </footer>
                 </AuthProvider>
               </LoadingProvider>

@@ -24,9 +24,12 @@ Tuned cho pool nhỏ (~20 người, văn phòng) chơi 30 phút/ngày. Mục ti�
   - `actual = 0.5 + 0.5 × (chipsEnd − buyIn) / (buyIn × (N − 1))` — linear theo chip
   - **Asymmetric K**: winner dùng `K=70`, loser dùng `K_LOSS=50` (loss bớt đau ~30% để top player có EV dương khi winrate cao)
 - **Winner rewards** (cộng dồn sau công thức):
-  - `WINNER_RAW_FLOOR = 2`: clamp raw nếu < 2 → win nhỏ vẫn ăn ít nhất +2
-  - `WINNER_FLAT_BONUS = 3`: cộng thêm cho mọi chip-winner (lạm phát nhẹ + reward volume)
-  - → Tối thiểu mỗi win = **+5 ELO**
+  - `WINNER_RAW_FLOOR = 1`: clamp raw nếu < 1 → win nhỏ vẫn ăn ít nhất +1
+  - `WINNER_FLAT_BONUS = 2`: cộng thêm cho mọi chip-winner (lạm phát nhẹ + reward volume)
+  - → Tối thiểu mỗi win = **+3 ELO**
+- **Loser floors** (clamp sau công thức, đảm bảo chip-loser luôn hiện âm trên UI):
+  - `LOSER_MIN_PENALTY = -1`: mọi chip-loser tối thiểu **−1** (tránh raw round về 0 → hiện "+0")
+  - `BUST_MIN_PENALTY = -5`: cháy túi (`chipsEnd = 0`) tối thiểu **−5**
 - **Streak bonus** (signed, theo `streakAfter` sau game):
   - Win streak: `streak × 2`, vô hạn (3→+6, 4→+8, 5→+10, …) — reward hot run
   - Loss streak: step 1, cap tại `LOSS_STREAK_BONUS_CAP = 5` (3→−3, 4→−4, 5→−5, 6→−5, …) — phạt thua liên tiếp nhưng không bị xoáy
@@ -52,32 +55,32 @@ Mỗi quý (Q1–Q4, theo countdown trên leaderboard) một mùa giải kết t
 
 ### Ví dụ cụ thể (bàn 6 người, buyIn 100, mọi người ELO 1200)
 
-Trận winner ăn full pot 600 chips, 5 losers 0 chip:
+Trận winner ăn full pot 600 chips, 5 losers 0 chip (cháy túi):
 
-- Winner: actual=1.0, expected=0.5, raw = 70×3×0.5 = **+105**, +bonus 3 → **+108**
-- Mỗi loser: actual=0.4, raw = 50×3×(0.4−0.5) = **−15**
-- Drift cả bàn: 108 − 15×5 = **+33** (lạm phát có chủ ý)
+- Winner: actual=1.0, expected=0.5, raw = 70×3×0.5 = **+105**, +bonus 2 → **+107**
+- Mỗi loser: raw = 50×3×−0.5 = −75 → clamp `BUST_MIN_PENALTY` → **−5**
+- Drift cả bàn: 107 − 5×5 = **+82** (lạm phát có chủ ý; loser floor giữ đáy không tụt sâu)
 
 Trận chia chips realistic (180/150/120/80/40/30):
 
-- Winner +80 chip: actual=0.58, raw=70×3×0.08 = **+17**, +bonus → **+20**
-- Winner +50 chip: actual=0.55, raw=70×3×0.05 = **+10.5**, +bonus → **+14**
-- Winner +20 chip: actual=0.52, raw=70×3×0.02 = **+4.2**, +bonus → **+7**
+- Winner +80 chip: actual=0.58, raw=70×3×0.08 = **+17**, +bonus → **+19**
+- Winner +50 chip: actual=0.55, raw=70×3×0.05 = **+10.5** → 11, +bonus → **+13**
+- Winner +20 chip: actual=0.52, raw=70×3×0.02 = **+4.2** → 4, +bonus → **+6**
 - Loser −20 chip: actual=0.48, raw=50×3×−0.02 = **−3**
 - Loser −60 chip: actual=0.44, raw=50×3×−0.06 = **−9**
-- Loser −70 chip: raw = **−10**
-- Drift: 20+14+7 − 3−9−10 = **+19**
+- Loser −70 chip: raw=50×3×−0.07 = **−10.5** → **−11**
+- Drift: 19+13+6 − 3−9−11 = **+15**
 
 Trận top player ELO 1500 vs bàn avg 1200 (chênh +300), thắng nửa pot (chips 200):
 
-- expected = 1/(1+10^(−300/700)) = 0.728, actual = 0.6
-- raw = 70×3×(0.6−0.728) = **−27** → clamp về `WINNER_RAW_FLOOR=2` → +bonus → **+5**
+- expected = 1/(1+10^(−300/1000)) = 0.666, actual = 0.6
+- raw = 70×3×(0.6−0.666) = **−14** → clamp về `WINNER_RAW_FLOOR=1` → +bonus → **+3**
 - Vẫn ăn ELO mặc dù raw âm (volume reward).
 
 Trận underdog ELO 1000 vs bàn avg 1300 (chênh −300), thắng full pot:
 
-- expected = 0.272, actual = 1.0
-- raw = 70×3×0.728 = **+153**, +bonus → **+156** (upset payday)
+- expected = 0.334, actual = 1.0
+- raw = 70×3×0.666 = **+140**, +bonus → **+142** (upset payday)
 
 ### Dự kiến đường rank của top player
 

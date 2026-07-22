@@ -261,13 +261,13 @@ export const vi = {
     "Mọi người chơi mới bắt đầu với 1200 Elo. Đây là mức cơ sở — mọi người được coi là ngang nhau cho đến khi chơi.",
   "guide.elo.howWorks.title": "Cách điểm thay đổi",
   "guide.elo.howWorks.body":
-    "Sau mỗi phiên, Z-Poker so sánh Elo hiện tại của bạn với Elo trung bình cả bàn. Thành tích đo bằng độ lệch giữa chip cuối và buy-in. Kết thúc trên buy-in là tích cực, dưới buy-in là tiêu cực. Người thắng chip luôn được tối thiểu +5 Elo (gồm sàn +2 và bonus +3) để khen volume — chơi đều thì rank dần leo lên.",
+    "Sau mỗi phiên, Z-Poker so sánh Elo hiện tại của bạn với Elo trung bình cả bàn. Thành tích đo bằng độ lệch giữa chip cuối và buy-in. Kết thúc trên buy-in là tích cực, dưới buy-in là tiêu cực. Người thắng chip luôn được tối thiểu +3 Elo (gồm sàn +1 và bonus +2) để khen volume — chơi đều thì rank dần leo lên.",
   "guide.elo.kfactor.title": "Hệ số K (bất đối xứng)",
   "guide.elo.kfactor.body":
-    "K=70 cho người thắng chip, K_LOSS=50 cho người thua (giảm ~30% sting để top-rank không bị 'tự kéo phanh' quá mạnh). Cả hai nhân thêm N/2 để bàn đông swing tỉ lệ — bàn 2 người winner đổi tối đa ±70, bàn 6 người ±210. Người thắng còn được +3 flat bonus, dẫn tới ELO cả pool lạm phát nhẹ theo thời gian.",
+    "K=70 cho người thắng chip, K_LOSS=50 cho người thua (giảm ~30% sting để top-rank không bị 'tự kéo phanh' quá mạnh). Cả hai nhân thêm N/2 để bàn đông swing tỉ lệ — bàn 2 người winner đổi tối đa ±70, bàn 6 người ±210. Người thắng còn được +2 flat bonus, dẫn tới ELO cả pool lạm phát nhẹ theo thời gian.",
   "guide.elo.formula.title": "Công thức đầy đủ",
   "guide.elo.formula.body":
-    "Kỳ vọng: 1 / (1 + 10^((elo_TB − elo_bạn) / 1000)). Hằng 1000 (nới từ 400 chuẩn Arpad) làm curve phẳng hơn → top-rank vẫn dễ ăn điểm khi thắng cá bé. Thực tế: 0.5 + 0.5 × (chip_cuối − buy_in) / (buy_in × (N − 1)). Raw = round(K × N/2 × (thực_tế − kỳ_vọng)), với K=70 nếu thắng chip, K=50 nếu thua. Người thắng: change = max(raw, 2) + 3. Người thua: change = min(raw, −1), thua sạch (0 chip) tối thiểu −5. Cộng thêm streak bonus nếu chuỗi thắng/thua đạt 3 trận liên tiếp.",
+    "Kỳ vọng: 1 / (1 + 10^((elo_TB − elo_bạn) / 1000)). Hằng 1000 (nới từ 400 chuẩn Arpad) làm curve phẳng hơn → top-rank vẫn dễ ăn điểm khi thắng cá bé. Thực tế: 0.5 + 0.5 × (chip_cuối − buy_in) / (buy_in × (N − 1)). Raw = round(K × N/2 × (thực_tế − kỳ_vọng)), với K=70 nếu thắng chip, K=50 nếu thua. Người thắng: change = max(raw, 1) + 2. Người thua: change = min(raw, −1), thua sạch (0 chip) tối thiểu −5. Cộng thêm streak bonus nếu chuỗi thắng/thua đạt 3 trận liên tiếp.",
   "guide.elo.streak.title": "Bonus chuỗi thắng / thua",
   "guide.elo.streak.body":
     "Sau 3 trận liên tiếp cùng kết quả, bonus được cộng vào: chuỗi thắng = streak × 2 (3→+6, 4→+8, 5→+10, vô hạn) → khen người đang nóng máy. Chuỗi thua tăng từng bậc rồi cap tại −5 (3→−3, 4→−4, 5→−5, 6→−5...) — phạt nhưng không xoáy sâu. Hòa (chip = buy-in) reset streak về 0.",
@@ -276,7 +276,7 @@ export const vi = {
     "Hết mỗi quý, bảng xếp hạng được reset MỀM — KHÔNG kéo tất cả về 1200. Mỗi người chỉ bị kéo 70% khoảng chênh lệch về mốc 1200, giữ lại 30% để vẫn còn phân hạng đầu mùa mới (cao thủ không bị về chung mâm với lính mới). Công thức: ELO mới = 1200 + (ELO cũ − 1200) × 0.30. VD: 1422 → 1267, 1046 → 1154. Hũ (jackpot) chưa nổ cũng giữ lại 30%. Số trận và chuỗi thắng/thua thì đếm lại từ 0. Thành tích cả mùa được lưu lại và lên màn tổng kết mùa.",
   "guide.elo.example.title": "Ví dụ thực tế",
   "guide.elo.example.body":
-    "Bàn 6 người, buy-in 100. Bạn ELO 1300, bàn TB 1200, kết thúc 180 chip (lãi +80). Kỳ vọng = 1/(1+10^(-100/1000)) = 0.557. Thực tế = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.557)) = 5. Vì là winner: max(5, 2) + 3 = +8 Elo. Nếu đang chuỗi thắng 3 trận: +8 + 6 = +14 Elo. Trường hợp upset: ELO 1000 đánh bàn TB 1300, ăn full pot 600 → kỳ vọng 0.334, thực tế 1.0, raw = round(70 × 3 × 0.666) = +140 → +143 Elo (cộng bonus).",
+    "Bàn 6 người, buy-in 100. Bạn ELO 1300, bàn TB 1200, kết thúc 180 chip (lãi +80). Kỳ vọng = 1/(1+10^(-100/1000)) = 0.557. Thực tế = 0.5 + 0.5×80/500 = 0.58. Raw = round(70 × 3 × (0.58 − 0.557)) = 5. Vì là winner: max(5, 1) + 2 = +7 Elo. Nếu đang chuỗi thắng 3 trận: +7 + 6 = +13 Elo. Trường hợp upset: ELO 1000 đánh bàn TB 1300, ăn full pot 600 → kỳ vọng 0.334, thực tế 1.0, raw = round(70 × 3 × 0.666) = +140 → +142 Elo (cộng bonus).",
 
   "guide.jackpot.title": "Cơ Chế Nổ Hũ (Jackpot)",
   "guide.jackpot.intro":
@@ -383,6 +383,7 @@ export const vi = {
   "footer.poweredBy": "Phát triển bởi",
   "footer.brand": "Dat Light Solution",
   "footer.visitSite": "Ghé thăm dat09vn.com",
+  "footer.starOnGithub": "Star trên GitHub",
 
   // Loading
   "loading.tips": [

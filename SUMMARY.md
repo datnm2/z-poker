@@ -199,9 +199,9 @@ Làm tròn LÊN → Elo domain drift dương từ từ. Psychology: số càng t
 
 - **Mục đích**: Tạo lối chơi "Nuôi Hũ" (eco chuỗi thua) như TFT, tạo cơ hội lật kèo cực lớn.
 - **Cơ chế**:
-  1.  **Tổn Thất Giảm Dần & Tích Hũ**: Khi thua từ trận thứ 3 trở đi (`L >= 3`), lượng ELO bị trừ cơ bản được giảm mạnh (giảm tối đa 50%). Phần ELO "được giảm" này được tích vào **Hũ (Jackpot)** cá nhân.
-  2.  **Công thức tích hũ**: `Jackpot += abs(BaseLoss) * 20% * L`.
-  3.  **Nổ Hũ**: Nếu đang có chuỗi thua (`L >= 3`) và đạt được chiến thắng lớn (**Top 3** và **Số chip cuối >= 1.5x Buy-in**), người chơi nhận lại toàn bộ số ELO trong Hũ.
+  1.  **Không Giảm Lỗ, Tích Hũ On Top**: Thua liên tiếp bị trừ ELO **đầy đủ** (bỏ cơ chế giảm lỗ cũ để hạn chế lạm phát ở đáy). Hũ được tích thêm **on top** của khoản thua, không rút ra từ ELO bạn mất.
+  2.  **Công thức tích hũ**: bắt đầu ngay từ trận thua đầu tiên — `Jackpot += abs(BaseLoss) * 10% * L` (`JACKPOT_ACCUMULATION_RATE = 0.1`, `L` = độ dài chuỗi thua).
+  3.  **Nổ Hũ**: Nếu đang có chuỗi thua (`L >= 3`) và đạt được chiến thắng lớn (**Top 3** và **Số chip cuối >= 1.5x Buy-in**), người chơi nhận lại toàn bộ số ELO trong Hũ; sau đó hũ và chuỗi reset về 0.
 - **Lối chơi**: "Nuôi Hũ & Khô Máu" - chấp nhận thua nhẹ để tích hũ to, sau đó dồn lực thắng một trận lớn để "Nổ Hũ" và nhảy vọt trên Leaderboard.
 
 Việc công khai cơ chế này trên UI (với hiệu ứng lửa cho chuỗi thắng và icon hũ vàng cho chuỗi thua) sẽ giúp người chơi nhanh chóng định hình và lựa chọn chiến thuật leo rank phù hợp.

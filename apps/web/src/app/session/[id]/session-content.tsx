@@ -878,6 +878,17 @@ function SessionContent() {
         />
       )}
 
+      {/* Join CTA — surfaced above the player list so it stays reachable even
+          when the roster is long (no need to scroll past everyone to find it). */}
+      {canJoin && (
+        <div className="mt-4">
+          <button onClick={joinSession} className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-accent-contrast transition hover:bg-accent-strong active:scale-[0.98]">
+            {t("session.joinSession")}
+          </button>
+          <p className="mt-1.5 text-center text-xs text-muted italic">{t("session.joinHype")}</p>
+        </div>
+      )}
+
       {/* Player list */}
       <div className="mt-4">
         {!session.isLocked && (
@@ -1064,25 +1075,9 @@ function SessionContent() {
       {/* Actions */}
       {!session.isLocked && (
         <div className="mt-4 space-y-2">
-          {canJoin && !isCreator && (
-            <div>
-              <button onClick={joinSession} className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-accent-contrast transition hover:bg-accent-strong active:scale-[0.98]">
-                {t("session.joinSession")}
-              </button>
-              <p className="mt-1.5 text-center text-xs text-muted italic">{t("session.joinHype")}</p>
-            </div>
-          )}
           {canJoin && isCreator && (
-            <div>
-              <div className="flex gap-2">
-                <button onClick={joinSession} className="flex-1 rounded-xl bg-accent px-4 py-3 font-semibold text-accent-contrast transition hover:bg-accent-strong active:scale-[0.98]">
-                  {t("session.joinSession")}
-                </button>
-                <div className="flex-1 rounded-xl border border-card-border bg-card px-4 py-3 text-center text-sm text-muted">
-                  {t("session.dealerHint")}
-                </div>
-              </div>
-              <p className="mt-1.5 text-center text-xs text-muted italic">{t("session.joinHype")}</p>
+            <div className="rounded-xl border border-card-border bg-card px-4 py-3 text-center text-sm text-muted">
+              {t("session.dealerHint")}
             </div>
           )}
           {isCreator && players.length >= 2 && (

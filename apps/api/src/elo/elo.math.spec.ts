@@ -153,12 +153,12 @@ describe("computeEloChanges", () => {
     for (const r of result) {
       const chipsEnd = [210, 195, 135, 110, 50, 0, 0][result.indexOf(r)];
       if (chipsEnd > 100) {
-        // Floor + bonus = 5 minimum for any chip-winner.
-        expect(r.change).toBeGreaterThanOrEqual(5);
+        // Floor + bonus = 3 minimum for any chip-winner.
+        expect(r.change).toBeGreaterThanOrEqual(3);
       }
     }
     const host = result.find((r) => r.playerId === "host")!;
-    expect(host.change).toBeGreaterThanOrEqual(5);
+    expect(host.change).toBeGreaterThanOrEqual(3);
   });
 
   it("keeps drift small on zero-sum-chip games (rounding noise only)", () => {
@@ -815,9 +815,9 @@ describe("computeEloChanges", () => {
       // Rank 1, chips 155 >= 150. L_before = 3.
       // Base win: 70 * 1 * (0.775 - 0.5) = 19.
       // jackpot payout: 19 + 100 = 119.
-      // Flat bonus: 119 + 3 = 122.
+      // Flat bonus: 119 + 2 = 121.
       // streakAfter = 0 (reset). streakBonus = 0.
-      expect(p1.change).toBe(122);
+      expect(p1.change).toBe(121);
       expect(p1.jackpotAfter).toBe(0);
       expect(p1.streakAfter).toBe(0);
       expect(p1.streakBonus).toBe(0);
@@ -844,9 +844,9 @@ describe("computeEloChanges", () => {
       const p1 = result[0];
       // Rank 1, but chips 140 < 150. No nổ hũ.
       // Base win: 70 * 1 * (0.7 - 0.5) = 14.
-      // Flat bonus: 14 + 3 = 17.
+      // Flat bonus: 14 + 2 = 16.
       // streakAfter = 1. streakBonus = 0.
-      expect(p1.change).toBe(17);
+      expect(p1.change).toBe(16);
       expect(p1.jackpotAfter).toBe(100);
       expect(p1.streakAfter).toBe(1);
     });

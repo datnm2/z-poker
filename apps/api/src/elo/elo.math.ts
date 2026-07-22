@@ -17,12 +17,12 @@ export const ELO_SCALE = 1000;
 // Drives mild ELO inflation so the pool spreads into higher tiers over time
 // instead of clustering around the 1200 starting value (zero-sum equilibrium).
 // Losers are not softened by a flat amount — losing still costs rank.
-export const WINNER_FLAT_BONUS = 3;
+export const WINNER_FLAT_BONUS = 2;
 
 // Floor applied to chip-winners before the flat bonus. Ensures any win is
-// worth at least WINNER_RAW_FLOOR + WINNER_FLAT_BONUS = 5 ELO, so chip-positive
+// worth at least WINNER_RAW_FLOOR + WINNER_FLAT_BONUS = 3 ELO, so chip-positive
 // volume is always rewarded — even when the formula would otherwise round to 0.
-export const WINNER_RAW_FLOOR = 2;
+export const WINNER_RAW_FLOOR = 1;
 
 // Symmetric floors for chip-losers. A low-ELO player can have actual ≈ expected
 // when they lose modestly, making raw round to 0 — which paints a chip-loser
