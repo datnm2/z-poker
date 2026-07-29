@@ -5,7 +5,7 @@
 // they can earn back) is reduced. Skill still matters (loss > 0), but a 75%
 // winrate player should net positive over time even at high ELO.
 export const K = 70;
-export const K_LOSS = 50;
+export const K_LOSS = 65;
 
 // ELO scaling factor in the expected-score formula. Arpad standard is 400;
 // we use 1000 to flatten expectations while keeping the curve steep enough that
