@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -80,7 +81,15 @@ export class HighlightsService {
     private readonly events: SessionsEventsService,
     private readonly cacheInvalidation: CacheInvalidationService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly config: ConfigService,
   ) {}
+
+  // Env vars arrive as strings; parse to a finite number or fall back.
+  private envFloat(key: string, fallback: number): number {
+    const raw = this.config.get<string>(key);
+    const n = raw == null ? Number.NaN : Number(raw);
+    return Number.isFinite(n) ? n : fallback;
+  }
 
   async generateForSession(
     sessionId: string,
@@ -110,7 +119,12 @@ export class HighlightsService {
       );
       const raw = await this.ai.generateJson<{
         items: SessionHighlights["items"];
-      }>(prompt, { schema: HIGHLIGHTS_SCHEMA });
+      }>(prompt, {
+        schema: HIGHLIGHTS_SCHEMA,
+        temperature: this.envFloat("AI_HIGHLIGHTS_TEMPERATURE", 1.3),
+        topP: this.envFloat("AI_HIGHLIGHTS_TOP_P", 0.97),
+        topK: 64,
+      });
 
       const highlights: SessionHighlights = {
         generatedAt: new Date().toISOString(),
@@ -240,6 +254,8 @@ Nhiệm vụ: viết ĐÚNG ${targetCount} highlight troll nhất của ngày. M
 
 Tone examples (bắt chước vibe này):
 ${toneBlock}
+
+SÁNG TẠO: mỗi lần viết phải KHÁC nhau, tránh lặp lại câu mẫu ở trên, tự bịa cách nói/ẩn dụ bất ngờ — nhưng LUÔN bám sát con số thật trong data.
 
 Output — SONG NGỮ (BẮT BUỘC):
 - ĐÚNG ${targetCount} items

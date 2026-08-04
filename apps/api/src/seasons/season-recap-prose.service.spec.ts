@@ -1,6 +1,10 @@
 import { SeasonRecapProseService } from "./season-recap-prose.service";
 import type { AiService } from "../ai/ai.service";
+import type { ConfigService } from "@nestjs/config";
 import type { SeasonRecapDto } from "./season.recap";
+
+// Mock config with no env overrides => service uses its code defaults.
+const config = { get: () => undefined } as unknown as ConfigService;
 
 function makeRecap(overrides: Partial<SeasonRecapDto> = {}): SeasonRecapDto {
   return {
@@ -32,7 +36,7 @@ describe("SeasonRecapProseService", () => {
       getDefaultModel: () => "gemini-3-flash-preview",
     } as unknown as AiService;
 
-    const svc = new SeasonRecapProseService(ai);
+    const svc = new SeasonRecapProseService(ai, config);
     const result = await svc.generate(makeRecap(), "blv");
 
     expect(result).not.toBeNull();
@@ -49,7 +53,7 @@ describe("SeasonRecapProseService", () => {
       getDefaultModel: () => "gemini-3-flash-preview",
     } as unknown as AiService;
 
-    const svc = new SeasonRecapProseService(ai);
+    const svc = new SeasonRecapProseService(ai, config);
     const result = await svc.generate(makeRecap());
     expect(result).toBeNull();
   });
@@ -60,7 +64,7 @@ describe("SeasonRecapProseService", () => {
       getDefaultModel: () => "x",
     } as unknown as AiService;
 
-    const svc = new SeasonRecapProseService(ai);
+    const svc = new SeasonRecapProseService(ai, config);
     const result = await svc.generate(makeRecap({ totalGames: 0, hardest: [] }));
     expect(result).toBeNull();
     expect(ai.generateJson).not.toHaveBeenCalled();

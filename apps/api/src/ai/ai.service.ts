@@ -5,6 +5,10 @@ import { GoogleGenerativeAI, ResponseSchema } from "@google/generative-ai";
 export interface GenerateOptions {
   model?: string;
   systemInstruction?: string;
+  // Sampling params. Left undefined => Gemini model defaults (~temp 1.0).
+  temperature?: number;
+  topP?: number;
+  topK?: number;
 }
 
 export interface GenerateJsonOptions<T> extends GenerateOptions {
@@ -47,6 +51,20 @@ export class AiService implements OnModuleInit {
     return this.defaultModel;
   }
 
+  // Only include sampling keys the caller actually set, so unset params keep
+  // the Gemini model defaults.
+  private samplingConfig(opts?: GenerateOptions): {
+    temperature?: number;
+    topP?: number;
+    topK?: number;
+  } {
+    const cfg: { temperature?: number; topP?: number; topK?: number } = {};
+    if (opts?.temperature != null) cfg.temperature = opts.temperature;
+    if (opts?.topP != null) cfg.topP = opts.topP;
+    if (opts?.topK != null) cfg.topK = opts.topK;
+    return cfg;
+  }
+
   /**
    * Builds the ordered fallback chain:
    *   1. key1 + requested/default model
@@ -83,6 +101,7 @@ export class AiService implements OnModuleInit {
           .getGenerativeModel({
             model: attempt.model,
             systemInstruction: opts?.systemInstruction,
+            generationConfig: this.samplingConfig(opts),
           })
           .generateContent(prompt),
       (res) => res.response.text(),
@@ -101,6 +120,7 @@ export class AiService implements OnModuleInit {
             generationConfig: {
               responseMimeType: "application/json",
               responseSchema: opts.schema,
+              ...this.samplingConfig(opts),
             },
           })
           .generateContent(prompt),

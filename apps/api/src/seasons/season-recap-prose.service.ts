@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { SchemaType, type ResponseSchema } from "@google/generative-ai";
 import { AiService } from "../ai/ai.service";
 import { selectPersona, type McPersona } from "../sessions/highlights/personas";
@@ -50,7 +51,17 @@ function buildSchema(keys: SlideKey[]): ResponseSchema {
 export class SeasonRecapProseService {
   private readonly logger = new Logger(SeasonRecapProseService.name);
 
-  constructor(private readonly ai: AiService) {}
+  constructor(
+    private readonly ai: AiService,
+    private readonly config: ConfigService,
+  ) {}
+
+  // Env vars arrive as strings; parse to a finite number or fall back.
+  private envFloat(key: string, fallback: number): number {
+    const raw = this.config.get<string>(key);
+    const n = raw == null ? Number.NaN : Number(raw);
+    return Number.isFinite(n) ? n : fallback;
+  }
 
   // Returns null if the AI call fails — caller stores prose=null and the
   // frontend falls back to its hardcoded slide bodies.
@@ -67,7 +78,12 @@ export class SeasonRecapProseService {
     try {
       const raw = await this.ai.generateJson<{
         slides: Record<string, LocalizedText>;
-      }>(prompt, { schema: buildSchema(keys) });
+      }>(prompt, {
+        schema: buildSchema(keys),
+        temperature: this.envFloat("AI_RECAP_TEMPERATURE", 1.15),
+        topP: this.envFloat("AI_RECAP_TOP_P", 0.95),
+        topK: 64,
+      });
       return {
         slides: raw.slides,
         personaId: persona.id,
@@ -127,6 +143,8 @@ Nhiệm vụ: viết prose cho từng slide trong danh sách: ${keyList}. Ý ngh
 
 Tone examples (bắt chước vibe này):
 ${toneBlock}
+
+SÁNG TẠO: mỗi lần viết phải KHÁC nhau, tránh lặp lại câu mẫu ở trên, tự bịa ẩn dụ/cách kể bất ngờ — nhưng LUÔN bám sát con số & tên thật trong data.
 
 Output — SONG NGỮ (BẮT BUỘC), JSON object "slides" với đúng các key: ${keyList}. Mỗi key là object { vi, en }:
 - Mỗi đoạn 2-4 câu, dài hơn và vui hơn caption thường, đúng giọng nhân vật.
