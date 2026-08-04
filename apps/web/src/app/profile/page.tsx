@@ -34,7 +34,7 @@ function ProfileContent() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
+    <div className="mx-auto w-full max-w-lg px-4 pb-safe-nav pt-12">
       {/* Inline name editor */}
       <div className="mb-4 flex items-center gap-2">
         {editingName ? (

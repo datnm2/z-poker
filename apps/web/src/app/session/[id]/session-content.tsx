@@ -586,13 +586,13 @@ function SessionContent() {
   })();
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
+    <div className="mx-auto w-full max-w-lg px-4 pb-safe-nav pt-12">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => router.back()}
           aria-label={t("back")}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-card-border bg-card/60 text-muted transition active:scale-95 active:bg-accent/10 active:text-foreground"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-card-border bg-card/60 text-muted transition active:scale-95 active:bg-accent/10 active:text-foreground"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />

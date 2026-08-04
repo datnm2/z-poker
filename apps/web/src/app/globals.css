@@ -499,6 +499,15 @@ input[type="number"] {
   animation: godlike-glow 2.5s ease-in-out infinite;
 }
 
+/* Safe-area helpers — require viewport-fit=cover (set in layout.tsx viewport) */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+/* Page-shell bottom padding: clears fixed BottomNav + home indicator */
+.pb-safe-nav {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card-orbit-ring,
   .pcard,

@@ -183,7 +183,7 @@ export function HighlightsStory({ items, players, onClose, durationMs = 10000, p
           <div className="flex items-center gap-2">
             <button
               onClick={(e) => { e.stopPropagation(); setPaused((p) => !p); }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
               aria-label={paused ? "Play" : "Pause"}
             >
               {paused ? (
@@ -194,7 +194,7 @@ export function HighlightsStory({ items, players, onClose, durationMs = 10000, p
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onClose(); }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
               aria-label="Close"
             >
               ✕

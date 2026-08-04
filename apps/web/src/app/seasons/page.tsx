@@ -41,11 +41,11 @@ export default function SeasonsListPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
+    <div className="mx-auto w-full max-w-lg px-4 pb-safe-nav pt-12">
       <div className="mb-4 flex items-center gap-3 pr-24">
         <Link
           href="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-card-border bg-card/60 text-muted transition active:scale-95 active:bg-accent/10 active:text-foreground"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-card-border bg-card/60 text-muted transition active:scale-95 active:bg-accent/10 active:text-foreground"
           aria-label={t("back")}
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

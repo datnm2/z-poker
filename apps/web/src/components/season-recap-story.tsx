@@ -336,7 +336,7 @@ export function SeasonRecapStory({ recap, onClose, durationMs = 7000, initialPer
                 e.stopPropagation();
                 setPaused((p) => !p);
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
               aria-label={paused ? "Play" : "Pause"}
             >
               {paused ? (
@@ -354,7 +354,7 @@ export function SeasonRecapStory({ recap, onClose, durationMs = 7000, initialPer
                 e.stopPropagation();
                 onClose();
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition hover:bg-black/50"
               aria-label="Close"
             >
               ✕

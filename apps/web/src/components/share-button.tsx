@@ -31,7 +31,7 @@ export function ShareButton({ data, className, ariaLabel }: ShareButtonProps) {
       title={tooltip}
       className={
         className ??
-        "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-card-border bg-card/60 text-muted transition active:scale-95 active:bg-accent/10 active:text-accent"
+        "flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-card-border bg-card/60 text-muted transition active:scale-95 active:bg-accent/10 active:text-accent"
       }
     >
       {status === "copied" || status === "shared" ? (

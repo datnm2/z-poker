@@ -116,7 +116,7 @@ export default function PlayPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 pb-24 pt-12">
+    <div className="mx-auto w-full max-w-lg px-4 pb-safe-nav pt-12">
       <header className="mb-6">
         <h1 className="bg-gradient-to-r from-accent to-accent-strong bg-clip-text text-2xl font-black leading-tight tracking-tight text-transparent">
           {t("play.title")}

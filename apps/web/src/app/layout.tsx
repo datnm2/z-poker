@@ -102,6 +102,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
     { media: "(prefers-color-scheme: light)", color: "#faf5ff" },
@@ -135,7 +136,7 @@ export default function RootLayout({
                 <AuthProvider>
                   <AppTopBar />
                   <main className="flex flex-1 flex-col">{children}</main>
-                  <footer className="flex flex-wrap items-center justify-center gap-2 pb-24 pt-6">
+                  <footer className="flex flex-wrap items-center justify-center gap-2 pb-safe-nav pt-6">
                     <PoweredByBadge />
                     <GithubStarButton />
                   </footer>
