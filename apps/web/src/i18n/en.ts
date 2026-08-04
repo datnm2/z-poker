@@ -349,6 +349,44 @@ export const en = {
     "No combination at all. Highest single card plays. Can still win if all opponents also miss — pay attention to who's bluffing.",
 
   "guide.elo.tiers.title": "Rank tiers",
+
+  // Guide — quick start + tabs
+  "guide.quickStart.title": "Get started in 60 seconds",
+  "guide.quickStart.step1.title": "Create a session",
+  "guide.quickStart.step1.body":
+    'Tap "+ New game" on the leaderboard and set the buy-in (default 100 chips).',
+  "guide.quickStart.step2.title": "Join the table",
+  "guide.quickStart.step2.body":
+    'Open an active session and tap "Join session".',
+  "guide.quickStart.step3.title": "Play poker",
+  "guide.quickStart.step3.body":
+    "Play real cards at the table — Z-Poker handles chips and points.",
+  "guide.quickStart.step4.title": "Enter chips",
+  "guide.quickStart.step4.body":
+    "When the game ends, everyone enters their remaining chips and confirms.",
+  "guide.quickStart.step5.title": "Lock & get Elo",
+  "guide.quickStart.step5.body":
+    "The host locks the session — Elo updates instantly for the whole table.",
+  "guide.quickStart.ctaPlay": "Play now",
+  "guide.tab.gameplay": "Gameplay",
+  "guide.tab.elo": "Elo & Ranks",
+  "guide.tab.jackpot": "Jackpot",
+  "guide.tab.poker101": "Poker 101",
+  "guide.elo.summary.title": "Quick summary",
+  "guide.elo.summary.body":
+    "Finish above the buy-in → gain points (winners always get at least +3). Below → lose points. Beating a high-Elo table pays more, and win streaks earn a bonus.",
+  "guide.elo.detailsToggle": "Formula details",
+  "guide.elo.youAreHere": "You are here",
+  "guide.jackpot.yourPot": "Your pot",
+  "guide.jackpot.detailsToggle": "Why are losses charged in full?",
+  "guide.jackpot.cond1": "Loss streak of 3 or more",
+  "guide.jackpot.cond2": "Top 3 in the session",
+  "guide.jackpot.cond3": "End chips ≥ 1.5× buy-in",
+  "guide.example.title": "Quick example",
+  "guide.example.win": "Won +80 chips",
+  "guide.example.loss": "Lost −60 chips",
+  "guide.example.streak": "3-win streak",
+
   "rank.division": "Rank",
   "rank.eloToNext": "to next tier",
   "rank.toNextRank": "{n} elo to reach",

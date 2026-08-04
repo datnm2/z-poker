@@ -348,6 +348,44 @@ export const vi = {
     "Không có tổ hợp nào. Lá bài cao nhất tính. Vẫn có thể thắng nếu đối thủ cũng miss — chú ý đọc bluff.",
 
   "guide.elo.tiers.title": "Bảng hạng",
+
+  // Guide — quick start + tabs
+  "guide.quickStart.title": "Bắt đầu trong 60 giây",
+  "guide.quickStart.step1.title": "Tạo phiên",
+  "guide.quickStart.step1.body":
+    'Bấm "+ Ván mới" trên bảng xếp hạng, đặt buy-in (mặc định 100 chip).',
+  "guide.quickStart.step2.title": "Vào bàn",
+  "guide.quickStart.step2.body":
+    'Mở phiên đang chờ và bấm "Tham gia phiên".',
+  "guide.quickStart.step3.title": "Chơi poker",
+  "guide.quickStart.step3.body":
+    "Chơi bài thật tại bàn — Z-Poker lo phần chip và điểm.",
+  "guide.quickStart.step4.title": "Nhập chip",
+  "guide.quickStart.step4.body":
+    "Tàn ván, mỗi người nhập số chip còn lại và xác nhận.",
+  "guide.quickStart.step5.title": "Khoá & nhận Elo",
+  "guide.quickStart.step5.body":
+    "Chủ phiên khoá phiên — Elo cập nhật ngay cho cả bàn.",
+  "guide.quickStart.ctaPlay": "Vào chơi ngay",
+  "guide.tab.gameplay": "Cách chơi",
+  "guide.tab.elo": "Elo & Hạng",
+  "guide.tab.jackpot": "Nổ Hũ",
+  "guide.tab.poker101": "Poker 101",
+  "guide.elo.summary.title": "Tóm tắt nhanh",
+  "guide.elo.summary.body":
+    "Kết thúc trên buy-in → cộng điểm (thắng luôn được tối thiểu +3). Dưới buy-in → trừ điểm. Thắng ở bàn Elo cao ăn đậm hơn, và chuỗi thắng có bonus riêng.",
+  "guide.elo.detailsToggle": "Chi tiết công thức",
+  "guide.elo.youAreHere": "Bạn đang ở đây",
+  "guide.jackpot.yourPot": "Hũ của bạn",
+  "guide.jackpot.detailsToggle": "Vì sao thua bị trừ đủ?",
+  "guide.jackpot.cond1": "Chuỗi thua từ 3 trận trở lên",
+  "guide.jackpot.cond2": "Top 3 trong phiên",
+  "guide.jackpot.cond3": "Chip cuối ≥ 1.5× buy-in",
+  "guide.example.title": "Ví dụ nhanh",
+  "guide.example.win": "Thắng +80 chip",
+  "guide.example.loss": "Thua −60 chip",
+  "guide.example.streak": "Chuỗi 3 trận thắng",
+
   "rank.division": "Hạng",
   "rank.eloToNext": "đến bậc tiếp",
   "rank.toNextRank": "cần {n} elo để lên hạng",
