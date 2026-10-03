@@ -1,4 +1,8 @@
-import { computeEloChanges } from "./elo.math";
+import {
+  computeEloChanges,
+  JACKPOT_CAP,
+  JACKPOT_ELIGIBLE_LOSS_STREAK_MIN,
+} from "./elo.math";
 
 describe("Jackpot Accumulation", () => {
   it("accumulates jackpot for a player on their 3rd loss streak", () => {
@@ -62,8 +66,8 @@ describe("Jackpot Accumulation", () => {
         playerId: "winner",
         chipsEnd: 2000,
         elo: 1200,
-        currentStreak: -3,
-        jackpot: 100,
+        currentStreak: -JACKPOT_ELIGIBLE_LOSS_STREAK_MIN,
+        jackpot: JACKPOT_CAP,
       },
       {
         playerId: "loser",
@@ -77,9 +81,9 @@ describe("Jackpot Accumulation", () => {
     const result = computeEloChanges(players, buyIn);
     const winnerResult = result.find((r) => r.playerId === "winner")!;
 
-    expect(winnerResult.jackpotChange).toBe(-100);
+    expect(winnerResult.jackpotChange).toBe(-JACKPOT_CAP);
     expect(winnerResult.jackpotAfter).toBe(0);
-    expect(winnerResult.change).toBeGreaterThan(100);
+    expect(winnerResult.change).toBeGreaterThan(JACKPOT_CAP);
     expect(winnerResult.streakAfter).toBe(0); // Reset streak on jackpot payout
   });
 });

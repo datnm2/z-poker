@@ -16,7 +16,7 @@ import { SessionsEventsService } from "../sessions.events";
 import { CacheInvalidationService } from "../../cache/cache-invalidation.service";
 import { EMAIL_EVENT, type SessionRecapReadyEvent } from "../../email/email.events";
 import type { SessionHighlights } from "./highlights.types";
-import { selectPersona, type McPersona } from "./personas";
+import { selectPersona, type McPersona } from "../../ai/personas";
 
 interface PlayerContext {
   playerId: string;

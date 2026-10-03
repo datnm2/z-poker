@@ -35,6 +35,7 @@ Tuned cho pool nhỏ (~20 người, văn phòng) chơi 30 phút/ngày. Mục ti�
   - Loss streak: step 1, cap tại `LOSS_STREAK_BONUS_CAP = 5` (3→−3, 4→−4, 5→−5, 6→−5, …) — phạt thua liên tiếp nhưng không bị xoáy
 - **Jackpot Mechanism (Nổ Hũ)**:
   - **Tích lũy**: Bắt đầu ngay từ trận thua đầu tiên. Hũ tích thêm `10% × Số trận thua liên tiếp × |ELO loss gốc|` mỗi trận (`JACKPOT_ACCUMULATION_RATE = 0.1`). Hũ tích **on top** của loss, không rút từ ELO thua.
+  - **Cap**: Hũ tối đa **30** (`JACKPOT_CAP`). Tích chạm 30 thì dừng; số dư cũ > 30 bị clamp về 30 khi lock session (payout tối đa +30).
   - **Không giảm lỗ**: Thua liên tiếp bị trừ ELO **đầy đủ** (bỏ mitigation cũ) — giảm lạm phát ở đáy. Hũ vẫn tích trên loss gốc.
   - **Nổ Hũ (Payout)**: Hũ sẽ nổ khi người chơi có chuỗi thua >= 3 đạt được Thứ hạng: Top 3 trong phiên, Thành tích: Số chip cuối trận >= 1.5× Buy-in.
   - **Reset**: Khi nổ hũ thành công, người chơi nhận lại toàn bộ điểm trong hũ. Sau đó, hũ cá nhân và chuỗi thắng/thua lập tức được reset về 0.

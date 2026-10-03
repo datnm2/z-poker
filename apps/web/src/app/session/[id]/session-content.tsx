@@ -76,7 +76,7 @@ function EloDisplay({
   }, [after, delay]);
 
   const delta = after != null ? after - before : null;
-  const showStreak = streakBonus != null && Math.abs(streakBonus) >= 6;
+  const showStreak = streakBonus != null && streakBonus !== 0;
   const streakLabel = showStreak
     ? t(streakBonus! > 0 ? "session.streakIncluded.win" : "session.streakIncluded.loss")
         .replace(

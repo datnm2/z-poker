@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { SchemaType, type ResponseSchema } from "@google/generative-ai";
 import { AiService } from "../ai/ai.service";
-import { selectPersona, type McPersona } from "../sessions/highlights/personas";
+import { selectPersona, type McPersona } from "../ai/personas";
 import { MIN_GAMES_FOR_WINRATE, type SeasonRecapDto } from "./season.recap";
 import type { LocalizedText, SeasonRecapProse } from "./season-recap.entity";
 

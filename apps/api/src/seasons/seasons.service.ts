@@ -8,7 +8,7 @@ import { SessionPlayer } from "../sessions/session-player.entity";
 import { SeasonResult } from "./season-result.entity";
 import { SeasonRecap } from "./season-recap.entity";
 import { SeasonRecapProseService } from "./season-recap-prose.service";
-import { MC_PERSONAS } from "../sessions/highlights/personas";
+import { MC_PERSONAS } from "../ai/personas";
 import { SessionsEventsService } from "../sessions/sessions.events";
 import { CACHE_ADAPTER } from "../cache/cache.tokens";
 import { EMAIL_EVENT, type SeasonRecapReadyEvent } from "../email/email.events";

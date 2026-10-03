@@ -22,7 +22,7 @@ import { SessionsService } from "./sessions.service";
 import { SessionsEventsService, type SseMessage } from "./sessions.events";
 import { CurrentUser, type AuthedUser } from "../auth/current-user.decorator";
 import { Public } from "../auth/public.decorator";
-import { MC_PERSONAS } from "./highlights/personas";
+import { MC_PERSONAS } from "../ai/personas";
 
 class CreateSessionDto {
   @IsInt()

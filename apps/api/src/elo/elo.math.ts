@@ -33,12 +33,12 @@ export const BUST_MIN_PENALTY = -5;
 
 // Streak bonus: applied when |nextStreak| >= STREAK_THRESHOLD.
 // Win streak grows unbounded (3→+6, 4→+8, 5→+10, …) to reward hot runs.
-// Loss streak grows by 1 then caps at LOSS_STREAK_BONUS_CAP (3→-3, 4→-4,
-// 5→-5, 6→-5, 7→-5, …) so ELO stays inflationary but losses still sting
+// Loss streak grows by 1 then caps at LOSS_STREAK_BONUS_CAP (3→-3, 4→-4, …,
+// then flat at -CAP) so ELO stays inflationary but losses still sting
 // enough to separate ranks within the pool.
 export const STREAK_THRESHOLD = 3;
 export const WIN_STREAK_BONUS_PER_STEP = 2;
-export const LOSS_STREAK_BONUS_CAP = 5;
+export const LOSS_STREAK_BONUS_CAP = 7;
 
 // Jackpot tuning constants.
 // - A player becomes jackpot-eligible after this many consecutive losses.
@@ -49,6 +49,7 @@ export const JACKPOT_ELIGIBLE_LOSS_STREAK_MIN = 3;
 export const JACKPOT_PAYOUT_TOP_RANK_MAX = 3;
 export const JACKPOT_PAYOUT_MIN_BUYIN_MULTIPLIER = 1.5;
 export const JACKPOT_ACCUMULATION_RATE = 0.1;
+export const JACKPOT_CAP = 30;
 
 export interface EloInput {
   playerId: string;
@@ -93,6 +94,9 @@ export function computeEloChanges(
       Math.round(kFactor * (numPlayers / 2) * (actual - expected) * 1e6) / 1e6;
     let change = Math.round(raw);
     let jackpotChange = 0;
+    // Clamp legacy balances that predate the cap.
+    const pot = Math.min(r.jackpot, JACKPOT_CAP);
+    let jackpotAfter = pot;
 
     // 5. Update Streak & Old Streak Bonus
     let streakAfter = 0;
@@ -110,8 +114,9 @@ export function computeEloChanges(
         rank <= JACKPOT_PAYOUT_TOP_RANK_MAX &&
         r.chipsEnd >= buyIn * JACKPOT_PAYOUT_MIN_BUYIN_MULTIPLIER
       ) {
-        change += r.jackpot;
-        jackpotChange = -r.jackpot; // Cash out
+        change += pot;
+        jackpotChange = -pot; // Cash out
+        jackpotAfter = 0;
         streakAfter = 0; // Reset streak on jackpot payout (nổ hũ)
       }
     } else if (isLoss) {
@@ -120,9 +125,11 @@ export function computeEloChanges(
       const L_after = Math.abs(streakAfter);
       if (L_after >= 1) {
         // Accumulate to jackpot: rate * L * baseEloLoss
-        jackpotChange = Math.round(
+        const accrued = Math.round(
           Math.abs(change) * (JACKPOT_ACCUMULATION_RATE * L_after),
         );
+        jackpotChange = Math.min(accrued, JACKPOT_CAP - pot);
+        jackpotAfter = pot + jackpotChange;
       }
     }
 
@@ -158,7 +165,7 @@ export function computeEloChanges(
       streakAfter,
       streakBonus,
       jackpotBefore: r.jackpot,
-      jackpotAfter: Math.max(0, r.jackpot + jackpotChange),
+      jackpotAfter,
       jackpotChange,
     };
   });
