@@ -82,7 +82,7 @@ export class SeasonsController {
   // Manual season close. Domain is passed explicitly, but must match the caller's
   // own domain — a creator can only close their own company's season.
   @Post("close")
-  @Throttle({ write: { limit: 1, ttl: 60_000 } })
+  @Throttle({ write: { limit: 10, ttl: 60_000 } })
   async close(@CurrentUser() user: AuthedUser, @Body() body: CloseSeasonDto) {
     if (body.domain !== user.domain) {
       throw new ForbiddenException("Cannot close a season for another domain");

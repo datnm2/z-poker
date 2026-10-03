@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.10.0",
+    "launchdarkly-react-client-sdk": "^3.9.3",
     "next": "16.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4"

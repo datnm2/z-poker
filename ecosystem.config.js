@@ -6,6 +6,18 @@
 //   pm2 start ecosystem.config.js
 //   pm2 save                                     # persist for systemd resurrect
 //   pm2 reload zpoker-backend --update-env       # zero-downtime reload
+const { existsSync, readFileSync } = require('node:fs');
+const { join } = require('node:path');
+
+function getDatadogVersion() {
+  const versionFile = join(__dirname, 'apps/api/version.json');
+  if (existsSync(versionFile)) {
+    return JSON.parse(readFileSync(versionFile, 'utf8')).shortSha;
+  }
+
+  return require('./apps/api/package.json').version;
+}
+
 module.exports = {
   apps: [
     {
@@ -49,6 +61,10 @@ module.exports = {
       env_file: '.env',
 
       env: {
+        DD_ENV: 'production',
+        DD_LOGS_INJECTION: 'true',
+        DD_SERVICE: 'zpoker',
+        DD_VERSION: getDatadogVersion(),
         NODE_ENV: 'production',
       },
     },

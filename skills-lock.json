@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "onboardingV2": {
+      "source": "launchdarkly/experimental-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/onboardingV2/SKILL.md",
+      "computedHash": "2ec0288126b73c9bc0584f032de7d4898eaa716bf134975b9945ba327f3c75c5"
+    }
+  }
+}

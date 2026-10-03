@@ -6,7 +6,9 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { I18nProvider } from "@/providers/i18n-provider";
 import { LoadingProvider } from "@/providers/loading-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { LaunchDarklyProvider } from "@/providers/launchdarkly-provider";
 import { AppTopBar } from "@/components/app-top-bar";
+import { LaunchDarklyTestBanner } from "@/components/launchdarkly-test-banner";
 import { PoweredByBadge } from "@/components/powered-by-badge";
 import { GithubStarButton } from "@/components/github-star-button";
 import "./globals.css";
@@ -134,12 +136,15 @@ export default function RootLayout({
             <I18nProvider>
               <LoadingProvider>
                 <AuthProvider>
-                  <AppTopBar />
-                  <main className="flex flex-1 flex-col">{children}</main>
-                  <footer className="flex flex-wrap items-center justify-center gap-2 pb-safe-nav pt-6">
-                    <PoweredByBadge />
-                    <GithubStarButton />
-                  </footer>
+                  <LaunchDarklyProvider>
+                    <AppTopBar />
+                    <LaunchDarklyTestBanner />
+                    <main className="flex flex-1 flex-col">{children}</main>
+                    <footer className="flex flex-wrap items-center justify-center gap-2 pb-safe-nav pt-6">
+                      <PoweredByBadge />
+                      <GithubStarButton />
+                    </footer>
+                  </LaunchDarklyProvider>
                 </AuthProvider>
               </LoadingProvider>
             </I18nProvider>
