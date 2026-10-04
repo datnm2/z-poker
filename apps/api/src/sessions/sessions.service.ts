@@ -11,7 +11,11 @@ import { QueryFailedError, Repository } from "typeorm";
 import { Session } from "./session.entity";
 import { SessionPlayer } from "./session-player.entity";
 import { Player } from "../players/player.entity";
-import { EloService, type EloResult } from "../elo/elo.service";
+import {
+  EloService,
+  type AbsenceResult,
+  type EloResult,
+} from "../elo/elo.service";
 import { SessionsEventsService } from "./sessions.events";
 import { HighlightsService } from "./highlights/highlights.service";
 import type { SessionHighlights } from "./highlights/highlights.types";
@@ -642,24 +646,25 @@ export class SessionsService {
     sessionId: string,
     user: AuthedUser,
     personaId?: string | null,
-  ): Promise<{ results: EloResult[] }> {
+  ): Promise<{ results: EloResult[]; absences: AbsenceResult[] }> {
     const session = await this.loadSessionForDomain(sessionId, user.domain);
     if (session.createdBy !== user.userId) {
       throw new ForbiddenException("Only the session creator can lock");
     }
-    const results = await this.elo.calculateAndLock(sessionId);
+    const { results, absences } = await this.elo.calculateAndLock(sessionId);
     await this.emit({
       type: "session.locked",
       domain: session.domain,
       sessionId,
       results,
+      absences,
     });
     void this.highlights.generateForSession(
       sessionId,
       session.domain,
       personaId,
     );
-    return { results };
+    return { results, absences };
   }
 
   async regenerateHighlights(

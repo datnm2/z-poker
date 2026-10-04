@@ -336,6 +336,8 @@ export class SeasonsService {
             jackpot: Math.round(p.jackpot * RESET_KEEP_RATIO),
             gamesPlayed: 0,
             currentStreak: 0,
+            missedSessions: 0,
+            inactivityLevel: 0,
           },
         );
       }

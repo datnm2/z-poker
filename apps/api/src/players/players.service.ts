@@ -26,6 +26,9 @@ export interface PlayerDto {
   jackpot: number;
   avatarUrl: string | null;
   createdAt: string;
+  missedSessions: number;
+  inactivityLevel: number;
+  lastPlayedAt: string | null;
 }
 
 export interface PlayerWithRankDto extends PlayerDto {
@@ -60,6 +63,9 @@ function toDto(p: Player, lastResults: GameResult[] = []): PlayerDto {
     jackpot: p.jackpot,
     avatarUrl: p.avatarUrl,
     createdAt: p.createdAt.toISOString(),
+    missedSessions: p.missedSessions ?? 0,
+    inactivityLevel: p.inactivityLevel ?? 0,
+    lastPlayedAt: p.lastPlayedAt ? p.lastPlayedAt.toISOString() : null,
   };
 }
 
