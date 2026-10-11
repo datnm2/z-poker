@@ -51,6 +51,15 @@ export const JACKPOT_PAYOUT_MIN_BUYIN_MULTIPLIER = 1.5;
 export const JACKPOT_ACCUMULATION_RATE = 0.1;
 export const JACKPOT_CAP = 30;
 
+export const INACTIVITY_BEAT_SESSIONS = 3;
+export const INACTIVITY_BEAT_DAYS = 3;
+export const INACTIVITY_BASE_PENALTY = 10;
+export const INACTIVITY_PENALTY_MULTIPLIER = 2;
+export const INACTIVITY_ELO_FLOOR = 1200;
+export const INACTIVITY_MIN_SESSION_PLAYERS = 4;
+export const INACTIVITY_UTC_OFFSET_HOURS = 7;
+export const INACTIVITY_OPEN_SESSION_GRACE_HOURS = 24;
+
 export interface EloInput {
   playerId: string;
   chipsEnd: number;
@@ -169,4 +178,65 @@ export function computeEloChanges(
       jackpotChange,
     };
   });
+}
+
+export interface InactivityInput {
+  elo: number;
+  missedSessions: number;
+  daysAbsent: number;
+  beatsCharged: number;
+}
+
+export interface InactivityOutput {
+  beat: number;
+  penalty: number;
+  eloAfter: number;
+}
+
+export function calendarDaysBetween(
+  from: Date,
+  to: Date,
+  utcOffsetHours: number = INACTIVITY_UTC_OFFSET_HOURS,
+): number {
+  const shiftMs = utcOffsetHours * 3_600_000;
+  const dayIndex = (d: Date) => Math.floor((d.getTime() + shiftMs) / 86_400_000);
+  return Math.max(0, dayIndex(to) - dayIndex(from));
+}
+
+export function inactivityBeat(
+  missedSessions: number,
+  daysAbsent: number,
+): number {
+  const bySessions = Math.floor(
+    (missedSessions - 1) / INACTIVITY_BEAT_SESSIONS,
+  );
+  const byDays = Math.floor((daysAbsent - 1) / INACTIVITY_BEAT_DAYS);
+  return Math.max(0, Math.min(bySessions, byDays));
+}
+
+export function inactivityPenaltyForBeat(beat: number): number {
+  if (beat < 1) return 0;
+  return (
+    INACTIVITY_BASE_PENALTY * Math.pow(INACTIVITY_PENALTY_MULTIPLIER, beat - 1)
+  );
+}
+
+export function computeInactivityPenalty(
+  input: InactivityInput,
+): InactivityOutput {
+  const beat = inactivityBeat(input.missedSessions, input.daysAbsent);
+  if (beat <= input.beatsCharged) {
+    return { beat: input.beatsCharged, penalty: 0, eloAfter: input.elo };
+  }
+
+  let owed = 0;
+  for (let k = input.beatsCharged + 1; k <= beat; k++) {
+    owed += inactivityPenaltyForBeat(k);
+  }
+
+  const eloAfter =
+    input.elo > INACTIVITY_ELO_FLOOR
+      ? Math.max(INACTIVITY_ELO_FLOOR, input.elo - owed)
+      : input.elo;
+  return { beat, penalty: input.elo - eloAfter, eloAfter };
 }

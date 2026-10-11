@@ -42,6 +42,22 @@ Tuned cho pool nhỏ (~20 người, văn phòng) chơi 30 phút/ngày. Mục ti�
 - **Zero-sum chips**: `sum(chipsEnd) == buyIn × N` enforced at lock (chỉ chip, không phải ELO)
 - **Starting ELO**: 1200
 
+## Inactivity decay — trừ điểm vắng mặt (`elo.math.ts` + `elo.service.ts`)
+
+Chống "ôm hạng": ai có ELO > 1200 mà nghỉ lâu sẽ bị trừ dần về 1200. Không có cron — chạy ngay trong transaction lock session (`EloService.applyInactivityDecay`), nên ngày nào không ai chơi thì không ai bị trừ.
+
+- **Nhịp (beat) k** kích hoạt khi **phiên vắng > 3k VÀ ngày nghỉ > 3k** (k = 1, 2, 3, …) → nhịp đầu ở phiên vắng thứ 4, rồi 7, 10, 13, … Điều kiện ngày (lịch UTC+7) chặn việc một ngày nhiều phiên bị trừ dồn.
+- **Mức trừ nhịp k** = `INACTIVITY_BASE_PENALTY × INACTIVITY_PENALTY_MULTIPLIER^(k−1)` → −10, −20, −40, −80, …
+- **Sàn** `INACTIVITY_ELO_FLOOR = 1200`: trừ tới 1200 là dừng; ai ≤ 1200 được miễn.
+- **Reset**: chơi lại 1 phiên → `missed_sessions = 0`, `inactivity_level = 0` (lần nghỉ sau lại bắt đầu từ −10). Đóng mùa cũng reset 2 cột này.
+- **Phiên được tính là "vắng"**: chỉ phiên có ≥ `INACTIVITY_MIN_SESSION_PLAYERS = 4` người (2 người không thể tạo phiên nhỏ để ép người khác bị trừ).
+- **Không tính vắng**: người chưa từng chơi (`last_played_at IS NULL`); người đang ngồi ở một phiên khác chưa lock (≥ 4 người, tạo trong 24h) — 2 bàn chơi song song giờ trưa không phạt lẫn nhau.
+- **Không đụng tới** `currentStreak`, `jackpot`, `gamesPlayed`.
+- **Dữ liệu**: `players.last_played_at / missed_sessions / inactivity_level`; mỗi lần trừ ghi 1 dòng vào `elo_adjustments` (`type = 'inactivity'`, `session_id` = phiên gây ra). `session_players` chỉ chứa người có chơi nên không dùng được cho việc này.
+- **API**: `POST /sessions/:id/lock` và SSE `session.locked` trả thêm `absences[]` (`playerId, eloBefore, eloAfter, change, missedSessions, inactivityLevel`); `PlayerDto` có thêm `missedSessions`, `inactivityLevel`, `lastPlayedAt`.
+
+Ví dụ (1 phiên/ngày làm việc): nghỉ 1 tuần −10, 2 tuần −70, 3 tuần −150; Thần Bài 1425 về 1200 ở phiên vắng thứ 16. Tests: `yarn workspace api jest inactivity`.
+
 ## Season reset (soft reset cuối quý)
 
 Mỗi quý (Q1–Q4, theo countdown trên leaderboard) một mùa giải kết thúc → đóng mùa thủ công qua `POST /seasons/close` (xem `apps/api/src/seasons/seasons.service.ts` → `closeSeason`).
@@ -50,7 +66,7 @@ Mỗi quý (Q1–Q4, theo countdown trên leaderboard) một mùa giải kết t
   - Công thức: `newElo = round(1200 + (oldElo − 1200) × 0.30)` — hằng số `RESET_KEEP_RATIO = 0.3` trong `seasons.service.ts`.
   - VD: 1422 → 1267, 1370 → 1251, 1046 → 1154. Khoảng cách thu hẹp nhưng thứ tự được giữ.
 - **Jackpot (hũ chưa nổ)**: cũng giữ 30% → `newJackpot = round(oldJackpot × 0.30)`. Không mất trắng tiền hũ đang tích.
-- **`gamesPlayed` + `currentStreak`**: reset về 0 (mùa mới đếm lại từ đầu).
+- **`gamesPlayed` + `currentStreak` + `missedSessions` + `inactivityLevel`**: reset về 0 (mùa mới đếm lại từ đầu).
 - **Snapshot trước khi reset**: thứ hạng cuối mùa (elo/rank/games) lưu vào bảng `season_results`; `session_players` history giữ nguyên (recap + profile history vẫn chạy).
 - **Recap**: sau khi đóng mùa, sinh AI prose (giọng MC, thì quá khứ — xem `season-recap-prose.service.ts`) lưu vào `season_recaps`, hiện story "Wrapped" trên leaderboard. Cờ `recap_visible` per-mùa (admin bật/tắt qua `POST /seasons/recap/visibility`).
 

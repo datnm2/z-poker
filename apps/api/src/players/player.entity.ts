@@ -36,6 +36,15 @@ export class Player {
   @Column({ name: "avatar_url", type: "text", nullable: true })
   avatarUrl!: string | null;
 
+  @Column({ name: "last_played_at", type: "timestamptz", nullable: true })
+  lastPlayedAt!: Date | null;
+
+  @Column({ name: "missed_sessions", type: "int", default: 0 })
+  missedSessions!: number;
+
+  @Column({ name: "inactivity_level", type: "int", default: 0 })
+  inactivityLevel!: number;
+
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt!: Date;
 }

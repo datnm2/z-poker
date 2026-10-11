@@ -4,13 +4,42 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
-import { DataSource } from "typeorm";
+import { DataSource, type EntityManager } from "typeorm";
 import { Player } from "../players/player.entity";
 import { Session } from "../sessions/session.entity";
 import { SessionPlayer } from "../sessions/session-player.entity";
-import { computeEloChanges, type EloOutput } from "./elo.math";
+import {
+  calendarDaysBetween,
+  computeEloChanges,
+  computeInactivityPenalty,
+  INACTIVITY_MIN_SESSION_PLAYERS,
+  INACTIVITY_OPEN_SESSION_GRACE_HOURS,
+  type EloOutput,
+} from "./elo.math";
 
 export type EloResult = EloOutput;
+
+export interface AbsenceResult {
+  playerId: string;
+  eloBefore: number;
+  eloAfter: number;
+  change: number;
+  missedSessions: number;
+  inactivityLevel: number;
+}
+
+export interface LockResult {
+  results: EloResult[];
+  absences: AbsenceResult[];
+}
+
+interface LockedPlayerRow {
+  id: string;
+  elo: number;
+  missedSessions: number;
+  inactivityLevel: number;
+  lastPlayedAt: Date | string | null;
+}
 
 @Injectable()
 export class EloService {
@@ -20,7 +49,7 @@ export class EloService {
    * Calculates Elo updates for a session, applies them, and locks the session.
    * Mirrors supabase/migrations/002_new_elo_formula.sql (group-average, K=70).
    */
-  async calculateAndLock(sessionId: string): Promise<EloResult[]> {
+  async calculateAndLock(sessionId: string): Promise<LockResult> {
     return this.dataSource.transaction(async (tx) => {
       // SELECT ... FOR UPDATE on the session row so concurrent /lock requests
       // serialize; only the first tx sees isLocked=false and writes ELO.
@@ -123,18 +152,31 @@ export class EloService {
         ],
       );
 
+      const lockedAt = new Date();
+
       // Lock player rows in id-sorted order first to avoid deadlocks when two
       // concurrent session locks touch overlapping players. Then batch update.
-      await tx.query(
-        `SELECT id FROM players WHERE id = ANY($1::text[]) ORDER BY id FOR UPDATE`,
-        [playerIds],
+      const domainPlayers: LockedPlayerRow[] = await tx.query(
+        `SELECT id,
+                elo,
+                missed_sessions AS "missedSessions",
+                inactivity_level AS "inactivityLevel",
+                last_played_at AS "lastPlayedAt"
+         FROM players
+         WHERE domain = $1 OR id = ANY($2::text[])
+         ORDER BY id
+         FOR UPDATE`,
+        [session.domain, playerIds],
       );
       await tx.query(
         `UPDATE players p
          SET elo = p.elo + v.change,
              games_played = games_played + 1,
              current_streak = v.streak_after,
-             jackpot = v.jackpot_after
+             jackpot = v.jackpot_after,
+             last_played_at = $5::timestamptz,
+             missed_sessions = 0,
+             inactivity_level = 0
          FROM (
            SELECT unnest($1::text[]) AS id,
                   unnest($2::int[]) AS change,
@@ -142,14 +184,141 @@ export class EloService {
                   unnest($4::int[]) AS jackpot_after
          ) v
          WHERE p.id = v.id`,
-        [playerIds, changes, streakAfters, jackpotAfters],
+        [playerIds, changes, streakAfters, jackpotAfters, lockedAt],
       );
+
+      const absences = await this.applyInactivityDecay(tx, {
+        sessionId,
+        domain: session.domain,
+        lockedAt,
+        numPlayers,
+        participantIds: new Set(playerIds),
+        domainPlayers,
+      });
 
       await tx
         .getRepository(Session)
-        .update({ id: sessionId }, { isLocked: true, lockedAt: new Date() });
+        .update({ id: sessionId }, { isLocked: true, lockedAt });
 
-      return results;
+      return { results, absences };
     });
+  }
+
+  private async applyInactivityDecay(
+    tx: EntityManager,
+    ctx: {
+      sessionId: string;
+      domain: string;
+      lockedAt: Date;
+      numPlayers: number;
+      participantIds: Set<string>;
+      domainPlayers: LockedPlayerRow[];
+    },
+  ): Promise<AbsenceResult[]> {
+    if (ctx.numPlayers < INACTIVITY_MIN_SESSION_PLAYERS) return [];
+
+    const seatedRows: { playerId: string }[] = await tx.query(
+      `SELECT sp.player_id AS "playerId"
+       FROM session_players sp
+       WHERE sp.session_id IN (
+         SELECT s.id
+         FROM sessions s
+         JOIN session_players x ON x.session_id = s.id
+         WHERE s.domain = $1::text
+           AND s.is_locked = false
+           AND s.id <> $2::uuid
+           AND s.created_at >= $3::timestamptz - interval '${INACTIVITY_OPEN_SESSION_GRACE_HOURS} hours'
+         GROUP BY s.id
+         HAVING COUNT(*) >= $4::int
+       )`,
+      [
+        ctx.domain,
+        ctx.sessionId,
+        ctx.lockedAt,
+        INACTIVITY_MIN_SESSION_PLAYERS,
+      ],
+    );
+    const seatedElsewhere = new Set(seatedRows.map((r) => r.playerId));
+
+    const absences: AbsenceResult[] = [];
+    for (const p of ctx.domainPlayers) {
+      if (ctx.participantIds.has(p.id)) continue;
+      if (seatedElsewhere.has(p.id)) continue;
+      if (p.lastPlayedAt == null) continue;
+
+      const eloBefore = Number(p.elo);
+      const missedSessions = Number(p.missedSessions ?? 0) + 1;
+      const daysAbsent = calendarDaysBetween(
+        new Date(p.lastPlayedAt),
+        ctx.lockedAt,
+      );
+      const out = computeInactivityPenalty({
+        elo: eloBefore,
+        missedSessions,
+        daysAbsent,
+        beatsCharged: Number(p.inactivityLevel ?? 0),
+      });
+      absences.push({
+        playerId: p.id,
+        eloBefore,
+        eloAfter: out.eloAfter,
+        change: out.eloAfter - eloBefore,
+        missedSessions,
+        inactivityLevel: out.beat,
+      });
+    }
+    if (absences.length === 0) return absences;
+
+    await tx.query(
+      `UPDATE players p
+       SET elo = v.elo_after,
+           missed_sessions = v.missed_sessions,
+           inactivity_level = v.inactivity_level
+       FROM (
+         SELECT unnest($1::text[]) AS id,
+                unnest($2::int[]) AS elo_after,
+                unnest($3::int[]) AS missed_sessions,
+                unnest($4::int[]) AS inactivity_level
+       ) v
+       WHERE p.id = v.id`,
+      [
+        absences.map((a) => a.playerId),
+        absences.map((a) => a.eloAfter),
+        absences.map((a) => a.missedSessions),
+        absences.map((a) => a.inactivityLevel),
+      ],
+    );
+
+    const charged = absences.filter((a) => a.change < 0);
+    if (charged.length > 0) {
+      await tx.query(
+        `INSERT INTO elo_adjustments
+           (domain, player_id, type, amount, elo_before, elo_after,
+            session_id, level, missed_sessions, created_at)
+         SELECT $1::text, v.player_id, 'inactivity', v.amount, v.elo_before,
+                v.elo_after, $2::uuid, v.level, v.missed_sessions, $3::timestamptz
+         FROM (
+           SELECT unnest($4::text[]) AS player_id,
+                  unnest($5::int[]) AS amount,
+                  unnest($6::int[]) AS elo_before,
+                  unnest($7::int[]) AS elo_after,
+                  unnest($8::int[]) AS level,
+                  unnest($9::int[]) AS missed_sessions
+         ) v`,
+        [
+          ctx.domain,
+          ctx.sessionId,
+          ctx.lockedAt,
+          charged.map((a) => a.playerId),
+          charged.map((a) => a.change),
+          charged.map((a) => a.eloBefore),
+          charged.map((a) => a.eloAfter),
+          charged.map((a) => a.inactivityLevel),
+          charged.map((a) => a.missedSessions),
+        ],
+      );
+    }
+
+    return absences;
   }
 }
