@@ -189,7 +189,7 @@ export class HighlightsService {
       if (r.chipsEnd === null || r.eloBefore === null || r.eloAfter === null) {
         continue;
       }
-      const history = await this.playersService.getHistory(r.playerId, domain, 10);
+      const history = await this.playersService.getHistory(r.playerId, domain, 15);
       const mapped = this.mapHistory(r.playerId, history, sessionId);
       contexts.push({
         playerId: r.playerId,
@@ -240,7 +240,7 @@ export class HighlightsService {
     const toneBlock = persona.toneExamples.map((t) => `- "${t}"`).join("\n");
     return `${persona.voiceIntro}
 
-Session hôm nay (${playedDate}), buy-in ${buyIn} chip/người, ${contexts.length} người chơi. Dưới đây là data session này + lịch sử 10 session gần nhất của từng người chơi (history có thể rỗng nếu người đó mới chơi lần đầu).
+Session hôm nay (${playedDate}), buy-in ${buyIn} chip/người, ${contexts.length} người chơi. Dưới đây là data session này + lịch sử 15 session gần nhất của từng người chơi (history có thể rỗng nếu người đó mới chơi lần đầu).
 
 Nhiệm vụ: viết ĐÚNG ${targetCount} highlight troll nhất của ngày. Mỗi highlight gán vào 1 player cụ thể. Bắt đúng pattern:
 - Thắng/thua liên tục (>=3 session liên tiếp nhìn từ history) → "Thần bài nhập" / "Sao thua hoài vậy"
