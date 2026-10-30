@@ -36,6 +36,15 @@ export class SessionPlayer {
   @Column({ name: "jackpot_paid", type: "int", nullable: true })
   jackpotPaid!: number | null;
 
+  @Column({ name: "stack_delta", type: "int", nullable: true })
+  stackDelta!: number | null;
+
+  @Column({ name: "stack_after", type: "bigint", nullable: true, transformer: { to: (v?: number | null) => v, from: (v: string | null) => (v === null ? null : Number(v)) } })
+  stackAfter!: number | null;
+
+  @Column({ name: "stack_after_buyins", type: "numeric", precision: 12, scale: 3, nullable: true, transformer: { to: (v?: number | null) => v, from: (v: string | null) => (v === null ? null : Number(v)) } })
+  stackAfterBuyins!: number | null;
+
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
   updatedAt!: Date;
 }

@@ -49,6 +49,11 @@ export class PlayersController {
     return this.players.getByIdForDomain(id, user.domain);
   }
 
+  @Get(":id/stack")
+  async stack(@CurrentUser() user: AuthedUser, @Param("id") id: string) {
+    return this.players.getStack(id, user.domain);
+  }
+
   @Get(":id/history")
   async history(
     @CurrentUser() user: AuthedUser,

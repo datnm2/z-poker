@@ -7,6 +7,8 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { STACK_EVENT, type StackSessionLockedEvent } from "../stacks/stacks.events";
 import { QueryFailedError, Repository } from "typeorm";
 import { Session } from "./session.entity";
 import { SessionPlayer } from "./session-player.entity";
@@ -125,6 +127,7 @@ export class SessionsService {
     private readonly highlights: HighlightsService,
     @Inject(CACHE_ADAPTER) private readonly cache: CacheAdapter,
     private readonly cacheInvalidation: CacheInvalidationService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // Invalidate the cache before publishing, so the next read after the HTTP
@@ -654,6 +657,8 @@ export class SessionsService {
       sessionId,
       results,
     });
+    const stackEvent: StackSessionLockedEvent = { sessionId, domain: session.domain };
+    this.eventEmitter.emit(STACK_EVENT.SESSION_LOCKED, stackEvent);
     void this.highlights.generateForSession(
       sessionId,
       session.domain,

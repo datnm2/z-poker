@@ -29,6 +29,10 @@ export const CacheKeys = {
   seasonRecap: (domain: string, seasonKey: string) =>
     `season-recap:${domain}:${seasonKey}`,
 
+  playerStack: (domain: string, playerId: string) =>
+    `player-stack:${domain}:${playerId}`,
+  playerStackPrefix: (domain: string) => `player-stack:${domain}:`,
+
   profilePrefix: (domain: string) => `profile:${domain}:`,
   profileHistoryPrefix: (domain: string) => `profile-history:${domain}:`,
   sessionsHistoryPrefix: (domain: string) => `sessions-history:${domain}:`,

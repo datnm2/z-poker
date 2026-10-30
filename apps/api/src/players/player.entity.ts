@@ -33,6 +33,12 @@ export class Player {
   @Column({ type: "int", default: 0 })
   jackpot!: number;
 
+  @Column({ name: "stack_total", type: "bigint", default: 0, transformer: { to: (v?: number) => v, from: (v: string) => Number(v) } })
+  stackTotal!: number;
+
+  @Column({ name: "stack_buyins", type: "numeric", precision: 12, scale: 3, default: 0, transformer: { to: (v?: number) => v, from: (v: string) => Number(v) } })
+  stackBuyins!: number;
+
   @Column({ name: "avatar_url", type: "text", nullable: true })
   avatarUrl!: string | null;
 

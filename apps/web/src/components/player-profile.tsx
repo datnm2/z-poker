@@ -6,6 +6,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
 import { Loading } from "@/components/loading";
 import { ErrorState } from "@/components/error-state";
+import { ChipStackCard, type PlayerStack } from "@/components/chip-stack-card";
 import { ApiError } from "@/lib/api";
 import type { Player } from "@/types/database";
 import { getEloTier, getDivisionInfo, ELO_TIERS } from "@/lib/ranks";
@@ -38,16 +39,20 @@ export function PlayerProfile({
   const { api } = useAuth();
   const [player, setPlayer] = useState<PlayerWithRank | null>(null);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
+  const [stack, setStack] = useState<PlayerStack | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [eloHover, setEloHover] = useState<number | null>(null);
   const [error, setError] = useState<{ message: string; status?: number } | null>(null);
 
   const fetchProfile = useCallback(async () => {
     setError(null);
     try {
-      const [p, history] = await Promise.all([
+      const [p, history, st] = await Promise.all([
         api.get<PlayerWithRank>(`/players/${playerId}`),
         api.get<SessionRecord[]>(`/players/${playerId}/history?limit=90`),
+        api.get<PlayerStack>(`/players/${playerId}/stack`).catch(() => null),
       ]);
+      setStack(st);
       setPlayer(p);
       setSessions(history);
     } catch (err) {
@@ -87,10 +92,15 @@ export function PlayerProfile({
   const winRate =
     totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
-  const eloHistory = sessions
+  const eloEntries = sessions
     .filter((s) => s.eloAfter != null)
-    .map((s) => s.eloAfter!)
+    .map((s) => ({
+      elo: s.eloAfter!,
+      change: s.eloBefore != null ? s.eloAfter! - s.eloBefore : null,
+      date: s.session.lockedAt,
+    }))
     .reverse();
+  const eloHistory = eloEntries.map((e) => e.elo);
 
   const eloMin = eloHistory.length > 0 ? Math.min(...eloHistory) - 20 : 1180;
   const eloMax = eloHistory.length > 0 ? Math.max(...eloHistory) + 20 : 1220;
@@ -99,6 +109,14 @@ export function PlayerProfile({
   const peakElo = eloHistory.length > 0 ? Math.max(...eloHistory) : null;
   const lowestElo = eloHistory.length > 0 ? Math.min(...eloHistory) : null;
   const showLowest = lowestElo != null && peakElo != null && peakElo - lowestElo >= 20;
+
+  const onEloMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+    const n = eloHistory.length;
+    const i = Math.round((((ratio * 300 - 2) / 296) * (n - 1)));
+    setEloHover(Math.min(Math.max(i, 0), n - 1));
+  };
 
   const tier = getEloTier(player.elo);
   const divInfo = getDivisionInfo(player.elo);
@@ -242,7 +260,14 @@ export function PlayerProfile({
             </div>
           </div>
           <div className="rounded-xl border border-card-border bg-card p-4">
-           <div className="relative">
+           <div
+            className="relative select-none"
+            style={{ touchAction: "pan-y" }}
+            onPointerMove={onEloMove}
+            onPointerDown={onEloMove}
+            onPointerLeave={() => setEloHover(null)}
+            onPointerCancel={() => setEloHover(null)}
+           >
             {(() => {
               const points = eloHistory.map((elo, i) => {
                 const x = (i / (eloHistory.length - 1)) * 296 + 2;
@@ -380,10 +405,54 @@ export function PlayerProfile({
                 </span>
               ));
             })()}
+
+            {/* Hover guide + tooltip (HTML so it isn't distorted by preserveAspectRatio=none) */}
+            {eloHover != null && eloEntries[eloHover] && (() => {
+              const e = eloEntries[eloHover];
+              const xPct = ((eloHover / (eloEntries.length - 1)) * 296 + 2) / 3;
+              const yPct = 96 - ((e.elo - eloMin) / eloRange) * 92;
+              return (
+                <>
+                  <span
+                    className="pointer-events-none absolute top-0 h-full w-px bg-white/40"
+                    style={{ left: `${xPct}%` }}
+                  />
+                  <span
+                    className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card bg-fuchsia-500"
+                    style={{ left: `${xPct}%`, top: `${yPct}%` }}
+                  />
+                  <div
+                    className="pointer-events-none absolute z-20 whitespace-nowrap rounded-lg border border-card-border bg-background/95 px-2 py-1 text-[11px] shadow-lg"
+                    style={{
+                      left: `${Math.min(Math.max(xPct, 22), 78)}%`,
+                      top: `${Math.max(yPct - 6, 18)}%`,
+                      transform: "translate(-50%, -100%)",
+                    }}
+                  >
+                    <div className="text-[10px] text-muted">
+                      #{eloHover + 1}
+                      {e.date ? ` · ${new Date(e.date).toLocaleDateString()}` : ""}
+                    </div>
+                    <div className="font-bold tabular-nums text-accent">{e.elo}</div>
+                    {e.change != null && (
+                      <div
+                        className={`tabular-nums ${e.change > 0 ? "text-emerald-400" : e.change < 0 ? "text-red-400" : "text-muted"}`}
+                      >
+                        {e.change > 0 ? "+" : ""}
+                        {e.change} {t("stack.thisGame")}
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
            </div>
           </div>
         </div>
       )}
+
+      {/* Chip stack */}
+      <ChipStackCard key={playerId} playerId={playerId} initial={stack} />
 
       {/* Recent sessions */}
       {sessions.length > 0 && (

@@ -14,6 +14,7 @@
     "migration:revert": "yarn typeorm migration:revert",
     "test": "jest",
     "elo:matrix": "ts-node src/elo/elo.matrix.ts",
+    "stack:rebuild": "ts-node scripts/rebuild-stacks.ts",
     "gemini:check": "ts-node scripts/check-gemini-key.ts"
   },
   "dependencies": {

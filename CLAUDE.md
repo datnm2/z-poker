@@ -42,6 +42,15 @@ Tuned cho pool nhỏ (~20 người, văn phòng) chơi 30 phút/ngày. Mục ti�
 - **Zero-sum chips**: `sum(chipsEnd) == buyIn × N` enforced at lock (chỉ chip, không phải ELO)
 - **Starting ELO**: 1200
 
+## Chip Stack (`apps/api/src/stacks/`)
+
+Lifetime net chips per player: `Σ(chipsEnd − buyIn)` over all locked sessions (also tracked in buy-ins: `Σ(delta / buyIn)`). **Không** bị season reset ảnh hưởng. Quý (dương lịch) tính theo UTC của `sessions.locked_at`.
+
+- Lưu ở `players.stack_total/stack_buyins`, `session_players.stack_delta/stack_after/stack_after_buyins` (stack sau mỗi ván), và bảng `player_stack_quarterly` (theo quý UTC, trùng quý mùa giải).
+- `SessionsService.lock` emit `stack.session.locked` → `StacksListener` gọi `StacksService.applyPending(domain)` (idempotent, tự bù các session bị sót theo thứ tự `locked_at, id`) → publish SSE `player.stack_updated`.
+- API: `GET /players/:id/stack` (total, years, timeline). UI: `components/chip-stack-card.tsx` trên profile.
+- Tính lại từ đầu: `yarn workspace api stack:rebuild` (`DOMAIN=acme.com` để giới hạn một domain).
+
 ## Season reset (soft reset cuối quý)
 
 Mỗi quý (Q1–Q4, theo countdown trên leaderboard) một mùa giải kết thúc → đóng mùa thủ công qua `POST /seasons/close` (xem `apps/api/src/seasons/seasons.service.ts` → `closeSeason`).

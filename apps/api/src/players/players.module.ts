@@ -5,9 +5,10 @@ import { Session } from "../sessions/session.entity";
 import { SessionPlayer } from "../sessions/session-player.entity";
 import { PlayersService } from "./players.service";
 import { PlayersController } from "./players.controller";
+import { StacksModule } from "../stacks/stacks.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Player, Session, SessionPlayer])],
+  imports: [TypeOrmModule.forFeature([Player, Session, SessionPlayer]), StacksModule],
   providers: [PlayersService],
   controllers: [PlayersController],
   exports: [PlayersService],

@@ -38,6 +38,12 @@ export type SessionEvent =
       highlights: SessionHighlights;
     }
   | {
+      type: "player.stack_updated";
+      domain: string;
+      sessionId: string;
+      playerIds: string[];
+    }
+  | {
       type: "season.reset";
       domain: string;
       seasonKey: string;
@@ -86,6 +92,7 @@ export class SessionsEventsService {
     "session.created",
     "session.player_joined",
     "session.locked",
+    "player.stack_updated",
     "season.reset",
   ]);
 

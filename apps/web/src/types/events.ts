@@ -74,6 +74,12 @@ export type SessionEvent =
       highlights: SessionHighlights;
     }
   | {
+      type: "player.stack_updated";
+      domain: string;
+      sessionId: string;
+      playerIds: string[];
+    }
+  | {
       type: "season.reset";
       domain: string;
       seasonKey: string;

@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { Player } from "./player.entity";
 import { SessionPlayer } from "../sessions/session-player.entity";
 import { Session } from "../sessions/session.entity";
+import { StacksService, type PlayerStackDto } from "../stacks/stacks.service";
 import type { AuthedUser } from "../auth/current-user.decorator";
 import { CACHE_ADAPTER } from "../cache/cache.tokens";
 import {
@@ -73,7 +74,18 @@ export class PlayersService {
     @InjectRepository(Session)
     private readonly sessions: Repository<Session>,
     @Inject(CACHE_ADAPTER) private readonly cache: CacheAdapter,
+    private readonly stacks: StacksService,
   ) {}
+
+  async getStack(id: string, domain: string): Promise<PlayerStackDto> {
+    const key = CacheKeys.playerStack(domain, id);
+    const hit = await this.cache.get<PlayerStackDto>(key);
+    if (hit !== undefined) return hit;
+    const fresh = await this.stacks.getForPlayer(id, domain);
+    if (!fresh) throw new NotFoundException("Player not found");
+    await this.cache.set(key, fresh, DEFAULT_TTL_MS);
+    return fresh;
+  }
 
   async findOrCreateMe(user: AuthedUser, displayName: string): Promise<PlayerDto> {
     const existing = await this.players.findOne({ where: { id: user.userId } });

@@ -9,13 +9,14 @@ import { Disclosure, GuideCard } from "./guide-cards";
 import { TierLadder } from "./tier-ladder";
 import { EloExampleCard } from "./elo-example-card";
 
-type TabId = "gameplay" | "elo" | "jackpot" | "poker101";
+type TabId = "gameplay" | "elo" | "stack" | "jackpot" | "poker101";
 
-const TABS: { id: TabId; labelKey: TranslationKey }[] = [
-  { id: "gameplay", labelKey: "guide.tab.gameplay" },
-  { id: "elo", labelKey: "guide.tab.elo" },
-  { id: "jackpot", labelKey: "guide.tab.jackpot" },
-  { id: "poker101", labelKey: "guide.tab.poker101" },
+const TABS: { id: TabId; labelKey: TranslationKey; icon: string }[] = [
+  { id: "gameplay", labelKey: "guide.tab.gameplay", icon: "📖" },
+  { id: "elo", labelKey: "guide.tab.elo", icon: "🏆" },
+  { id: "stack", labelKey: "guide.tab.stack", icon: "🪙" },
+  { id: "jackpot", labelKey: "guide.tab.jackpot", icon: "💰" },
+  { id: "poker101", labelKey: "guide.tab.poker101", icon: "🃏" },
 ];
 
 type Item = { titleKey: TranslationKey; bodyKey: TranslationKey };
@@ -51,6 +52,15 @@ const GAMEPLAY_GROUPS: Group[] = [
     })),
   },
 ];
+
+const STACK_GROUP: Group = {
+  titleKey: "guide.stack.title",
+  introKey: "guide.stack.intro",
+  items: (["what", "update", "quarterly", "buyins", "season"] as const).map((k) => ({
+    titleKey: `guide.stack.${k}.title` as const,
+    bodyKey: `guide.stack.${k}.body` as const,
+  })),
+};
 
 const STRATEGY_GROUP: Group = {
   titleKey: "guide.strategy.title",
@@ -255,20 +265,23 @@ export function GuideTabs() {
   return (
     <div className="mt-6">
       <div className="sticky top-0 z-10 -mx-4 bg-background/95 px-4 py-2 backdrop-blur">
-        <div role="tablist" className="flex gap-1.5 overflow-x-auto">
+        <div role="tablist" className="grid grid-cols-5 gap-1 rounded-2xl border border-card-border bg-card p-1">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               role="tab"
               aria-selected={active === tab.id}
               onClick={() => setActive(tab.id)}
-              className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition active:scale-[0.97] ${
+              className={`flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 text-[11px] font-semibold leading-tight transition active:scale-[0.97] ${
                 active === tab.id
-                  ? "bg-accent text-accent-contrast"
-                  : "border border-card-border bg-card text-muted"
+                  ? "bg-accent text-accent-contrast shadow-sm"
+                  : "text-muted hover:bg-white/5"
               }`}
             >
-              {t(tab.labelKey)}
+              <span className="text-base leading-none" aria-hidden>
+                {tab.icon}
+              </span>
+              <span className="w-full truncate text-center">{t(tab.labelKey)}</span>
             </button>
           ))}
         </div>
@@ -277,6 +290,7 @@ export function GuideTabs() {
         {active === "gameplay" &&
           GAMEPLAY_GROUPS.map((g) => <GroupSection key={g.titleKey} group={g} />)}
         {active === "elo" && <EloTab />}
+        {active === "stack" && <GroupSection group={STACK_GROUP} />}
         {active === "jackpot" && <JackpotTab />}
         {active === "poker101" && <GroupSection group={POKER101_GROUP} />}
       </div>
