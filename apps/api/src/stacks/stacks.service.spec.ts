@@ -129,7 +129,7 @@ describe("StacksService.getForPlayer", () => {
       wins: 1,
       losses: 2,
       ties: 1,
-      avgBuyIns: -0.375,
+      avgBuyIns: -0.333,
       winRate: 25,
       bestGame: 80,
       worstGame: -150,
@@ -140,6 +140,20 @@ describe("StacksService.getForPlayer", () => {
     });
     expect(dto!.rank).toEqual({ byStack: 2, byAvg: 3, of: 5 });
     expect(dto!.timeline.map((t) => t.stackAfter)).toEqual([-100, -150, -70]);
+  });
+
+  it("keeps the average's sign aligned with net chips across mixed buy-ins", async () => {
+    const dto = await svc([
+      [{ chips: "-100", bi: "0.5" }],
+      [quarter({ games: 3, wins: 2, losses: 1, net_chips: -100, net_buyins: 0.5 })],
+      [
+        { sessionId: "a", lockedAt: "2026-01-01T00:00:00Z", buyIn: 200, chipsEnd: 300, delta: 100, stackAfter: "100" },
+        { sessionId: "b", lockedAt: "2026-01-02T00:00:00Z", buyIn: 200, chipsEnd: 300, delta: 100, stackAfter: "200" },
+        { sessionId: "c", lockedAt: "2026-01-03T00:00:00Z", buyIn: 400, chipsEnd: 0, delta: -400, stackAfter: "-200" },
+      ],
+      [],
+    ]).getForPlayer("p", "acme.com");
+    expect(dto!.total.avgBuyIns).toBe(-0.125);
   });
 
   it("handles a player with no games", async () => {

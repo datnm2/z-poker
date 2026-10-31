@@ -240,6 +240,7 @@ export class StacksService {
     const sum = (k: "games" | "wins" | "losses" | "ties") => quarters.reduce((a, y) => a + y[k], 0);
     const gameBi = timeline.map((t) => stackBuyIns(t.delta, t.buyIn));
     const stacks = timeline.map((t) => t.stackAfter);
+    const staked = timeline.reduce((a, t) => a + t.buyIn, 0);
     return {
       total: {
         chips: Number(player.chips),
@@ -250,7 +251,8 @@ export class StacksService {
         ties: sum("ties"),
         peak: stacks.length ? Math.max(0, ...stacks) : 0,
         trough: stacks.length ? Math.min(0, ...stacks) : 0,
-        avgBuyIns: sum("games") ? Math.round((Number(player.bi) / sum("games")) * 1000) / 1000 : 0,
+        // Net chips over total chips staked, so mixed buy-in tables never flip the sign.
+        avgBuyIns: staked ? Math.round((Number(player.chips) / staked) * 1000) / 1000 : 0,
         winRate: sum("games") ? Math.round((sum("wins") / sum("games")) * 100) : 0,
         bestGame: quarters.length ? Math.max(...quarters.map((y) => y.bestGame)) : 0,
         worstGame: quarters.length ? Math.min(...quarters.map((y) => y.worstGame)) : 0,
