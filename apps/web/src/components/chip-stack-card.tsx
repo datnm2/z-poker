@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/i18n-provider";
+import { ChipStackLeaderboard } from "@/components/chip-stack-leaderboard";
 import { useSseStream, type SseHandlers } from "@/hooks/use-sse-stream";
 
 const qKey = (d: string | Date) => {
@@ -183,6 +184,7 @@ export function ChipStackCard({ playerId, initial }: { playerId: string; initial
   const [data, setData] = useState<PlayerStack | null>(initial ?? null);
   const [loading, setLoading] = useState(initial === undefined);
   const [year, setYear] = useState<string>("all");
+  const [lbOpen, setLbOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -254,15 +256,36 @@ export function ChipStackCard({ playerId, initial }: { playerId: string; initial
         {data.total.games > 0 && (
           <div className="mt-3 grid grid-cols-2 gap-2">
             {[
-              { label: t("stack.rank"), value: data.rank.byStack ? `#${data.rank.byStack}` : "-", sub: data.rank.of ? `/ ${data.rank.of}` : "", cls: "text-accent" },
-              { label: t("stack.bestGame"), value: `${fmt(data.total.bestGame)} ${t("stack.chips")}`, sub: `${fmtBi(data.total.bestGameBuyIns, 2)} ${t("stack.buyIns")}`, cls: "text-emerald-400" },
-            ].map((k) => (
-              <div key={k.label} className="rounded-lg bg-white/5 px-3 py-2">
+              { key: "rank", label: t("stack.rank"), value: data.rank.byStack ? `#${data.rank.byStack}` : "-", sub: data.rank.of ? `/ ${data.rank.of}` : "", cls: "text-accent" },
+              { key: "best", label: t("stack.bestGame"), value: `${fmt(data.total.bestGame)} ${t("stack.chips")}`, sub: `${fmtBi(data.total.bestGameBuyIns, 2)} ${t("stack.buyIns")}`, cls: "text-emerald-400" },
+            ].map((k) =>
+              k.key === "rank" ? (
+                <button
+                  key={k.key}
+                  type="button"
+                  aria-haspopup="dialog"
+                  onClick={() => setLbOpen(true)}
+                  className="group relative min-h-11 cursor-pointer overflow-hidden rounded-lg border border-accent/40 bg-accent/10 px-3 py-2 text-left transition duration-200 hover:-translate-y-0.5 hover:border-accent hover:bg-accent/20 hover:shadow-[0_6px_20px_rgba(var(--accent-glow),0.35)] focus-visible:outline-2 focus-visible:outline-accent active:translate-y-0 active:scale-[0.97]"
+                >
+                  <div className="text-[10px] uppercase tracking-wider text-muted transition-colors group-hover:text-foreground">
+                    {k.label}
+                  </div>
+                  <div className={`text-lg font-bold tabular-nums ${k.cls}`}>
+                    {k.value} <span className="text-[10px] font-normal text-muted">{k.sub}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-accent">
+                    {t("stackLb.view")}
+                    <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-1">›</span>
+                  </div>
+                </button>
+              ) : (
+              <div key={k.key} className="rounded-lg bg-white/5 px-3 py-2">
                 <div className="text-[10px] uppercase tracking-wider text-muted">{k.label}</div>
                 <div className={`text-lg font-bold tabular-nums ${k.cls}`}>{k.value}</div>
                 {k.sub && <div className="text-[10px] text-muted tabular-nums">{k.sub}</div>}
               </div>
-            ))}
+              ),
+            )}
           </div>
         )}
 
@@ -294,6 +317,8 @@ export function ChipStackCard({ playerId, initial }: { playerId: string; initial
           </>
         )}
       </div>
+
+      {lbOpen && <ChipStackLeaderboard currentPlayerId={playerId} onClose={() => setLbOpen(false)} />}
 
       {data.quarters.length > 0 && (
         <>

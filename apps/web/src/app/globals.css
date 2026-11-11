@@ -525,3 +525,18 @@ input[type="number"] {
   .podium-runner-dot::before { animation: none !important; opacity: 0; }
   .animate-chip-spin { animation: none; }
 }
+
+@keyframes lb-rise {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lb-sheet {
+  0%   { opacity: 0; transform: translateY(40px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes lb-shine {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

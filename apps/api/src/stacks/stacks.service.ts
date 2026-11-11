@@ -54,6 +54,20 @@ export interface PlayerStackDto {
   timeline: StackTimelineEntryDto[];
 }
 
+export interface StackLeaderboardEntryDto {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  elo: number;
+  chips: number;
+  avgBuyIns: number;
+  games: number;
+  wins: number;
+  losses: number;
+  rankByStack: number;
+  rankByAvg: number;
+}
+
 @Injectable()
 export class StacksService {
   constructor(@InjectDataSource() private readonly ds: DataSource) {}
@@ -267,5 +281,38 @@ export class StacksService {
       quarters,
       timeline,
     };
+  }
+
+  async getLeaderboard(domain: string): Promise<StackLeaderboardEntryDto[]> {
+    const rows: Record<string, string | number | null>[] = await this.ds.query(
+      `WITH g AS (
+         SELECT p.id, p.name, p.avatar_url, p.elo, p.stack_total, p.stack_buyins,
+                SUM(y.games) AS games, SUM(y.wins) AS wins, SUM(y.losses) AS losses
+         FROM players p
+         JOIN player_stack_quarterly y ON y.player_id = p.id
+         WHERE p.domain = $1
+         GROUP BY p.id
+         HAVING SUM(y.games) > 0
+       )
+       SELECT g.*,
+              RANK() OVER (ORDER BY stack_total DESC) AS by_stack,
+              RANK() OVER (ORDER BY stack_buyins / games DESC) AS by_avg
+       FROM g
+       ORDER BY stack_total DESC, name`,
+      [domain],
+    );
+    return rows.map((r) => ({
+      id: String(r.id),
+      name: String(r.name),
+      avatarUrl: (r.avatar_url as string | null) ?? null,
+      elo: Number(r.elo),
+      chips: Number(r.stack_total),
+      avgBuyIns: Math.round((Number(r.stack_buyins) / Number(r.games)) * 1000) / 1000,
+      games: Number(r.games),
+      wins: Number(r.wins),
+      losses: Number(r.losses),
+      rankByStack: Number(r.by_stack),
+      rankByAvg: Number(r.by_avg),
+    }));
   }
 }

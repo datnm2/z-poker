@@ -231,6 +231,16 @@ export const en = {
   "stack.worstGame": "Biggest loss",
   "stack.thisGame": "this game",
   "stack.empty": "No finished games yet. Your stack starts after the first locked session.",
+  "stackLb.title": "Chip Vault",
+  "stackLb.subtitle": "Office chip stack leaderboard · all-time",
+  "stackLb.view": "View leaderboard",
+  "stackLb.byChips": "Total chips",
+  "stackLb.byAvg": "Avg / game",
+  "stackLb.you": "You",
+  "stackLb.empty": "No one on the board yet. Lock a session to get started!",
+  "stackLb.error": "Couldn't load the leaderboard",
+  "stackLb.close": "Close",
+  "stackLb.perGame": "buy-in / game",
 
   // Guide
   "guide.title": "How to Play",

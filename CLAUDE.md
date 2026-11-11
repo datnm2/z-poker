@@ -48,7 +48,7 @@ Lifetime net chips per player: `Σ(chipsEnd − buyIn)` over all locked sessions
 
 - Lưu ở `players.stack_total/stack_buyins`, `session_players.stack_delta/stack_after/stack_after_buyins` (stack sau mỗi ván), và bảng `player_stack_quarterly` (theo quý UTC, trùng quý mùa giải).
 - `SessionsService.lock` emit `stack.session.locked` → `StacksListener` gọi `StacksService.applyPending(domain)` (idempotent, tự bù các session bị sót theo thứ tự `locked_at, id`) → publish SSE `player.stack_updated`.
-- API: `GET /players/:id/stack` (total, years, timeline). UI: `components/chip-stack-card.tsx` trên profile.
+- API: `GET /players/:id/stack` (total, years, timeline); `GET /stacks/leaderboard` (BXH all-time theo domain, cache chung prefix `player-stack:`). UI: `components/chip-stack-card.tsx` trên profile; tile "Hạng văn phòng" bấm được → dialog `components/chip-stack-leaderboard.tsx` (toggle tổng chip / TB buy-in mỗi ván, podium top 3, click người chơi → `/player/:id`).
 - Tính lại từ đầu: `yarn workspace api stack:rebuild` (`DOMAIN=acme.com` để giới hạn một domain).
 
 ## Season reset (soft reset cuối quý)

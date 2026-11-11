@@ -230,6 +230,16 @@ export const vi = {
   "stack.worstGame": "Ván thua lớn nhất",
   "stack.thisGame": "ván này",
   "stack.empty": "Chưa có ván nào kết thúc. Stack bắt đầu tính sau phiên được khoá đầu tiên.",
+  "stackLb.title": "Kho Chip",
+  "stackLb.subtitle": "BXH stack chip văn phòng · từ trước đến nay",
+  "stackLb.view": "Xem BXH",
+  "stackLb.byChips": "Tổng chip",
+  "stackLb.byAvg": "TB / ván",
+  "stackLb.you": "Bạn",
+  "stackLb.empty": "Chưa ai lên bảng. Khoá một phiên để bắt đầu!",
+  "stackLb.error": "Không tải được bảng xếp hạng",
+  "stackLb.close": "Đóng",
+  "stackLb.perGame": "buy-in / ván",
 
   // Guide
   "guide.title": "Cách chơi",
